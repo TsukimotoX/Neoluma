@@ -5,12 +5,12 @@ Whether you're building a simple script or a complex operating system, Neoluma i
 
 ## Features
 
-- **Simple Syntax**: Neoluma's syntax is intuitive, combining the best elements of Python's readability and C#'s expressiveness.
+- **Simple Syntax**: Neoluma's syntax is intuitive, combining the elements of Python's readability and C#'s expressiveness.
 - **LLVM Backend**: Neoluma is built on top of LLVM, making it capable of compiling to high-performance machine code. This means it can be used for everything from rapid prototyping to creating performance-critical applications.
 - **Memory Management**: With automatic garbage collection and manual memory allocation options, Neoluma offers flexibility to suit different needs.
 - **Async and Await**: Asynchronous programming made easy with built-in async/await support.
 - **Type Safety**: Includes basic types like `int`, `float`, with additional options to control data size for more efficient memory usage (e.g., `int[8]` or `int[16]`).
-- **Macros**: Use macros to simplify your code and make it more reusable and modular.
+- **Macros**: Use macros to simplify your code and make it more reusable and modular, like in C++.
 - **Interoperability**: Easily integrate with existing C++ libraries using the `#use` directive, allowing you to access external functions or even entire libraries.
 - **Cross-Platform**: Designed to work across platforms, Neoluma can be used for everything from small applications to full-fledged operating systems.
 
