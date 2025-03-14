@@ -27,6 +27,7 @@ std::unordered_map<std::string, Keyword> keywordMap = {
     {"@public", Keyword::Public}, {"@private", Keyword::Private}, {"@protected", Keyword::Protected},
     {"static", Keyword::Static}, {"override", Keyword::Override},
     {"#macro", Keyword::Macro}, {"decorator", Keyword::Decorator},
+    {"as", Keyword::As}, {"with", Keyword::With},
 };
 
 std::unordered_set<char> delimiters = {'(', ')', '{', '}', ';', ','};
