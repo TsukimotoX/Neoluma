@@ -30,6 +30,7 @@ enum class Keyword {
     Public, Private, Protected, // Keywords for access modifiers
     Static, Override, // Keywords for modifiers
     Macro, Decorator, // Keywords for macros and decorators
+    As, With, // Other
 };
 
 enum class Operators {
