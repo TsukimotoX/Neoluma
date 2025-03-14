@@ -37,11 +37,12 @@ enum class Operators {
     Add, Subtract, Multiply, Divide, Modulo, Power, // Arithmetic operators
     Equal, NotEqual, LessThan, GreaterThan, LessThanOrEqual, GreaterThanOrEqual, // Comparison operators
     LogicalAnd, LogicalOr, LogicalNot, // Logical operators
+    Not, Negate, // Unary operators
 };
 
 extern std::unordered_map<std::string, Operators> operatorMap;
 extern std::unordered_map<std::string, Keyword> keywordMap;
-extern std::unordered_set<char> delimiters;
+extern std::unordered_set<std::string> delimiters;
 
 class Lexer {
 private:

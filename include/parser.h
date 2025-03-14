@@ -4,42 +4,32 @@
 #include <vector>
 #include <memory>
 #include "lexer.h"
+#include "nodes.h"
 
-struct ASTNode {
-    virtual ~ASTNode() = default;
+class Parser {
+private:
+    const std::vector<Token>& tokens;
+    size_t curPos;
+
+    Token currentToken();
+    void nextToken();
+
+    std::unique_ptr<ASTNode> parsePrimary();
+
+    std::unique_ptr<ASTNode> parseExpression();
+    std::unique_ptr<ASTNode> parseFunction();
+    std::unique_ptr<ASTNode> parseCondition();
+    std::unique_ptr<ASTNode> parseStatements();
+    std::unique_ptr<ASTNode> parseClass();
+    std::unique_ptr<ASTNode> parseStruct();
+    std::unique_ptr<ASTNode> parseEnum();
+    std::unique_ptr<ASTNode> parseTryCatch();
+    std::unique_ptr<ASTNode> parseAccessModifiers();
+    std::unique_ptr<ASTNode> parseHashtags();
+    std::unique_ptr<ASTNode> parseImport();
+public:
+    Parser(const std::vector<Token>& tokens) : tokens(tokens), curPos(0) {}
+    std::unique_ptr<ASTNode> parse();
 };
 
-struct LiteralNode : public ASTNode {
-    int value;
-    LiteralNode(int val) : value(val) {}
-};
-
-struct VariableNode : public ASTNode {
-    std::string n; //name
-    VariableNode(const std::string& name) : n(name) {}
-};
-
-struct BinaryOperationNode : public ASTNode {
-    std::unique_ptr<ASTNode> l; // left
-    std::string o; //operation like math or logic
-    std::unique_ptr<ASTNode> r; // right
-
-    BinaryOperationNode(std::unique_ptr<ASTNode> left, const std::string& op, std::unique_ptr<ASTNode> right) : l(std::move(left)), o(op), r(std::move(right)) {}
-};
-
-// Unary operation is an operation to do with one value (-a, !a)
-struct UnaryOperationNode : public ASTNode {
-    std::string op; //operator
-    std::unique_ptr<ASTNode> oprnd; //operand
-
-    UnaryOperationNode(const std::string& Operator, std::unique_ptr<ASTNode> operand) : op(Operator), oprnd(std::move(operand)) {}
-};
-
-struct FunctionCallNode : public ASTNode {
-    std::string funcName;
-    std::vector<std::unique_ptr<ASTNode>> arguments;
-
-    FunctionCallNode(const std::string& name) : funcName(name) {}
-};
-
-#endif 
+#endif

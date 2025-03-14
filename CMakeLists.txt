@@ -16,6 +16,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_library(NeolumaLib
     src/lexer.cpp
+    src/parser.cpp
 )
 add_executable(neoluma src/main.cpp)
 

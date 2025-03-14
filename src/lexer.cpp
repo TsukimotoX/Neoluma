@@ -11,6 +11,7 @@ std::unordered_map<std::string, Operators> operatorMap = {
     {"==", Operators::Equal}, {"!=", Operators::NotEqual}, {"<", Operators::LessThan}, {">", Operators::GreaterThan}, {"<=", Operators::LessThanOrEqual}, {">=", Operators::GreaterThanOrEqual},
     {"&&", Operators::LogicalAnd}, {"||", Operators::LogicalOr}, {"!", Operators::LogicalNot},
     {"and", Operators::LogicalAnd}, {"or", Operators::LogicalOr}, {"not", Operators::LogicalNot},
+    {"!", Operators::Not}, {"-", Operators::Negate},
 };
 
 std::unordered_map<std::string, Keyword> keywordMap = {
@@ -30,7 +31,7 @@ std::unordered_map<std::string, Keyword> keywordMap = {
     {"as", Keyword::As}, {"with", Keyword::With},
 };
 
-std::unordered_set<char> delimiters = {'(', ')', '{', '}', ';', ','};
+std::unordered_set<std::string> delimiters = {"(", ")", "{", "}", ";", ","};
 
 // Private stuff
 Token Lexer::nextToken(){
@@ -59,7 +60,7 @@ Token Lexer::nextToken(){
         return tokenizeOperator();
     }
 
-    if (delimiters.count(curChar)) {
+    if (delimiters.find(std::string(1, curChar)) != delimiters.end()) {
         pos++;
         return {DELIMITER, std::string(1, curChar)};
     }

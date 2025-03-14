@@ -1,20 +1,16 @@
 #include "lexer.h"
+#include "parser.h"
 #include <iostream>
 
 int main() {
     std::string code = R"(
-        function add(a, b) {
-            return a + b;
-        }
-        print(add(10, 20));
+        2+3
     )";
 
     Lexer lexer(code);
-    auto tokens = lexer.tokenize();
-
-    for (const auto& token : tokens) {
-        std::cout << "Token: " << token.value << " (Type: " << token.type << ")\n";
-    }
-
+    auto lexer_res = lexer.tokenize();
+    Parser parser(lexer_res);
+    auto parser_res = parser.parse();
+    std::cout << parser_res.get() << std::endl;
     return 0;
 }
