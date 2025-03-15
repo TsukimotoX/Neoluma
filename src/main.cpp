@@ -4,13 +4,21 @@
 
 int main() {
     std::string code = R"(
-        2+3
+        if (a > b) {
+            x = 10;
+        } else {
+            x = 20;
+        }
     )";
 
     Lexer lexer(code);
-    auto lexer_res = lexer.tokenize();
-    Parser parser(lexer_res);
-    auto parser_res = parser.parse();
-    std::cout << parser_res.get() << std::endl;
+    auto tokens = lexer.tokenize();
+    for (auto& token : tokens) {
+        std::cout << token.toString() << " ";
+    }
+    std::cout << std::endl;
+    Program expr = parseProgram(tokens);
+    printProgram(expr);
+    std::cout << std::endl;
     return 0;
 }

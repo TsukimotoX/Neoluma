@@ -8,12 +8,26 @@
 #include <unordered_set>
 
 enum TokenType {
-    NUMBER, IDENTIFIER, OPERATOR, KEYWORD, UNKNOWN, DELIMITER, END_OF_FILE,
+    NUMBER, VARIABLE, OPERATOR, KEYWORD, UNKNOWN, DELIMITER, END_OF_FILE,
 };
 
 struct Token {
     TokenType type;
     std::string value;
+
+    std::string toString() const {
+        std::string typeStr;
+        switch (type) {
+            case TokenType::NUMBER: typeStr = "NUMBER"; break;
+            case TokenType::VARIABLE: typeStr = "VARIABLE"; break;
+            case TokenType::OPERATOR: typeStr = "OPERATOR"; break;
+            case TokenType::KEYWORD: typeStr = "KEYWORD"; break;
+            case TokenType::UNKNOWN: typeStr = "UNKNOWN"; break;
+            case TokenType::DELIMITER: typeStr = "DELIMITER"; break;
+            case TokenType::END_OF_FILE: typeStr = "END_OF_FILE"; break;
+        }
+        return "[" + typeStr + "(\"" + value + "\")]";
+    }
 };
 
 enum class Keyword {
@@ -34,10 +48,10 @@ enum class Keyword {
 };
 
 enum class Operators {
-    Add, Subtract, Multiply, Divide, Modulo, Power, // Arithmetic operators
-    Equal, NotEqual, LessThan, GreaterThan, LessThanOrEqual, GreaterThanOrEqual, // Comparison operators
-    LogicalAnd, LogicalOr, LogicalNot, // Logical operators
-    Not, Negate, // Unary operators
+    Add, Subtract, Multiply, Divide, Modulo, Power,
+    Equal, NotEqual, LessThan, GreaterThan, LessThanOrEqual, GreaterThanOrEqual,
+    LogicalAnd, LogicalOr, LogicalNot,
+    Not, Negate, Assignment,
 };
 
 extern std::unordered_map<std::string, Operators> operatorMap;
@@ -51,7 +65,7 @@ private:
 
     Token nextToken();
     Token tokenizeNumber();
-    Token tokenizeIdentifier();
+    Token tokenizeVariable();
     Token tokenizeOperator();
     Token tokenizeUnknown();
 public:

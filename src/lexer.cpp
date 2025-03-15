@@ -11,7 +11,7 @@ std::unordered_map<std::string, Operators> operatorMap = {
     {"==", Operators::Equal}, {"!=", Operators::NotEqual}, {"<", Operators::LessThan}, {">", Operators::GreaterThan}, {"<=", Operators::LessThanOrEqual}, {">=", Operators::GreaterThanOrEqual},
     {"&&", Operators::LogicalAnd}, {"||", Operators::LogicalOr}, {"!", Operators::LogicalNot},
     {"and", Operators::LogicalAnd}, {"or", Operators::LogicalOr}, {"not", Operators::LogicalNot},
-    {"!", Operators::Not}, {"-", Operators::Negate},
+    {"!", Operators::Not}, {"-", Operators::Negate}, {"=", Operators::Assignment},
 };
 
 std::unordered_map<std::string, Keyword> keywordMap = {
@@ -53,7 +53,7 @@ Token Lexer::nextToken(){
     }
 
     if (std::isalpha(curChar)) {
-        return tokenizeIdentifier();
+        return tokenizeVariable();
     }
 
     if (operatorMap.find(std::string(1, curChar)) != operatorMap.end()) {
@@ -76,16 +76,16 @@ Token Lexer::tokenizeNumber(){ // Tokenize a number
     return {NUMBER, number};
 }
 
-Token Lexer::tokenizeIdentifier(){ // Tokenize an identifier
-    std::string identifier;
+Token Lexer::tokenizeVariable(){ // Tokenize a variable
+    std::string variable;
     while (pos < code.length() && (std::isalnum(code[pos]) || code[pos] == '_')) {
-        identifier += code[pos++];
+        variable += code[pos++];
     }
 
-    if (keywordMap.find(identifier) != keywordMap.end()) {
-        return {KEYWORD, identifier};
+    if (keywordMap.find(variable) != keywordMap.end()) {
+        return {KEYWORD, variable};
     }
-    return {IDENTIFIER, identifier};
+    return {VARIABLE, variable};
 }
 
 Token Lexer::tokenizeOperator(){ // Tokenize an operator
@@ -113,6 +113,7 @@ Token Lexer::tokenizeUnknown() { // Tokenize an unknown character
     std::string value(1, code[pos++]);
     return Token{UNKNOWN, value};
 }
+
 
 // Public stuff
 
