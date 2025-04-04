@@ -2,265 +2,147 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <iostream>
 
 #include "lexer.h"
 #include "parser.h"
 
-/* If i ever hit the github push before i fix this, just saying, this is pure shitty code, i will rewrite it later,
-with comments and everything, when i get back from programming vacation, please do not look. */
-
-using namespace std;
-
-unordered_map<string, int> getOperatorPrecedenceMap() {
-    return {
-        {"+", 1},
-        {"-", 1},
-        {"*", 2},
-        {"/", 2},
-        {"^", 3},
-    };
+// Helpful functions to make code look better
+std::unique_ptr<Expression> Parser::makeExpression(ExpressionType type, std::string value) {
+    std::unique_ptr<Expression> result = std::make_unique<Expression>(type, value);
+    Parser::nextToken();
+    return result;
 }
-
-bool isOperator(const Token& token) {
-    return token.type == TokenType::OPERATOR;
-}
-
-bool isKeyword(const Token& token, const std::string& keyword) {
-    return token.type == TokenType::KEYWORD && token.value == keyword;
-}
-
-bool isDelimiter(const Token& token, const std::string& delimiter) {
-    return token.type == TokenType::DELIMITER && token.value == delimiter;
-}
-
-bool isNumber(const Token& token) {
-    return token.type == TokenType::NUMBER;
-}
-
-bool isVariable(const Token& token) {
-    return token.type == TokenType::VARIABLE;
-}
-
-Expression* createExpression(ExpressionType type, const std::string& value) {
-    Expression* expr = new Expression();
-    expr->type = type;
-    expr->value = value;
+std::unique_ptr<Expression> Parser::makeUnaryOp(const std::string& op, std::unique_ptr<Expression> operand) {
+    auto expr = std::make_unique<Expression>(ExpressionType::UnaryOp, op);
+    expr->children.push_back(std::move(operand));
     return expr;
 }
 
-Expression* parseExpression(const vector<Token>& tokens, size_t& pos, int precedence) {
-    Expression* left = parsePrimaryExpression(tokens, pos);
 
-    while (pos < tokens.size()) {
-        Token token = tokens[pos];
+bool isUnaryOp(const std::string& op) {
+    static const std::unordered_set<std::string> unaryOps = {"-", "!", "~"};
+    return unaryOps.find(op) != unaryOps.end();
+}
 
-        if (isKeyword(token, "if")) {
-            pos++;
-            Expression* ifStmt = parseIfStatement(tokens, pos);
-            return ifStmt;
-        } else if (isOperator(token) && token.value == "=") {
-            pos++;
-            Expression* right = parseExpression(tokens, pos, 0);
-            Expression* expr = createExpression(ExpressionType::Assignment, right->value);
-            expr->left = left;
-            expr->right = right;
-            left = expr;
-        } else if (isOperator(token)) {
-            int opPrecedence = getOperatorPrecedenceMap()[token.value];
-            if (opPrecedence < precedence) {
-                break;
-            }
+bool isBinaryOp(const std::string& op) {
+    static const std::unordered_set<std::string> binaryOps = {"+", "-", "*", "/", "^", "&&", "||", "==", "!=", "<", ">", "<=", ">="};
+    return binaryOps.find(op) != binaryOps.end();
+}
 
-            pos++;
-            Expression* right = parseExpression(tokens, pos, opPrecedence + 1);
+std::string getExpressionTypeName(ExpressionType type) {
+    switch (type) {
+        case ExpressionType::Literal: return "Literal";
+        case ExpressionType::BinaryOp: return "BinaryOp";
+        case ExpressionType::UnaryOp: return "UnaryOp";
+        case ExpressionType::Variable: return "Variable";
+        case ExpressionType::Keyword: return "Keyword";
+        case ExpressionType::Assignment: return "Assignment";
+        case ExpressionType::IfStatement: return "IfStatement";
+        case ExpressionType::Loop: return "Loop";
+        default: return "Unknown";
+    }
+}
 
-            Expression* expr = createExpression(ExpressionType::BinaryOp, token.value);
-            expr->left = left;
-            expr->right = right;
-            left = expr;
-        } else {
-            break;
-        }
+
+// Parser itself
+std::unique_ptr<Expression> Parser::parseExpression(int predecence) {
+    auto left = parsePrimaryExpression(); // Get the left side of expression
+
+    // Check on if it's assignment
+    if (!isEnd() && currentToken().type == TokenType::OPERATOR && currentToken().value == "=") {
+        nextToken(); // Skip '=' sign
+        auto right = parseExpression(); // Anything that's on right
+        auto expr = std::make_unique<Expression>(ExpressionType::Assignment, "=");
+        expr->children.push_back(std::move(left));
+        expr->children.push_back(std::move(right));
+        return expr;
+    }
+
+    while (!isEnd()){ // While its not till the end of the code
+        Token token = currentToken(); // Get current token
+        if (token.type != TokenType::OPERATOR) break; // if its just a value then don't process it, go to next
+
+        int opPredecence = getOperatorPrecedence(token.value); // If it IS an operator, we get its priority degree
+        if (opPredecence < predecence) break; // If our priority is lower, stop it
+
+        nextToken(); // Skip the operator
+        auto right = parseExpression(opPredecence + 1); // Recursion on right side of expression, with nesting going deeper on higher level operator.
+        
+        // We make a new expression that is binary operation between the two.
+        auto binaryOp = std::make_unique<Expression>(ExpressionType::BinaryOp, token.value);
+        binaryOp->children.push_back(std::move(left)); // Add left operand
+        binaryOp->children.push_back(std::move(right)); // Add right operand
+
+        left = std::move(binaryOp); // Now its a new binary operation written
     }
 
     return left;
 }
 
+/*  This function parses the primary variable for the expression. Like: is it a number, is it an operator and etc.
+    This helps us to build up an order to perform expressions, like mathematic orders. 
+    Like: 1 + 2 * 3 will be 1 + (2 * 3) for program. It will perform the one in brackets first, from top to bottom.
+*/
+std::unique_ptr<Expression> Parser::parsePrimaryExpression() {
+    Token token = currentToken(); // Gets current token
 
-Expression* parsePrimaryExpression(const vector<Token>& tokens, size_t& pos) {
-    Token token = tokens[pos];
-
-    if (isOperator(token) && (token.value == "!" || token.value == "-")) {
-        pos++;
-        Expression* expr = createExpression(ExpressionType::UnaryOp, token.value);
-        expr->left = parsePrimaryExpression(tokens, pos);
-        return expr;
-    } else if (isNumber(token)) {
-        pos++;
-        return createExpression(ExpressionType::Literal, token.value);
-    } else if (isKeyword(token, "if")) {
-        pos++;
-        return createExpression(ExpressionType::Keyword, token.value);
-    } else if (isVariable(token)) {
-        pos++;
-        return createExpression(ExpressionType::Variable, token.value);
-    } else if (isDelimiter(token, "(")) {
-        pos++;
-        Expression* expr = parseExpression(tokens, pos, 0);
-        if (isDelimiter(tokens[pos], ")")) {
-            pos++;
-        }
-        return expr;
+    switch (token.type) { // Looks what type the token is
+        case TokenType::OPERATOR:
+            if (isUnaryOp(token.value)) { //If its an unary operator
+                std::string op = token.value; // Get the operator
+                nextToken(); // Move on to second expression
+                return makeUnaryOp(op, std::move(parsePrimaryExpression())); // Parse the entire unary operation.
+                // You can always look up what the function is, i just make abstracted code because it looks cleaner,
+                // because idk, maybe little Timmy will look up to it and create something better than i do.
+            }
+            if (token.value == "(") { // if it's something in brackets
+                nextToken();
+                auto innerExpression = parseExpression(); // parse expression inside it
+                if (currentToken().value != ")") throw std::runtime_error("Expected ')'. Like skipping brackets? :D");
+                nextToken();
+                return innerExpression;
+            }
+        case TokenType::NUMBER: return makeExpression(ExpressionType::Literal, token.value);
+        case TokenType::VARIABLE: return makeExpression(ExpressionType::Variable, token.value);
+        case TokenType::KEYWORD: 
+        default:
+            throw std::runtime_error("Unexpected token in primary expression: " + token.value);
     }
-
-    return nullptr;
 }
 
-Expression* parseIfStatement(const std::vector<Token>& tokens, size_t& pos) {
-    Token token = tokens[pos];
-    if (token.type != TokenType::KEYWORD || token.value != "if") {
-        return nullptr; // Если это не if, возвращаем null
+// Prints the AbstractSyntaxTree into the console.
+void Parser::printAST(const std::unique_ptr<Expression>& expr, const std::string& indent, bool isLast) {
+    if (!expr) return; // If there's nothing to print just stop
+
+    std::cout << indent; // Prints indent string
+    if (isLast) { // Checks if the thing in the tree is last.
+        std::cout << "└──";
+    } else {
+        std::cout << "├──";
     }
 
-    pos++; // Пропускаем "if"
-    
-    // Проверяем "("
-    if (tokens[pos].type != TokenType::DELIMITER || tokens[pos].value != "(") {
-        throw std::runtime_error("Expected '(' after 'if'");
+    std::cout << "[" << expr->value << "]" << " (" << getExpressionTypeName(expr->type) << ")" << std::endl; // Prints the expression
+    std::string newIndent = indent + (isLast ? "    " : "│   "); // Adds nested indentation
+    for (size_t i = 0; i < expr->children.size(); ++i) {
+        printAST(expr->children[i], newIndent, i == expr->children.size() - 1); // Prints nested expressions recursively
     }
-
-    pos++; // Пропускаем "("
-
-    // Парсим условие (например, переменная a > b)
-    Expression* condition = parseExpression(tokens, pos, 0);
-    
-    // Проверка закрывающей скобки ")"
-    if (tokens[pos].type != TokenType::DELIMITER || tokens[pos].value != ")") {
-        throw std::runtime_error("Expected ')' after condition");
-    }
-
-    pos++; // Пропускаем ")"
-    
-    // Проверяем на открывающую фигурную скобку "{"
-    if (tokens[pos].type != TokenType::DELIMITER || tokens[pos].value != "{") {
-        throw std::runtime_error("Expected '{' for block after 'if' condition");
-    }
-
-    pos++; // Пропускаем "{"
-    
-    // Парсим блок кода внутри if
-    std::vector<Expression*> ifBlock = parse(tokens); // Здесь вызываем парсер для тела if
-    
-    // Проверка на "else"
-    std::vector<Expression*> elseBlock;
-    if (tokens[pos].type == TokenType::KEYWORD && tokens[pos].value == "else") {
-        pos++; // Пропускаем "else"
-        
-        // Проверка на открывающую фигурную скобку для блока else
-        if (tokens[pos].type != TokenType::DELIMITER || tokens[pos].value != "{") {
-            throw std::runtime_error("Expected '{' after 'else'");
-        }
-
-        pos++; // Пропускаем "{"
-        
-        // Парсим блок кода внутри else
-        elseBlock = parse(tokens); // Парсим блок для else
-    }
-
-    // Возвращаем объект IfStatementExpression с условием и блоками if и else
-    return new IfStatementExpression(condition, ifBlock, elseBlock);
 }
 
-Program parseProgram(const vector<Token>& tokens) {
-    Program program;
-    size_t pos = 0;
+std::unique_ptr<Expression> Parser::parseProgram() {
+    auto program = std::make_unique<Expression>(ExpressionType::Program, "Program");
 
-    while (pos < tokens.size()) {
-        Expression* expr = parseExpression(tokens, pos, 0);
-        program.expressions.push_back(expr);
+    while (!isEnd()) {
+        auto expr = parseExpression();
+        if (expr) {
+            program->children.push_back(std::move(expr));
+        }
 
-        if (pos < tokens.size() && isDelimiter(tokens[pos], ";")) {
-            pos++;
-        } else {
-            break;
+        // Пропускаем `;`, если есть
+        if (currentToken().type == TokenType::DELIMITER && currentToken().value == ";") {
+            nextToken();
         }
     }
 
     return program;
 }
-
-vector<Expression*> parse(const vector<Token>& tokens) {
-    vector<Expression*> expressions;
-    size_t pos = 0;
-
-    while (pos < tokens.size()) {
-        Expression* expr = parseExpression(tokens, pos, 0);
-        expressions.push_back(expr);
-
-        if (pos < tokens.size() && isDelimiter(tokens[pos], ";")) {
-            pos++;
-        } else {
-            break;
-        }
-    }
-
-    return expressions;
-}
-
-void printExpression(Expression* expr, const std::string& indent) {
-    if (expr == nullptr) return;
-    switch (expr->type) {
-        case ExpressionType::Literal:
-            std::cout << indent << "Literal: " << expr->value << std::endl;
-            break;
-        case ExpressionType::Variable:
-            std::cout << indent << "Variable: " << expr->value << std::endl;
-            break;
-        case ExpressionType::BinaryOp:
-            std::cout << indent << "BinaryOp: " << expr->value << std::endl;
-            printExpression(expr->left, indent + "   ");
-            printExpression(expr->right, indent + "   ");
-            break;
-        case ExpressionType::Assignment:
-            std::cout << indent << "Assignment: =" << std::endl;
-            printExpression(expr->left, indent + "   ");
-            printExpression(expr->right, indent + "   ");
-            break;
-        case ExpressionType::UnaryOp:
-            std::cout << indent << "UnaryOp: " << expr->value << std::endl;
-            printExpression(expr->left, indent + "   ");
-            break;
-        case ExpressionType::Keyword:
-            std::cout << indent << "Keyword: " << expr->value << std::endl;
-            break;
-        case ExpressionType::IfStatement: {
-            auto ifStmt = static_cast<IfStatementExpression*>(expr);
-            std::cout << indent << "IfStatement" << std::endl;
-            std::cout << indent << "   Condition:" << std::endl;
-            printExpression(ifStmt->condition, indent + "   ");
-            std::cout << indent << "   If block:" << std::endl;
-            for (auto& subExpr : ifStmt->ifBlock) {
-                printExpression(subExpr, indent + "   ");
-            }
-            if (!ifStmt->elseBlock.empty()) {
-                std::cout << indent << "   Else block:" << std::endl;
-                for (auto& subExpr : ifStmt->elseBlock) {
-                    printExpression(subExpr, indent + "   ");
-                }
-            }
-            break;
-        }
-        default:
-            std::cout << indent << "Unknown expression type" << std::endl;
-            break;
-    }
-}
-
-void printProgram(const Program& program) {
-    cout << "Program:" << endl;
-    for (auto expr : program.expressions) {
-        printExpression(expr, "|--");
-        cout << endl;
-    }
-}
-

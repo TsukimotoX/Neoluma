@@ -4,11 +4,9 @@
 
 int main() {
     std::string code = R"(
-        if (a > b) {
-            x = 10;
-        } else {
-            x = 20;
-        }
+        y = -x;
+        z = !true;
+        !false;
     )";
 
     Lexer lexer(code);
@@ -17,8 +15,9 @@ int main() {
         std::cout << token.toString() << " ";
     }
     std::cout << std::endl;
-    Program expr = parseProgram(tokens);
-    printProgram(expr);
+    Parser parser(tokens);
+    auto program = parser.parseProgram();
+    parser.printAST(program, "", true);
     std::cout << std::endl;
     return 0;
 }
