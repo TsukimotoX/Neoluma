@@ -68,7 +68,7 @@ neoluma run main.nm #interpreted way
 - [ ] Semantic Analyzer
 - [ ] LLVM IR Compiler
 - [ ] CLI Toolchain
-- [ ] Cross-platform support (Linux / Windows / macOS)
+- [ ] Cross-platform support (Linux / Windows / macOS / Android / iOS / etc.)
 - [ ] Plugin system and editor integration
 - [ ] Transpilation support (C++, JS, etc.)
 
