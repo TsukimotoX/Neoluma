@@ -9,15 +9,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(LLVM REQUIRED CONFIG)
 
 add_definitions(${LLVM_DEFINITIONS})
-include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIBRARY_DIRS})
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-add_library(NeolumaLib
-    src/lexer.cpp
-    src/parser.cpp
-)
+file(GLOB_RECURSE SRC_FILES src/*.cpp src/*.h)
+
+add_library(NeolumaLib ${SRC_FILES})
 add_executable(neoluma src/main.cpp)
 
 target_link_libraries(neoluma PRIVATE LLVMCore LLVMSupport NeolumaLib)
+
