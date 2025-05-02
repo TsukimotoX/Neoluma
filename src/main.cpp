@@ -4,9 +4,7 @@
 
 int main() {
     std::string code = R"(
-        y = -x;
-        z = !true;
-        !false;
+        1+2*3
     )";
 
     Lexer lexer(code);
