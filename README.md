@@ -1,59 +1,95 @@
 # Neoluma
 
-**Neoluma** is a high-level, all-purpose programming language designed to be a language for everything.
-Whether you're building a simple script or a complex operating system, Neoluma is here to help. With a syntax inspired by Python and C#, it’s both easy to learn and powerful enough for serious development.
+**Neoluma** is a high-level, all-purpose programming language designed to be a language for everything. Whether you're writing a small script or building an entire operating system, Neoluma is made to scale with you. With a Python-like syntax and C#/C++-inspired architecture, it's both expressive and powerful.
+
+---
 
 ## Features
 
-- **Simple Syntax**: Neoluma's syntax is intuitive, combining the elements of Python's readability and C#'s expressiveness.
-- **LLVM Backend**: Neoluma is built on top of LLVM, making it capable of compiling to high-performance machine code. This means it can be used for everything from rapid prototyping to creating performance-critical applications.
-- **Memory Management**: With automatic garbage collection and manual memory allocation options, Neoluma offers flexibility to suit different needs.
-- **Async and Await**: Asynchronous programming made easy with built-in async/await support.
-- **Type Safety**: Includes basic types like `int`, `float`, with additional options to control data size for more efficient memory usage (e.g., `int[8]` or `int[16]`).
-- **Macros**: Use macros to simplify your code and make it more reusable and modular, like in C++.
-- **Interoperability**: Easily integrate with existing C++ libraries using the `#use` directive, allowing you to access external functions or even entire libraries.
-- **Cross-Platform**: Designed to work across platforms, Neoluma can be used for everything from small applications to full-fledged operating systems.
+- **Modern, readable syntax** inspired by Python and C#
+- **Statically typed** with optional type inference
+- **Custom fixed-point `number` type**, plus `int`, `float`, `bool`, `string`, `set`, `dict`, `array`, `result`, `void`
+- **Annotations and decorators**: `@entry`, `@comptime`, `@unsafe`, `@override`, etc.
+- **Preprocessor directives**:
+  - `#use` — for external libraries and non-Neoluma files (e.g., C++ bindings)
+  - `#import` — for local `.nm` Neoluma modules
+  - `#baremetal` for working with bare-metal and etc.
+- **Async/await** built into the language
+- **Compile-time evaluation**, lambdas, and macro system (WIP)
+- **Automatic and manual memory management**
+- **Cross-platform design** with potential for OS development
+- **LLVM backend** to compile into fast, native machine code
+- **Planned IDE integration** with syntax highlighting and debugging
 
-## Installation
+---
 
-Neoluma is still in development, no tutorial for now.
+## File Formats
 
-# Usage
+- `.nm` — **Neoluma Module**: source code
+- `.nlp` — **Neoluma Project**: project structure/configuration
 
-Once the environment is set up, you can start coding in Neoluma by creating ```.nl``` files and running them through the Neoluma compiler.
-
-Example:
 ```
-// Hello, World in Neoluma
-print("Hello, World!"); //<- semicolons are optional
+project_name/
+├── main.nm
+├── utils.nm
+└── project.nlp
 ```
-To run it:
+
+---
+
+## Example
+
+```neoluma
+#import "std/io"
+
+@entry
+function main() {
+    let name = "Neoluma";
+    print("Hello, {name}!")
+}
+```
+> `main()` is `void` by default — no `return` required.
+
+---
+
+## Usage (planned CLI)
+
 ```bash
-neoluma hello.nl
+neoluma build project.nlp #compiled way
+neoluma run main.nm #interpreted way
 ```
 
-# Contributing
+---
 
-Neoluma is an open-source project, and I welcome contributions! If you have ideas, bug fixes, or new features you’d like to add, feel free to open an issue or submit a pull request.
-	•	Fork the repository
-	•	Create your feature branch (git checkout -b feature/my-feature)
-	•	Commit your changes (git commit -am 'Add new feature')
-	•	Push to the branch (git push origin feature/my-feature)
-	•	Open a pull request
+## Roadmap
 
-# License
+- [x] Lexer (in refactoring)
+- [x] Parser (~70%)
+- [ ] Semantic Analyzer
+- [ ] LLVM IR Compiler
+- [ ] CLI Toolchain
+- [ ] Cross-platform support (Linux / Windows / macOS)
+- [ ] Plugin system and editor integration
+- [ ] Transpilation support (C++, JS, etc.)
 
-This project is licensed under the [Apache License 2.0](./LICENSE).
+---
 
-# Roadmap
-	•	Complete language features (macros, decorators, etc.)
-	•	Add full cross-platform support (including Windows, Linux and macOS)
-	•	Develop the Neoluma plugin extension with built-in syntax highlighting and debugging tools
-	•	Expand standard library to include more common utilities and functions tools
-	•	Add compatibility with C++ and other languages using #use keyword.
+## Vision
 
-Stay tuned for more updates and releases!
+Neoluma aims to be a unified language that bridges low-level control and high-level productivity. It is designed for:
 
-⸻
+- Systems programming (including OS kernels)
+- Cross-platform apps and utilities
+- Educational tools and experimentation
+- Scripting with performance
+- Future self-hosting development
 
-Neoluma is designed to be a powerful, easy-to-use programming language that can do everything. From everyday tasks to building complex software, Neoluma is here to help make development smoother, faster, and more efficient.
+---
+
+## Status
+
+Neoluma is in early development. Contributions and feedback are welcome!
+
+---
+
+**Created by [Tsukimoto](https://github.com/TsukimotoX) under [Apache License](./LICENSE)** — more documentation and compiler features coming soon!
