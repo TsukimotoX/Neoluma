@@ -44,3 +44,103 @@ std::unordered_map<std::string, Delimeters> delimeterMap {
     {".", Delimeters::Dot}, {"[", Delimeters::LeftSquareBracket},
     {"]", Delimeters::RightSquareBracket}, {"=>", Delimeters::RightArrow}
 };
+
+std::string Token::toString() const {
+    std::string typeStr;
+
+    switch (type) {
+        case TokenType::NullLiteral: typeStr = "NullLiteral"; break;
+        case TokenType::Identifier: typeStr = "Identifier"; break;
+        case TokenType::Keyword: typeStr = "Keyword"; break;
+        case TokenType::Decorator: typeStr = "Decorator"; break;
+        case TokenType::Preprocessor: typeStr = "Preprocessor"; break;
+        case TokenType::Delimeter: typeStr = "Delimeter"; break;
+        case TokenType::Operator: typeStr = "Operator"; break;
+        case TokenType::AssignmentArrow: typeStr = "AssignmentArrow"; break;
+        case TokenType::Question: typeStr = "Question"; break;
+        case TokenType::Unknown: typeStr = "Unknown"; break;
+        case TokenType::EndOfFile: typeStr = "EndOfFile"; break;
+
+        case TokenType::Type_Int: typeStr = "Integer"; break;
+        case TokenType::Type_Float: typeStr = "Float"; break;
+        case TokenType::Type_Number: typeStr = "Number"; break;
+        case TokenType::Type_String: typeStr = "String"; break;
+        case TokenType::Type_Void: typeStr = "Void"; break;
+        case TokenType::Type_Array: typeStr = "Array"; break;
+        case TokenType::Type_Boolean: typeStr = "Boolean"; break;
+        case TokenType::Type_Dictionary: typeStr = "Dictionary"; break;
+        case TokenType::Type_Set: typeStr = "Set"; break;
+        case TokenType::Type_Result: typeStr = "Result"; break;
+    }
+
+    return "[" + typeStr + "(\"" + value + "\")]";
+}
+
+std::optional<TokenType> getBuiltinType(const std::string& word) {
+    static const std::unordered_map<std::string, TokenType> map = {
+        {"int", TokenType::Type_Int},
+        {"float", TokenType::Type_Float},
+        {"number", TokenType::Type_Number},
+        {"bool", TokenType::Type_Boolean},
+        {"string", TokenType::Type_String},
+        {"array", TokenType::Type_Array},
+        {"set", TokenType::Type_Set},
+        {"dict", TokenType::Type_Dictionary},
+        {"void", TokenType::Type_Void},
+        {"result", TokenType::Type_Result}
+    };
+    auto it = map.find(word);
+    if (it != map.end()) return it->second;
+    return std::nullopt;
+}
+bool isBoolLiteral(const std::string& word, BoolValues& out) {
+    auto it = boolMap.find(word);
+    if (it != boolMap.end()) {
+        out = it->second;
+        return true;
+    }
+    return false;
+}
+bool isKeyword(const std::string& word) {
+    return keywordMap.count(word);
+}
+bool isKeyword(const std::string& word, Keywords& out) {
+    auto it = keywordMap.find(word);
+    if (it != keywordMap.end()) {
+        out = it->second;
+        return true;
+    }
+    return false;
+}
+bool isOperator(const std::string& word, Operators& out) {
+    auto it = operatorMap.find(word);
+    if (it != operatorMap.end()) {
+        out = it->second;
+        return true;
+    }
+    return false;
+}
+bool isPreprocessor(const std::string& word, Preprocessors& out) {
+    auto it = preprocessorMap.find(word);
+    if (it != preprocessorMap.end()) {
+        out = it->second;
+        return true;
+    }
+    return false;
+}
+bool isDecorator(const std::string& word, Decorators& out) {
+    auto it = decoratorMap.find(word);
+    if (it != decoratorMap.end()) {
+        out = it->second;
+        return true;
+    }
+    return false;
+}
+bool isDelimeter(const std::string& word, Delimeters& out) {
+    auto it = delimeterMap.find(word);
+    if (it != delimeterMap.end()) {
+        out = it->second;
+        return true;
+    }
+    return false;
+}

@@ -8,7 +8,6 @@ enum TokenType {
     NullLiteral,
     Identifier, //Combined Variable, function and class names, and etc.
     Keyword,
-    Type,
     Decorator,
     Preprocessor,
     Delimeter,
@@ -17,25 +16,22 @@ enum TokenType {
     Question,
     Unknown,
     EndOfFile,
-};
 
-enum BuiltinType {
-    Number,
-    Int,
-    Float,
-    String,
-    Boolean,
-    Set,
-    Dictionary,
-    Array,
-    Void,
-    Result,
+    Type_Int,
+    Type_Float,
+    Type_Number,
+    Type_Boolean,
+    Type_String,
+    Type_Array,
+    Type_Set,
+    Type_Dictionary,
+    Type_Void,
+    Type_Result,
 };
 
 struct Token {
     TokenType type;
     std::string value;
-    std::optional<BuiltinType> builtinType;
     std::string toString() const;
 };
 
@@ -76,5 +72,14 @@ extern std::unordered_map<std::string, BoolValues> boolMap;
 extern std::unordered_map<std::string, Decorators> decoratorMap;
 extern std::unordered_map<std::string, Preprocessors> preprocessorMap;
 extern std::unordered_map<std::string, Delimeters> delimeterMap;
+
+std::optional<TokenType> getBuiltinType(const std::string& word);
+bool isBoolLiteral(const std::string& word, BoolValues& out);
+bool isKeyword(const std::string& word);
+bool isKeyword(const std::string& word, Keywords& out);
+bool isOperator(const std::string& word, Operators& out);
+bool isPreprocessor(const std::string& word, Preprocessors& out);
+bool isDecorator(const std::string& word, Decorators& out);
+bool isDelimeter(const std::string& word, Delimeters& out);
 
 #endif
