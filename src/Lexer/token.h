@@ -17,16 +17,16 @@ enum TokenType {
     Unknown,
     EndOfFile,
 
-    Type_Int,
-    Type_Float,
-    Type_Number,
-    Type_Boolean,
-    Type_String,
-    Type_Array,
-    Type_Set,
-    Type_Dictionary,
-    Type_Void,
-    Type_Result,
+    Integer,
+    Float,
+    Number,
+    Boolean,
+    String,
+    Array,
+    Set,
+    Dictionary,
+    Void,
+    Result,
 };
 
 struct Token {
@@ -67,19 +67,12 @@ enum class Delimeters {
 };
 
 extern std::unordered_map<std::string, Keywords> keywordMap;
+extern std::unordered_map<std::string, TokenType> typesMap;
 extern std::unordered_map<std::string, Operators> operatorMap;
 extern std::unordered_map<std::string, BoolValues> boolMap;
 extern std::unordered_map<std::string, Decorators> decoratorMap;
 extern std::unordered_map<std::string, Preprocessors> preprocessorMap;
 extern std::unordered_map<std::string, Delimeters> delimeterMap;
 
-std::optional<TokenType> getBuiltinType(const std::string& word);
-bool isBoolLiteral(const std::string& word, BoolValues& out);
-bool isKeyword(const std::string& word);
-bool isKeyword(const std::string& word, Keywords& out);
-bool isOperator(const std::string& word, Operators& out);
-bool isPreprocessor(const std::string& word, Preprocessors& out);
-bool isDecorator(const std::string& word, Decorators& out);
-bool isDelimeter(const std::string& word, Delimeters& out);
 
 #endif

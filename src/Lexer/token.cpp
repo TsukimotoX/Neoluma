@@ -18,6 +18,11 @@ std::unordered_map<std::string, Keywords> keywordMap = {
     {"as", Keywords::As}, {"with", Keywords::With},
 };
 
+std::unordered_map<std::string, TokenType> typeMap = {
+    {"int", TokenType::Integer}, {"float", TokenType::Float}, {"number", TokenType::Number}, {"bool", TokenType::Boolean}, {"string", TokenType::String},
+    {"array", TokenType::Array}, {"set", TokenType::Set}, {"dict", TokenType::Dictionary}, {"void", TokenType::Void}, {"result", TokenType::Result}
+};
+
 std::unordered_map<std::string, Operators> operatorMap = {
     {"+", Operators::Add}, {"-", Operators::Subtract}, {"*", Operators::Multiply}, {"/", Operators::Divide}, {"%", Operators::Modulo}, {"^", Operators::Power},
     {"==", Operators::Equal}, {"!=", Operators::NotEqual}, {"<", Operators::LessThan}, {">", Operators::GreaterThan}, {"<=", Operators::LessThanOrEqual}, {">=", Operators::GreaterThanOrEqual},
@@ -61,86 +66,23 @@ std::string Token::toString() const {
         case TokenType::Unknown: typeStr = "Unknown"; break;
         case TokenType::EndOfFile: typeStr = "EndOfFile"; break;
 
-        case TokenType::Type_Int: typeStr = "Integer"; break;
-        case TokenType::Type_Float: typeStr = "Float"; break;
-        case TokenType::Type_Number: typeStr = "Number"; break;
-        case TokenType::Type_String: typeStr = "String"; break;
-        case TokenType::Type_Void: typeStr = "Void"; break;
-        case TokenType::Type_Array: typeStr = "Array"; break;
-        case TokenType::Type_Boolean: typeStr = "Boolean"; break;
-        case TokenType::Type_Dictionary: typeStr = "Dictionary"; break;
-        case TokenType::Type_Set: typeStr = "Set"; break;
-        case TokenType::Type_Result: typeStr = "Result"; break;
+        case TokenType::Integer: typeStr = "Integer"; break;
+        case TokenType::Float: typeStr = "Float"; break;
+        case TokenType::Number: typeStr = "Number"; break;
+        case TokenType::String: typeStr = "String"; break;
+        case TokenType::Void: typeStr = "Void"; break;
+        case TokenType::Array: typeStr = "Array"; break;
+        case TokenType::Boolean: typeStr = "Boolean"; break;
+        case TokenType::Dictionary: typeStr = "Dictionary"; break;
+        case TokenType::Set: typeStr = "Set"; break;
+        case TokenType::Result: typeStr = "Result"; break;
     }
 
     return "[" + typeStr + "(\"" + value + "\")]";
 }
 
 std::optional<TokenType> getBuiltinType(const std::string& word) {
-    static const std::unordered_map<std::string, TokenType> map = {
-        {"int", TokenType::Type_Int},
-        {"float", TokenType::Type_Float},
-        {"number", TokenType::Type_Number},
-        {"bool", TokenType::Type_Boolean},
-        {"string", TokenType::Type_String},
-        {"array", TokenType::Type_Array},
-        {"set", TokenType::Type_Set},
-        {"dict", TokenType::Type_Dictionary},
-        {"void", TokenType::Type_Void},
-        {"result", TokenType::Type_Result}
-    };
-    auto it = map.find(word);
-    if (it != map.end()) return it->second;
+    auto it = typeMap.find(word);
+    if (it != typeMap.end()) return it->second;
     return std::nullopt;
-}
-bool isBoolLiteral(const std::string& word, BoolValues& out) {
-    auto it = boolMap.find(word);
-    if (it != boolMap.end()) {
-        out = it->second;
-        return true;
-    }
-    return false;
-}
-bool isKeyword(const std::string& word) {
-    return keywordMap.count(word);
-}
-bool isKeyword(const std::string& word, Keywords& out) {
-    auto it = keywordMap.find(word);
-    if (it != keywordMap.end()) {
-        out = it->second;
-        return true;
-    }
-    return false;
-}
-bool isOperator(const std::string& word, Operators& out) {
-    auto it = operatorMap.find(word);
-    if (it != operatorMap.end()) {
-        out = it->second;
-        return true;
-    }
-    return false;
-}
-bool isPreprocessor(const std::string& word, Preprocessors& out) {
-    auto it = preprocessorMap.find(word);
-    if (it != preprocessorMap.end()) {
-        out = it->second;
-        return true;
-    }
-    return false;
-}
-bool isDecorator(const std::string& word, Decorators& out) {
-    auto it = decoratorMap.find(word);
-    if (it != decoratorMap.end()) {
-        out = it->second;
-        return true;
-    }
-    return false;
-}
-bool isDelimeter(const std::string& word, Delimeters& out) {
-    auto it = delimeterMap.find(word);
-    if (it != delimeterMap.end()) {
-        out = it->second;
-        return true;
-    }
-    return false;
 }
