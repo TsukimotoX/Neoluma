@@ -63,7 +63,7 @@ neoluma run main.nm #interpreted way
 
 ## Roadmap
 
-- [x] Lexer (in refactoring)
+- [x] Lexer
 - [x] Parser (~70%)
 - [ ] Semantic Analyzer
 - [ ] LLVM IR Compiler
