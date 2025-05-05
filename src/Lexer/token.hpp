@@ -1,8 +1,9 @@
-#ifndef TOKEN_H
-#define TOKEN_H 
+#ifndef TOKEN_HPP
+#define TOKEN_HPP
 
 #include <optional>
 #include <string>
+#include <unordered_map>
 
 enum TokenType {
     NullLiteral,
@@ -53,9 +54,6 @@ enum class Operators {
     LogicalAnd, LogicalOr, LogicalNot,
     Assign, Nullable
 };
-enum class BoolValues {
-    True, False, Null
-};
 enum class Decorators {
     Public, Protected, Private, Float, Entry, Unsafe, Comptime, Override
 };
@@ -63,16 +61,14 @@ enum class Preprocessors {
     Import, From, Use, As, Unsafe, Baremetal, Float, Macro
 };
 enum class Delimeters {
-    LeftParen, RightParen, LeftBracket, RightBracket, Semicolon, Comma, Dot, LeftSquareBracket, RightSquareBracket, RightArrow,
+    LeftParen, RightParen, LeftBracket, RightBracket, Semicolon, Comma, Dot, LeftSquareBracket, RightSquareBracket
 };
 
 extern std::unordered_map<std::string, Keywords> keywordMap;
 extern std::unordered_map<std::string, TokenType> typesMap;
 extern std::unordered_map<std::string, Operators> operatorMap;
-extern std::unordered_map<std::string, BoolValues> boolMap;
 extern std::unordered_map<std::string, Decorators> decoratorMap;
 extern std::unordered_map<std::string, Preprocessors> preprocessorMap;
 extern std::unordered_map<std::string, Delimeters> delimeterMap;
-
 
 #endif

@@ -1,4 +1,4 @@
-#include "token.h"
+#include "token.hpp"
 
 #include <iostream>
 #include <vector>
@@ -30,10 +30,6 @@ std::unordered_map<std::string, Operators> operatorMap = {
     {"and", Operators::LogicalAnd}, {"or", Operators::LogicalOr}, {"not", Operators::LogicalNot},
 };
 
-std::unordered_map<std::string, BoolValues> boolMap = {
-    {"true", BoolValues::True}, {"false", BoolValues::False}, {"null", BoolValues::Null}, 
-};
-
 std::unordered_map<std::string, Decorators> decoratorMap = {
     {"public", Decorators::Public}, {"protected", Decorators::Protected}, {"private", Decorators::Private},
     {"float", Decorators::Float}, {"entry", Decorators::Entry}, {"unsafe", Decorators::Unsafe}, {"comptime", Decorators::Comptime}, {"override", Decorators::Override},
@@ -47,7 +43,7 @@ std::unordered_map<std::string, Delimeters> delimeterMap {
     {"{", Delimeters::LeftBracket}, {"}", Delimeters::RightBracket},
     {";", Delimeters::Semicolon}, {",", Delimeters::Comma},
     {".", Delimeters::Dot}, {"[", Delimeters::LeftSquareBracket},
-    {"]", Delimeters::RightSquareBracket}, {"=>", Delimeters::RightArrow}
+    {"]", Delimeters::RightSquareBracket},
 };
 
 std::string Token::toString() const {
