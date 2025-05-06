@@ -16,6 +16,7 @@ std::unordered_map<std::string, Keywords> keywordMap = {
     {"yield", Keywords::Yield}, {"return", Keywords::Return},
     {"static", Keywords::Static}, {"decorator", Keywords::Decorator},
     {"as", Keywords::As}, {"with", Keywords::With},
+    {"debug", Keywords::Debug}
 };
 
 std::unordered_map<std::string, TokenType> typeMap = {
