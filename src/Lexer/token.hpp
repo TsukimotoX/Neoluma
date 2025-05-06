@@ -45,7 +45,8 @@ enum class Keywords {
     Async, Await,
     Yield, Return,
     Static, Decorator,
-    As, With, In, Lambda
+    As, With, In, Lambda,
+    Debug
 };
 
 enum class Operators {
