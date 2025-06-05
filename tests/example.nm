@@ -1,0 +1,131 @@
+#unsafe // Флаг для пометки небезопасного кода на странице.
+
+// Это комментарии!
+/*
+    Впрочем, ничем не отличаются
+    от других языков
+*/
+
+//Переменные
+a = 20 // Переменные определяются автоматически
+b: string = "Hi!"; // <- Хочешь ставь ;, хочешь не ставь, компилятору похер
+const c = 10; // константа
+myarray = [1, 2, 3]
+mydict = {"a": 1, "b": 2, "c": 3}
+myset = (12, "a", "b")
+myboolean = true;
+
+enum Color { Red, Green, Blue }
+interface Person { name: string, age: int }
+class Animal { void speak() { print("Sound") } } // <- Можно и в одну строку писать! Главное разделять с ; если приспичит.
+
+nullableInt: int = null; // Нулевые значения? ПО БАРАБАНУ!
+
+// я еще хз стоит ли объединять int и float в одну переменную...
+
+// Лямбда функции
+lambda x, y: x + y ИЛИ (x, y) => x + y // x+y можно и в {} если привиредлевый
+
+// Функции с docstring
+'''
+Эта функция - входная.
+'''
+@public void main(args: string[], number) { // Хочешь помечай, хочешь не помечай, тип задает строгие входные данные. Указывать не обязательно.
+    print("Hello, Neoluma!");
+    res = add(1, 2)
+    print("Ваше число: ${res}"); // В отличие от других языков помечать f-strings не обязательно
+} 
+
+@private int add(a, b) {
+    return a + b
+}
+
+@public int subtract(a, b) => a - b
+
+// Классы и Наследование
+class Animal {
+    init() {} // <- конструктор как def __init__(self)
+
+    @public void voice() {
+        print("Звук");
+    }
+}
+
+class Dog: Animal {
+    @public override static void voice() {
+        print("Гав");
+    }
+}
+
+Dog.voice()
+// Полиморфизм и абстракция тоже по такому же принципу
+
+// Небезопасное использование памяти (как в C++/C#)
+// Только для низкоуровневого программирования!
+#import memory
+
+myarray_ptr = &map<int>(memory.allocate(10 * size(int)))
+*myarray_ptr = 10
+print(*myarray_ptr) // 10
+memory.free(myarray_ptr)
+
+// И да, импорты!
+#import math
+#import random as rnd
+
+rannum = rnd.random(1, 10)
+print(rannum)
+
+a = input("Введи что-нибудь: ")
+
+with open("test.txt", "w") as f { // <- это из питона, но хорошая практика
+    f.write(a)
+} 
+    
+
+// Циклы
+for i in range(10) {
+    print(i)
+}
+
+myanimals = ["cat", "dog", "mouse"]
+
+foreach i in myanimals {
+    print(i)
+}
+
+while true {
+    print("INFINITE POWAAAH!!!")
+}
+
+// Условия
+if myanimals[0] == "cat" {
+    print("Cat")
+}
+else {
+    print("Not cat")
+}
+    
+
+// Свитч-кейсы
+switch myanimals[0] {
+    case "cat":
+        print("Cat")
+    case "dog":
+        print("Dog")
+    default:
+        print("Not cat")
+}
+
+// Пространства имен
+#namespace myprogram;
+
+// Генераторы
+newanimals = [i for i in myanimals] // <- полезная штука из питона
+
+// Импорты из других языков
+#use ("main.cpp") as main
+
+@public int adding(a, b) {
+    return main.add(2, 3)
+}
