@@ -1,0 +1,6 @@
+#import std
+
+@entry
+function main(args: string[], number) {
+    print("Hello, Neoluma"!);
+}

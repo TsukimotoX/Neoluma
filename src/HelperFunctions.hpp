@@ -4,6 +4,9 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <optional>
+
+class ASTNode;
 
 // Memory functions
 
@@ -27,6 +30,13 @@ SharedPtr<T> makeSharedPtr(Args&&... args) {
     return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
+// Reinterprets element in () to element in <>.
+template<typename T>
+T* as(MemoryPtr<ASTNode>& node) {
+    return dynamic_cast<T*>(node.get());
+}
+
+
 // Data types functions
 
 // just a string. what else did you expect?
@@ -35,5 +45,6 @@ using string = std::string;
 // array = vector. it's a simple alias for std::vector<T> to make it more readable and consistent with other languages.
 template<typename T>
 using array = std::vector<T>;
+
 
 #endif

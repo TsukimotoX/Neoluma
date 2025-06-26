@@ -1,22 +1,40 @@
-cmake_minimum_required(VERSION 3.16)
-project(Neoluma LANGUAGES C CXX)
+cmake_minimum_required(VERSION 4.0)
 
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
+# Neoluma, a programming language
+project(Neoluma)
+
+# Set up C++ version
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Set up LLVM
 find_package(LLVM REQUIRED CONFIG)
-
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 link_directories(${LLVM_LIBRARY_DIRS})
 
+# Include other libraries
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.modules/cpptoml/include)
+add_subdirectory(.modules/cpptoml)
+
+# Includes everything in src/
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-file(GLOB_RECURSE SRC_FILES src/*.cpp src/*.h)
+# Compile the language and Command-Line-Interface
+file(GLOB_RECURSE CORE_FILES src/Core/*.cpp src/Core/*.hpp)
+file(GLOB_RECURSE CLI_FILES src/CLI/*.cpp src/CLI/*.hpp)
 
-add_library(NeolumaLib ${SRC_FILES})
-add_executable(neoluma ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+# Compile a core library
+add_library(NeolumaCore ${CORE_FILES})
+add_library(NeolumaCLI ${CLI_FILES})
 
-target_link_libraries(neoluma PRIVATE LLVMCore LLVMSupport NeolumaLib)
+# Compile the language
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.build/.executables)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.build/.libs)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.build/.libs)
+add_executable(Neoluma ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/HelperFunctions.hpp)
 
+# Link all libraries
+target_link_libraries(Neoluma PRIVATE LLVMCore LLVMSupport LLVMIRReader NeolumaCore NeolumaCLI)
