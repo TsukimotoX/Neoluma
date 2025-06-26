@@ -83,7 +83,7 @@ build CMakeFiles/NeolumaCore.dir/src/Core/Lexer/lexer.cpp.obj.ddi: CXX_SCAN__Neo
   DEP_FILE = CMakeFiles\NeolumaCore.dir\src\Core\Lexer\lexer.cpp.obj.ddi.d
   DYNDEP_INTERMEDIATE_FILE = CMakeFiles\NeolumaCore.dir\src\Core\Lexer\lexer.cpp.obj.ddi
   FLAGS = -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview   -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_NONSTDC_NO_WARNINGS -D_SCL_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS -DUNICODE -D_UNICODE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
-  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/src
+  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/.modules/cpptoml/include -IC:/Users/TsukimotoX/Desktop/neoluma/src
   OBJ_FILE = CMakeFiles\NeolumaCore.dir\src\Core\Lexer\lexer.cpp.obj
   PREPROCESSED_OUTPUT_FILE = CMakeFiles\NeolumaCore.dir\src\Core\Lexer\lexer.cpp.obj.ddi.i
 
@@ -92,7 +92,7 @@ build CMakeFiles/NeolumaCore.dir/src/Core/Lexer/lexer.cpp.obj: CXX_COMPILER__Neo
   DEP_FILE = CMakeFiles\NeolumaCore.dir\src\Core\Lexer\lexer.cpp.obj.d
   DYNDEP_MODULE_MAP_FILE = CMakeFiles\NeolumaCore.dir\src\Core\Lexer\lexer.cpp.obj.modmap
   FLAGS = -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview   -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_NONSTDC_NO_WARNINGS -D_SCL_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS -DUNICODE -D_UNICODE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
-  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/src
+  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/.modules/cpptoml/include -IC:/Users/TsukimotoX/Desktop/neoluma/src
   OBJECT_DIR = CMakeFiles\NeolumaCore.dir
   OBJECT_FILE_DIR = CMakeFiles\NeolumaCore.dir\src\Core\Lexer
   TARGET_COMPILE_PDB = CMakeFiles\NeolumaCore.dir\NeolumaCore.pdb
@@ -103,7 +103,7 @@ build CMakeFiles/NeolumaCore.dir/src/Core/Lexer/token.cpp.obj.ddi: CXX_SCAN__Neo
   DEP_FILE = CMakeFiles\NeolumaCore.dir\src\Core\Lexer\token.cpp.obj.ddi.d
   DYNDEP_INTERMEDIATE_FILE = CMakeFiles\NeolumaCore.dir\src\Core\Lexer\token.cpp.obj.ddi
   FLAGS = -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview   -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_NONSTDC_NO_WARNINGS -D_SCL_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS -DUNICODE -D_UNICODE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
-  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/src
+  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/.modules/cpptoml/include -IC:/Users/TsukimotoX/Desktop/neoluma/src
   OBJ_FILE = CMakeFiles\NeolumaCore.dir\src\Core\Lexer\token.cpp.obj
   PREPROCESSED_OUTPUT_FILE = CMakeFiles\NeolumaCore.dir\src\Core\Lexer\token.cpp.obj.ddi.i
 
@@ -112,7 +112,7 @@ build CMakeFiles/NeolumaCore.dir/src/Core/Lexer/token.cpp.obj: CXX_COMPILER__Neo
   DEP_FILE = CMakeFiles\NeolumaCore.dir\src\Core\Lexer\token.cpp.obj.d
   DYNDEP_MODULE_MAP_FILE = CMakeFiles\NeolumaCore.dir\src\Core\Lexer\token.cpp.obj.modmap
   FLAGS = -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview   -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_NONSTDC_NO_WARNINGS -D_SCL_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS -DUNICODE -D_UNICODE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
-  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/src
+  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/.modules/cpptoml/include -IC:/Users/TsukimotoX/Desktop/neoluma/src
   OBJECT_DIR = CMakeFiles\NeolumaCore.dir
   OBJECT_FILE_DIR = CMakeFiles\NeolumaCore.dir\src\Core\Lexer
   TARGET_COMPILE_PDB = CMakeFiles\NeolumaCore.dir\NeolumaCore.pdb
@@ -152,7 +152,7 @@ build CMakeFiles/NeolumaCLI.dir/src/CLI/cli.cpp.obj.ddi: CXX_SCAN__NeolumaCLI_De
   DEP_FILE = CMakeFiles\NeolumaCLI.dir\src\CLI\cli.cpp.obj.ddi.d
   DYNDEP_INTERMEDIATE_FILE = CMakeFiles\NeolumaCLI.dir\src\CLI\cli.cpp.obj.ddi
   FLAGS = -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview   -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_NONSTDC_NO_WARNINGS -D_SCL_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS -DUNICODE -D_UNICODE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
-  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/src
+  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/.modules/cpptoml/include -IC:/Users/TsukimotoX/Desktop/neoluma/src
   OBJ_FILE = CMakeFiles\NeolumaCLI.dir\src\CLI\cli.cpp.obj
   PREPROCESSED_OUTPUT_FILE = CMakeFiles\NeolumaCLI.dir\src\CLI\cli.cpp.obj.ddi.i
 
@@ -161,7 +161,7 @@ build CMakeFiles/NeolumaCLI.dir/src/CLI/cli.cpp.obj: CXX_COMPILER__NeolumaCLI_sc
   DEP_FILE = CMakeFiles\NeolumaCLI.dir\src\CLI\cli.cpp.obj.d
   DYNDEP_MODULE_MAP_FILE = CMakeFiles\NeolumaCLI.dir\src\CLI\cli.cpp.obj.modmap
   FLAGS = -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview   -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_NONSTDC_NO_WARNINGS -D_SCL_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS -DUNICODE -D_UNICODE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
-  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/src
+  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/.modules/cpptoml/include -IC:/Users/TsukimotoX/Desktop/neoluma/src
   OBJECT_DIR = CMakeFiles\NeolumaCLI.dir
   OBJECT_FILE_DIR = CMakeFiles\NeolumaCLI.dir\src\CLI
   TARGET_COMPILE_PDB = CMakeFiles\NeolumaCLI.dir\NeolumaCLI.pdb
@@ -201,7 +201,7 @@ build CMakeFiles/Neoluma.dir/src/main.cpp.obj.ddi: CXX_SCAN__Neoluma_Debug C$:/U
   DEP_FILE = CMakeFiles\Neoluma.dir\src\main.cpp.obj.ddi.d
   DYNDEP_INTERMEDIATE_FILE = CMakeFiles\Neoluma.dir\src\main.cpp.obj.ddi
   FLAGS = -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview   -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_NONSTDC_NO_WARNINGS -D_SCL_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS -DUNICODE -D_UNICODE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
-  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/src
+  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/.modules/cpptoml/include -IC:/Users/TsukimotoX/Desktop/neoluma/src
   OBJ_FILE = CMakeFiles\Neoluma.dir\src\main.cpp.obj
   PREPROCESSED_OUTPUT_FILE = CMakeFiles\Neoluma.dir\src\main.cpp.obj.ddi.i
 
@@ -210,7 +210,7 @@ build CMakeFiles/Neoluma.dir/src/main.cpp.obj: CXX_COMPILER__Neoluma_scanned_Deb
   DEP_FILE = CMakeFiles\Neoluma.dir\src\main.cpp.obj.d
   DYNDEP_MODULE_MAP_FILE = CMakeFiles\Neoluma.dir\src\main.cpp.obj.modmap
   FLAGS = -O0 -std=gnu++20 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview   -D_CRT_SECURE_NO_DEPRECATE -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_DEPRECATE -D_CRT_NONSTDC_NO_WARNINGS -D_SCL_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_WARNINGS -DUNICODE -D_UNICODE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
-  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/src
+  INCLUDES = -I"C:/Program Files (x86)/LLVM/include" -IC:/Users/TsukimotoX/Desktop/neoluma/.modules/cpptoml/include -IC:/Users/TsukimotoX/Desktop/neoluma/src
   OBJECT_DIR = CMakeFiles\Neoluma.dir
   OBJECT_FILE_DIR = CMakeFiles\Neoluma.dir\src
   TARGET_COMPILE_PDB = CMakeFiles\Neoluma.dir\

@@ -15,6 +15,7 @@
 	"include-dirs" : 
 	[
 		"C:\\Program Files (x86)\\LLVM\\include",
+		"C:\\Users\\TsukimotoX\\Desktop\\neoluma\\.modules\\cpptoml\\include",
 		"C:\\Users\\TsukimotoX\\Desktop\\neoluma\\src"
 	],
 	"language" : "CXX",
