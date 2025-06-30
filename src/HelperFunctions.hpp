@@ -5,6 +5,9 @@
 #include <memory>
 #include <vector>
 #include <optional>
+#include <iostream>
+#include <format>
+#include <sstream>
 
 class ASTNode;
 
@@ -46,5 +49,26 @@ using string = std::string;
 template<typename T>
 using array = std::vector<T>;
 
+// Other
+template <typename... Args>
+void print(std::format_string<Args...> output, Args&&... args) {
+    std::cout << std::format(output, std::forward<Args>(args)...) << "\n";
+}
+
+template <typename... Args>
+void printerr(std::format_string<Args...> output, Args&&... args) {
+    std::cerr << std::format(output, std::forward<Args>(args)...) << "\n";
+}
+
+template<typename T>
+T input(const std::string& prompt = "") {
+    T val;
+    std::string line;
+    if (!prompt.empty()) std::cerr << prompt;
+    std::getline(std::cin, line);
+    std::istringstream iss(line);
+    iss >> val;
+    return val;
+}
 
 #endif
