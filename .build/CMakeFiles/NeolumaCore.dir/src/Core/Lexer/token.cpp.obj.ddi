@@ -1,9 +1,0 @@
-{
-  "revision": 0,
-  "rules": [
-    {
-      "primary-output": "CMakeFiles\\NeolumaCore.dir\\src\\Core\\Lexer\\token.cpp.obj"
-    }
-  ],
-  "version": 1
-}

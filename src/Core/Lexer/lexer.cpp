@@ -3,12 +3,13 @@
 
 #include <iostream>
 #include <unordered_map>
-#include "../../HelperFunctions.hpp"
+#include <vector>
+#include <print>
 
-Lexer::Lexer(const string& source) : source(source), pos(0) {}
+Lexer::Lexer(const std::string& source) : source(source), pos(0) {}
 
 // ==== Main ====
-array<Token> Lexer::tokenize() {
+std::vector<Token> Lexer::tokenize() {
     tokens.clear();
 
     while (!isAtEnd()) {
@@ -18,14 +19,14 @@ array<Token> Lexer::tokenize() {
         else if (isalpha(c) || c == '_') parseIK();
         else if (isdigit(c)) parseNumber();
         else if (c == '"') parseString();
-        else if (string("+-*/%^=<>!&|:").find(c) != string::npos) parseOperator();
-        else if (string("(){};,.[\\]").find(c) != string::npos) parseDelimeter();
+        else if (std::string("+-*/%^=<>!&|:").find(c) != std::string::npos) parseOperator();
+        else if (std::string("(){};,.[\\]").find(c) != std::string::npos) parseDelimeter();
         else if (c == '#') parsePreprocessor();
         else if (c == '@') parseDecorator();
         else if (c == '/' && (source[pos+1] == '/' || source[pos+1] == '*')) skipComment();
         else {
-            string unknown(1, move());
-            std::cerr << "[Lexer] Unknown character: '" << unknown << "'\n";
+            std::string unknown(1, move());
+            std::println(std::cerr, "[Lexer] Unknown character: '{}'", unknown);
             tokens.push_back(Token{TokenType::Unknown, unknown});
         }
     }
@@ -47,7 +48,7 @@ bool Lexer::isAtEnd() const { return pos >= source.size(); }
 
 // ==== Parsing functions ====
 void Lexer::parseIK() {
-    string word;
+    std::string word;
     
     while (!isAtEnd() && (isalnum(curChar()) || curChar() == '_')) word += move();
     
@@ -60,7 +61,7 @@ void Lexer::parseIK() {
 }
 void Lexer::parseNumber() {
     //TODO:: Add exponents (maybe)
-    string number;
+    std::string number;
 
     while (!isAtEnd() && isdigit(curChar())) number += move();
     
@@ -77,7 +78,7 @@ void Lexer::parseString() {
     */
 
     move();
-    string value;
+    std::string value;
     bool esc = false; // multipurpose \n stuff checker..
 
     while (!isAtEnd()) {
@@ -89,7 +90,7 @@ void Lexer::parseString() {
                 case '\\': value += '\\'; break;
                 case '"': value += '"'; break;
                 default:
-                    std::cerr << "[Lexer] Warning: unknown escape character '\\" << c << "'\n";
+                    std::println(std::cerr, "[Lexer] Warning: unknown escape character '\\{}'", c);
                     value += c;
                     break;
             }
@@ -106,11 +107,11 @@ void Lexer::parseString() {
     tokens.push_back(Token{TokenType::String, value});
 }
 void Lexer::parseOperator() {
-    string op;
+    std::string op;
     op += move();
 
     if (!isAtEnd()) {
-        string twoChar = op + curChar();
+        std::string twoChar = op + curChar();
         if (operatorMap.find(twoChar) != operatorMap.end()) op += move();
 
         if (op == "=>") tokens.push_back(Token{TokenType::AssignmentArrow, op});
@@ -119,36 +120,36 @@ void Lexer::parseOperator() {
     }
 }
 void Lexer::parseDelimeter() {
-    string delimeter;
+    std::string delimeter;
     delimeter += move();
     
     if (delimeterMap.find(delimeter) != delimeterMap.end()) tokens.push_back(Token{TokenType::Delimeter, delimeter});
     else {
-        std::cerr << "[Lexer] Unknown delimeter: '" << delimeter << "'\n";
+        std::println(std::cerr, "[Lexer] Unknown delimeter: '{}'", delimeter);
         tokens.push_back(Token{TokenType::Unknown, delimeter});
     }
 }
 void Lexer::parsePreprocessor() {
     move();
-    string word;
+    std::string word;
 
     while (!isAtEnd() && isalpha(curChar())) word += move();
 
     if (preprocessorMap.find(word) != preprocessorMap.end()) tokens.push_back(Token{TokenType::Preprocessor, word});
     else {
-        std::cerr << "[Lexer] Unknown preprocessor: #" << word << "\n";
+        std::println(std::cerr, "[Lexer] Unknown preprocessor: #{}", word);
         tokens.push_back(Token{TokenType::Unknown, "#" + word});
     }
 }
 void Lexer::parseDecorator() {
     move();
-    string word;
+    std::string word;
 
     while (!isAtEnd() && isalpha(curChar())) word += move();
 
     if (decoratorMap.find(word) != decoratorMap.end()) tokens.push_back(Token{TokenType::Decorator, word});
     else {
-        std::cerr << "[Lexer] Unknown decorator: @" << word << "\n";
+        std::println(std::cerr, "[Lexer] Unknown decorator: @{}", word);
         tokens.push_back(Token{TokenType::Unknown, "@" + word});
     }
 }
@@ -171,9 +172,9 @@ void Lexer::skipComment() {
 }
 
 void Lexer::printTokens() const {
-    std::cout << "=== Lexer Output ===\n";
+    std::println("=== Lexer Output ===");
     for (const auto& token : tokens) {
-        std::cout << "Token: ";
+        std::println("Token: ");
 
         switch (token.type) {
             case TokenType::Identifier: std::cout << "[Identifier]"; break;
@@ -192,5 +193,5 @@ void Lexer::printTokens() const {
 
         std::cout << "\n";
     }
-    std::cout << "====================\n";
+    std::println("====================");
 }

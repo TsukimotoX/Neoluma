@@ -1,9 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"C:/Users/TsukimotoX/Desktop/neoluma/.build/cmake_install.cmake",
-		"C:/Users/TsukimotoX/Desktop/neoluma/.build/.modules/cpptoml/cmake_install.cmake",
-		"C:/Users/TsukimotoX/Desktop/neoluma/.build/.modules/cpptoml/examples/cmake_install.cmake"
-	],
-	"Parallel" : false
-}

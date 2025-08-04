@@ -1,9 +1,0 @@
-{
-  "revision": 0,
-  "rules": [
-    {
-      "primary-output": "CMakeFiles\\NeolumaCLI.dir\\src\\CLI\\cli.cpp.obj"
-    }
-  ],
-  "version": 1
-}

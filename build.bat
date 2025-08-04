@@ -25,7 +25,7 @@ cmake --build . || (
 )
 
 if exist %RESULTING_PATH% (
-    echo [SUCCESS] Neoluma built successfully! Launch: %RESULTING_PATH%
+    echo [SUCCESS] Neoluma built successfully! Launch: ./.build/%RESULTING_PATH%
 ) else (
     echo [ERROR] Failed to find executable.
     exit /b 1

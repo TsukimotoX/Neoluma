@@ -1,5 +1,4 @@
 #include "token.hpp"
-#include "../../HelperFunctions.hpp"
 
 #include <iostream>
 #include <vector>
@@ -7,8 +6,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
-std::unordered_map<string, Keywords> keywordMap = {
-    {"function", Keywords::Function}, {"class", Keywords::Class}, {"enum", Keywords::Enum}, {"interface", Keywords::Interface}, {"#namespace", Keywords::Namespace},
+std::unordered_map<std::string, Keywords> keywordMap = {
+    {"function", Keywords::Function}, {"class", Keywords::Class}, {"enum", Keywords::Enum}, {"interface", Keywords::Interface}, {"namespace", Keywords::Namespace},
     {"if", Keywords::If}, {"else", Keywords::Else},
     {"for", Keywords::For}, {"while", Keywords::While}, {"break", Keywords::Break}, {"continue", Keywords::Continue},
     {"switch", Keywords::Switch}, {"case", Keywords::Case}, {"default", Keywords::Default},
@@ -20,12 +19,12 @@ std::unordered_map<string, Keywords> keywordMap = {
     {"debug", Keywords::Debug}, {"public", Keywords::Public}, {"protected", Keywords::Protected}, {"private", Keywords::Private},
 };
 
-std::unordered_map<string, TokenType> typesMap = {
+std::unordered_map<std::string, TokenType> typesMap = {
     {"int", TokenType::Integer}, {"float", TokenType::Float}, {"number", TokenType::Number}, {"bool", TokenType::Boolean}, {"string", TokenType::String},
     {"array", TokenType::Array}, {"set", TokenType::Set}, {"dict", TokenType::Dictionary}, {"void", TokenType::Void}, {"result", TokenType::Result}
 };
 
-std::unordered_map<string, Operators> operatorMap = {
+std::unordered_map<std::string, Operators> operatorMap = {
     {"+", Operators::Add}, {"-", Operators::Subtract}, {"*", Operators::Multiply}, {"/", Operators::Divide}, {"%", Operators::Modulo}, {"^", Operators::Power},
     {"==", Operators::Equal}, {"!=", Operators::NotEqual}, {"<", Operators::LessThan}, {">", Operators::GreaterThan}, {"<=", Operators::LessThanOrEqual}, {">=", Operators::GreaterThanOrEqual},
     {"&&", Operators::LogicalAnd}, {"||", Operators::LogicalOr}, {"!", Operators::LogicalNot},
@@ -33,14 +32,14 @@ std::unordered_map<string, Operators> operatorMap = {
     {"+=", Operators::AddAssign}, {"-=", Operators::SubAssign}, {"*=", Operators::MulAssign}, {"/=", Operators::DivAssign}, {"%=", Operators::ModAssign}, {"^=", Operators::PowerAssign}
 };
 
-std::unordered_map<string, Decorators> decoratorMap = {
+std::unordered_map<std::string, Decorators> decoratorMap = {
     {"float", Decorators::Float}, {"entry", Decorators::Entry}, {"unsafe", Decorators::Unsafe}, {"comptime", Decorators::Comptime}, {"override", Decorators::Override},
 };
 
-std::unordered_map<string, Preprocessors> preprocessorMap = {
+std::unordered_map<std::string, Preprocessors> preprocessorMap = {
     {"import", Preprocessors::Import}, {"from", Preprocessors::From}, {"use", Preprocessors::Use}, {"as", Preprocessors::As}, {"unsafe", Preprocessors::Unsafe}, {"baremetal", Preprocessors::Baremetal}, {"float", Preprocessors::Float}, {"macro", Preprocessors::Macro},
 };
-std::unordered_map<string, Delimeters> delimeterMap {
+std::unordered_map<std::string, Delimeters> delimeterMap {
     {"(", Delimeters::LeftParen}, {")", Delimeters::RightParen},
     {"{", Delimeters::LeftBracket}, {"}", Delimeters::RightBracket},
     {";", Delimeters::Semicolon}, {",", Delimeters::Comma},
@@ -48,8 +47,8 @@ std::unordered_map<string, Delimeters> delimeterMap {
     {"]", Delimeters::RightSquareBracket},
 };
 
-string Token::toString() const {
-    string typeStr;
+std::string Token::toString() const {
+    std::string typeStr;
 
     switch (type) {
         case TokenType::NullLiteral: typeStr = "NullLiteral"; break;

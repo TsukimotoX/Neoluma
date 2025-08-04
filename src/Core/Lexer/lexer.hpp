@@ -4,15 +4,14 @@
 #include <string>
 #include <vector>
 #include "token.hpp"
-#include "../../HelperFunctions.hpp"
 
 class Lexer {
 public: 
-    explicit Lexer(const string& source);
-    array<Token> tokenize();
+    explicit Lexer(const std::string& source);
+    std::vector<Token> tokenize();
     void printTokens() const;
 private:
-    string source;
+    std::string source;
     size_t pos;
 
     // Helpers
@@ -31,7 +30,7 @@ private:
     void parseDecorator();
     void skipComment();
 
-    array<Token> tokens;
+    std::vector<Token> tokens;
 };
 
 #endif

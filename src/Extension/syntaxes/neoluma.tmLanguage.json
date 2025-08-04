@@ -1,0 +1,140 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"scopeName": "source.neoluma",
+	"name": "Neoluma",
+	"patterns": [
+		{ "include": "#keywords" },
+		{ "include": "#types" },
+		{ "include": "#operators" },
+		{ "include": "#custom_operators" },
+		{ "include": "#decorators" },
+		{ "include": "#preprocessors" },
+		{ "include": "#delimiters" },
+		{ "include": "#strings" },
+		{ "include": "#numbers" },
+		{ "include": "#class_names" },
+		{ "include": "#function_names" },
+		{ "include": "#comments" },
+		{ "include": "#docstrings" },
+		{ "include": "#booleans" }
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.neoluma",
+				"match": "\\b(function|class|enum|interface|namespace|if|else|for|while|break|continue|switch|case|default|try|catch|throw|async|await|yield|return|static|decorator|as|with|in|:|lambda|debug|public|protected|private)\\b"
+			}]
+		},
+		"types": {
+			"patterns": [{
+				"name": "storage.type.neoluma",
+				"match": "\\b(int|float|number|bool|string|array|set|dict|void|result)\\b"
+			}]
+		},
+		"booleans": {
+			"patterns": [
+				{
+				"name": "constant.language.boolean.neoluma",
+				"match": "\\b(true|false|null)\\b"
+				}
+			]
+		},
+		"operators": {
+			"patterns": [{
+				"name": "keyword.operator.neoluma",
+				"match": "(\\+=|\\-=|\\*=|/=|%=|\\^=|==|!=|<=|>=|&&|\\|\\||\\+|\\-|\\*|/|%|\\^|=|<|>|!|\\band\\b|\\bor\\b|\\bnot\\b)"
+			}]
+		},
+		"custom_operators": {
+			"patterns": [
+				{
+				"name": "keyword.operator.inheritance.neoluma",
+				"match": "<-"
+				}
+			]
+		},
+		"decorators": {
+			"patterns": [{
+				"name": "meta.annotation.neoluma",
+				"match": "@(float|entry|unsafe|comptime|override|[a-zA-Z_][a-zA-Z0-9_]*)"
+			}]
+		},
+		"preprocessors": {
+			"patterns": [
+			{
+				"name": "meta.preprocessor.neoluma",
+				"match": "#(import|from|use|as|unsafe|baremetal|float|macro)"
+			}
+			]
+		},
+		"delimiters": {
+			"patterns": [
+			{
+				"name": "punctuation.delimiter.neoluma",
+				"match": "[\\(\\)\\{\\}\\[\\];,\\.]"
+			}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.neoluma",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.neoluma",
+					"match": "\\\\."
+				}
+			]
+		},
+		"function_names": {
+			"patterns": [
+				{
+				"name": "entity.name.function.neoluma",
+				"match": "\\b(?:fn|function)\\s+([a-zA-Z_][a-zA-Z0-9_]*)"
+				}
+			]
+		},
+		"class_names": {
+			"patterns": [
+				{
+				"name": "entity.name.type.class.neoluma",
+				"match": "\\bclass\\s+([A-Z][a-zA-Z0-9_]*)"
+				}
+			]
+		},
+		"numbers": {
+			"patterns": [{
+				"name": "constant.numeric.neoluma",
+				"match": "\\b\\d+(\\.\\d+)?\\b"
+			}]
+		},
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.double-slash.neoluma",
+					"match": "//.*$"
+				},
+				{
+					"name": "comment.block.neoluma",
+					"begin": "/\\*",
+					"end": "\\*/"
+				}
+			]
+		},
+		"docstrings": {
+			"patterns": [
+				{
+					"name": "string.quoted.triple.neoluma",
+					"begin": "'''",
+					"end": "'''",
+					"patterns": [
+						{
+						"name": "constant.character.escape.neoluma",
+						"match": "\\\\."
+						}
+					]
+				}
+			]
+		}
+	}
+}

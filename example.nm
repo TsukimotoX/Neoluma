@@ -17,7 +17,7 @@ myboolean = true;
 
 enum Color { Red, Green, Blue }
 interface Person { name: string, age: int }
-class Animal { void speak() { print("Sound") } } // <- Можно и в одну строку писать! Главное разделять с ; если приспичит.
+class Animal { fn speak() { print("Sound") } } // <- Можно и в одну строку писать! Главное разделять с ; если приспичит. + если функция выводит void, его писать необязательно.
 
 nullableInt: int = null; // Нулевые значения? ПО БАРАБАНУ!
 
@@ -30,29 +30,30 @@ lambda x, y: x + y ИЛИ (x, y) => x + y // x+y можно и в {} если п
 '''
 Эта функция - входная.
 '''
-@public void main(args: string[], number) { // Хочешь помечай, хочешь не помечай, тип задает строгие входные данные. Указывать не обязательно.
+// fn и function оба могут использоваться, но первый работать без verbose=true в настройках проекта не будет. аналогично с verbose включаются and, or, not...
+public function main(args: string[], number) { // Хочешь помечай, хочешь не помечай, тип задает строгие входные данные. Указывать не обязательно.
     print("Hello, Neoluma!");
     res = add(1, 2)
     print("Ваше число: ${res}"); // В отличие от других языков помечать f-strings не обязательно
 } 
 
-@private int add(a, b) {
+private fn add(a, b) -> int {
     return a + b
 }
 
-@public int subtract(a, b) => a - b
+public fn subtract(a, b) -> int => a - b
 
 // Классы и Наследование
 class Animal {
     init() {} // <- конструктор как def __init__(self)
 
-    @public void voice() {
+    public fn voice() {
         print("Звук");
     }
 }
 
-class Dog: Animal {
-    @public override static void voice() {
+class Dog <- Animal {
+    public override static fn voice() {
         print("Гав");
     }
 }
@@ -84,22 +85,18 @@ with open("test.txt", "w") as f { // <- это из питона, но хоро�
     
 
 // Циклы
-for i in range(10) {
+for (i in range(10)) {
     print(i)
 }
 
 myanimals = ["cat", "dog", "mouse"]
 
-foreach i in myanimals {
-    print(i)
-}
-
-while true {
+while (true) {
     print("INFINITE POWAAAH!!!")
 }
 
 // Условия
-if myanimals[0] == "cat" {
+if (myanimals[0] == "cat") {
     print("Cat")
 }
 else {
@@ -108,7 +105,7 @@ else {
     
 
 // Свитч-кейсы
-switch myanimals[0] {
+switch (myanimals[0]) {
     case "cat":
         print("Cat")
     case "dog":
@@ -118,7 +115,7 @@ switch myanimals[0] {
 }
 
 // Пространства имен
-#namespace myprogram;
+namespace myprogram;
 
 // Генераторы
 newanimals = [i for i in myanimals] // <- полезная штука из питона
@@ -126,6 +123,7 @@ newanimals = [i for i in myanimals] // <- полезная штука из пи�
 // Импорты из других языков
 #use ("main.cpp") as main
 
-@public int adding(a, b) {
+public fn adding(a, b) -> int {
     return main.add(2, 3)
 }
+

@@ -1,5 +1,4 @@
-#ifndef HELPERFUNCTIONS_HPP
-#define HELPERFUNCTIONS_HPP
+#pragma once
 
 #include <string>
 #include <memory>
@@ -8,6 +7,8 @@
 #include <iostream>
 #include <format>
 #include <sstream>
+#include <fstream>
+#include <filesystem>
 
 class ASTNode;
 
@@ -40,35 +41,41 @@ T* as(MemoryPtr<ASTNode>& node) {
 }
 
 
-// Data types functions
-
-// just a string. what else did you expect?
-using string = std::string;
-
-// array = vector. it's a simple alias for std::vector<T> to make it more readable and consistent with other languages.
-template<typename T>
-using array = std::vector<T>;
-
 // Other
-template <typename... Args>
-void print(std::format_string<Args...> output, Args&&... args) {
-    std::cout << std::format(output, std::forward<Args>(args)...) << "\n";
+inline std::string trim(std::string s) {
+    size_t start = s.find_first_not_of(" \t\r\n");
+    size_t end = s.find_last_not_of(" \t\r\n");
+    if (start == std::string::npos || end == std::string::npos) return "";
+    return s.substr(start, end - start + 1);
 }
 
-template <typename... Args>
-void printerr(std::format_string<Args...> output, Args&&... args) {
-    std::cerr << std::format(output, std::forward<Args>(args)...) << "\n";
+inline std::vector<std::string> split(std::string str, char delimiter) {
+    std::vector<std::string> result;
+    std::string current;
+    for (char c : str) {
+        if (c == delimiter) {
+            result.push_back(trim(current));
+            current.clear();
+        } else {
+            current += c;
+        }
+    }
+    result.push_back(trim(current));
+    return result;
 }
 
 template<typename T>
 T input(const std::string& prompt = "") {
-    T val;
     std::string line;
     if (!prompt.empty()) std::cerr << prompt;
     std::getline(std::cin, line);
-    std::istringstream iss(line);
-    iss >> val;
-    return val;
-}
 
-#endif
+    if constexpr (std::is_same<T, std::string>::value) {
+        return line;
+    } else {
+        std::istringstream iss(line);
+        T val;
+        iss >> val;
+        return val;
+    }
+}

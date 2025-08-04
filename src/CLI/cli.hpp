@@ -1,21 +1,23 @@
 #pragma once
 #include <iostream>
-#include "../HelperFunctions.hpp"
+#include <vector>
 #include <map>
 
 struct ProjectConfig {
-    string name;
-    string version = "1.0.0";
-    array<string> author;
-    string license;
-    string sourceFolder;
-    string output = "exe";
-    string buildFolder = ".build/";
-    std::map<string, string> dependencies;
-    std::map<string, string> tasks;
-    std::map<string, string> tests;
-    std::map<string, string> languagePacks;
+    std::string name = "Untitled Project";
+    std::string version = "1.0.0";
+    std::vector<std::string> author;
+    std::string license = "MIT";
+    std::string sourceFolder = "src/";
+    std::string output = "exe";
+    std::string buildFolder = ".build/";
+    std::map<std::string, std::string> dependencies;
+    std::map<std::string, std::string> tasks;
+    std::map<std::string, std::string> tests;
+    std::map<std::string, std::string> languagePacks;
 };
+
+//main func
 
 void build(const std::string& nlpFile);
 void run(const std::string& nlpFile);

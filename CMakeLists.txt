@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 4.0)
 project(Neoluma)
 
 # Set up C++ version
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Set up LLVM
@@ -16,8 +16,7 @@ add_definitions(${LLVM_DEFINITIONS})
 link_directories(${LLVM_LIBRARY_DIRS})
 
 # Include other libraries
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/.modules/cpptoml/include)
-add_subdirectory(.modules/cpptoml)
+
 
 # Includes everything in src/
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)

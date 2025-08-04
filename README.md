@@ -40,15 +40,13 @@ project_name/
 ## Example
 
 ```neoluma
-#import "std/io"
-
 @entry
 function main() {
     name = "Neoluma";
     print("Hello, {name}!")
 }
 ```
-> `main()` is `void` by default — no `return` required.
+> If the function doesn't have a return type, it is `void` by default — no `return` required.
 
 ---
 

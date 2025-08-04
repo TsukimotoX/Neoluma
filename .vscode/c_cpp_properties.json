@@ -1,17 +1,14 @@
 {
   "configurations": [
     {
-      "name": "Win32",
+      "name": "Windows",
       "includePath": [
-        "${workspaceFolder}/**",
-        "C:/Program Files (x86)/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/**/include",
-        "C:/Program Files (x86)/Windows Kits/**/Include/**"
+        "${workspaceFolder}/**"
       ],
-      "defines": [],
-      "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.38.33130/bin/Hostx64/x64/cl.exe",
+      "compilerPath": "C:/Program Files/LLVM/bin/clang++.exe",
       "cStandard": "c17",
-      "cppStandard": "c++17",
-      "intelliSenseMode": "msvc-x64"
+      "cppStandard": "c++23",
+      "intelliSenseMode": "windows-clang-x64"
     }
   ],
   "version": 4

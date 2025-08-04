@@ -4,7 +4,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
-#include "../../HelperFunctions.hpp"
+
 
 enum TokenType {
     NullLiteral,
@@ -30,12 +30,13 @@ enum TokenType {
     Dictionary,
     Void,
     Result,
+    // ADD CONST RETARD YOU FORGOT
 };
 
 struct Token {
     TokenType type;
-    string value;
-    string toString() const;
+    std::string value;
+    std::string toString() const;
 };
 
 enum class Keywords {
@@ -68,11 +69,11 @@ enum class Delimeters {
     LeftParen, RightParen, LeftBracket, RightBracket, Semicolon, Comma, Dot, LeftSquareBracket, RightSquareBracket
 };
 
-extern std::unordered_map<string, Keywords> keywordMap;
-extern std::unordered_map<string, TokenType> typesMap;
-extern std::unordered_map<string, Operators> operatorMap;
-extern std::unordered_map<string, Decorators> decoratorMap;
-extern std::unordered_map<string, Preprocessors> preprocessorMap;
-extern std::unordered_map<string, Delimeters> delimeterMap;
+extern std::unordered_map<std::string, Keywords> keywordMap;
+extern std::unordered_map<std::string, TokenType> typesMap;
+extern std::unordered_map<std::string, Operators> operatorMap;
+extern std::unordered_map<std::string, Decorators> decoratorMap;
+extern std::unordered_map<std::string, Preprocessors> preprocessorMap;
+extern std::unordered_map<std::string, Delimeters> delimeterMap;
 
 #endif

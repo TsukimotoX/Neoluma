@@ -1,3 +1,0 @@
-ninja_dyndep_version = 1.0
-build CMakeFiles/Neoluma.dir/src/main.cpp.obj: dyndep
-

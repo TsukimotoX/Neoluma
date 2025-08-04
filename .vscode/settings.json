@@ -92,6 +92,21 @@
         "xstring": "cpp",
         "xtr1common": "cpp",
         "xutility": "cpp",
-        "xtree": "cpp"
-    }
+        "xtree": "cpp",
+        "print": "cpp",
+        "codecvt": "cpp",
+        "filesystem": "cpp",
+        "forward_list": "cpp",
+        "any": "cpp",
+        "mutex": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp",
+        "valarray": "cpp",
+        "csignal": "cpp"
+    },
+    "C_Cpp.intelliSenseEngine": "default",
+    "clangd.arguments": ["--header-insertion=never"],
+    "C_Cpp.default.compilerPath": "C:/Program Files/LLVM/bin/clang++.exe"
 }

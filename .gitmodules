@@ -1,6 +1,3 @@
 [submodule ".modules/cpptoml"]
 	path = .modules/cpptoml
 	url = https://github.com/skystrife/cpptoml.git
-[submodule ".modules/json"]
-	path = .modules/json
-	url = https://github.com/nlohmann/json.git
