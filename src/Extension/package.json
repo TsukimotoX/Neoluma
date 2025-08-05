@@ -3,13 +3,16 @@
   "main": "./dist/extension.js",
   "displayName": "Neoluma",
   "description": "A language support plugin with syntax highlighting, IntelliSense, and more.",
-  "author": "TsukimotoX",
+  "publisher": "TsukimotoX",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.102.0"
   },
   "categories": [
     "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:neoluma"
   ],
   "contributes": {
     "languages": [
