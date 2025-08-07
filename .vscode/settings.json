@@ -104,7 +104,8 @@
         "stop_token": "cpp",
         "thread": "cpp",
         "valarray": "cpp",
-        "csignal": "cpp"
+        "csignal": "cpp",
+        "cassert": "cpp"
     },
     "C_Cpp.intelliSenseEngine": "default",
     "clangd.arguments": ["--header-insertion=never"],

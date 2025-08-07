@@ -1,3 +1,0 @@
-[submodule ".modules/cpptoml"]
-	path = .modules/cpptoml
-	url = https://github.com/skystrife/cpptoml.git

@@ -15,19 +15,18 @@ include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 link_directories(${LLVM_LIBRARY_DIRS})
 
-# Include other libraries
-
-
 # Includes everything in src/
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Compile the language and Command-Line-Interface
 file(GLOB_RECURSE CORE_FILES src/Core/*.cpp src/Core/*.hpp)
 file(GLOB_RECURSE CLI_FILES src/CLI/*.cpp src/CLI/*.hpp)
+file(GLOB_RECURSE LIB_FILES src/Libraries/*.cpp src/Libraries/*.hpp)
 
 # Compile a core library
 add_library(NeolumaCore ${CORE_FILES})
 add_library(NeolumaCLI ${CLI_FILES})
+add_library(NeolumaLibs ${LIB_FILES}) # Self-written or used libraries.
 
 # Compile the language
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.build/.executables)
@@ -36,4 +35,4 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.build/.libs)
 add_executable(Neoluma ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/HelperFunctions.hpp)
 
 # Link all libraries
-target_link_libraries(Neoluma PRIVATE LLVMCore LLVMSupport LLVMIRReader NeolumaCore NeolumaCLI)
+target_link_libraries(Neoluma PRIVATE LLVMCore LLVMSupport LLVMIRReader NeolumaCore NeolumaCLI NeolumaLibs)

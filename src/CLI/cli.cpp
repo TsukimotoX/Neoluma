@@ -3,37 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <print>
-
-//helpers
-inline std::string listAuthors(const std::vector<std::string>& authors) {
-    std::ostringstream oss;
-    bool first = true;
-
-    for (const auto& raw : authors) {
-        std::string name = trim(raw);
-        if (name.empty()) continue;
-
-        if (!first) oss << ", ";
-        oss << name;
-        first = false;
-    }
-
-    return oss.str();
-}
-
-inline std::string formatProjectFolderName(const std::string& input) {
-    std::string result = input;
-
-    for (char& c : result) {
-        if (c == ' ') {
-            c = '_';
-        } else {
-            c = std::tolower(static_cast<unsigned char>(c));
-        }
-    }
-    
-    return result;
-}
+#include "../Libraries/toml/toml.hpp"
 
 // other
 
@@ -69,36 +39,42 @@ void createProject() {
     std::string license = input<std::string>("📃 What license does your project have (MIT/Apache/GNU/OSL/others you choose)? ");
     std::println("😎 Let's sum up your project!\n   Project Name: {};\n   Version: {};\n   Authors: {};\n   License: {};\n\nIs that correct? Please type in 'Yes' here for approval.", name, version, authorList, license);
     std::string confirmation = input<std::string>("Your project creation sign: ");
-    if (confirmation == "Yes" || confirmation == "yes") {
-        std::filesystem::path projectPath = std::filesystem::current_path() / formatProjectFolderName(name);
+
+    // bad practice but whatever
+    if (confirmation == "Yes" || confirmation == "yes" || confirmation == "y" || confirmation == "Y") {
+        std::filesystem::path projectPath = std::filesystem::current_path() / name;
         std::filesystem::create_directory(projectPath);
         std::filesystem::create_directory(projectPath / "src");
 
         std::ofstream mainFile(projectPath / "src/main.nm");
         mainFile << "// Welcome to Neoluma! Have fun building!\n";
         mainFile << "@entry\n";
-        mainFile << "func main() {\n    print(\"Hello from Neoluma!\");\n}\n";
+        mainFile << "fn main() {\n    print(\"Hello from Neoluma!\");\n}\n";
         mainFile.close();
 
+        auto table = Toml::Table::make("");
+        table.insert("name", name);
+        table.insert("version", version);
+
+        Toml::Array authors_array;
+        for (const auto& author : authors) 
+            authors_array.push_back(Toml::TomlValue(author));
+        table.insert("authors", Toml::TomlValue(authors_array));
+        table.insert("license", license);
+        table.insert("output", "exe");
+        table.insert("sourceFolder", "src");
+        table.insert("buildFolder", "build");
+
+        auto tasks = Toml::Table::make("tasks");
+        tasks.insert("dev", "neoluma run --debug");
+        table.insert("tasks", Toml::TomlValue(tasks));
+
+        // Save to file
         std::ofstream config(projectPath / std::format("{}.nlp", formatProjectFolderName(name)));
-        config << "name = \"" << name << "\"\n";
-        config << "version = \"" << version << "\"\n";
-
-        config << "authors = [";
-        for (size_t i = 0; i < authors.size(); ++i) {
-            config << "\"" << authors[i] << "\"";
-            if (i + 1 < authors.size()) config << ", ";
+        if (config.is_open()){
+            cpptoml::toml_writer writer(config);
+            writer.visit(*table);
         }
-        config << "]\n";
-
-        config << "license = \"" << license << "\"\n\n";
-        config << "output = \"exe\"\n";
-        config << "sourceFolder = \"src\"\n";
-        config << "buildFolder = \"build\"\n\n";
-
-        config << "[tasks]\n";
-        config << "\"dev\" = \"neoluma run --debug\"";
-
         config.close();
 
         std::println("✅ Project created! Have fun building in Neoluma!");
