@@ -30,6 +30,8 @@ void check(const std::string& nlpFile) {
 }
 
 void createProject() {
+    // IS GOING TO BE REMADE WITH INTERACTIVE INQUIRER ASSISTANT!!! 
+
     // todo: generate folder, .nlp and src/main.nm
     std::println("📃 Creating a new Neoluma project...");
     std::string name = input<std::string>("❓ What's the name of your project? ");
@@ -53,27 +55,26 @@ void createProject() {
         mainFile.close();
 
         auto table = Toml::Table::make("");
-        table.insert("name", name);
-        table.insert("version", version);
+        auto project = Toml::Table::make("project");
+        project["name"] = name;
+        project["version"] = version;
 
-        Toml::Array authors_array;
-        for (const auto& author : authors) 
-            authors_array.push_back(Toml::TomlValue(author));
-        table.insert("authors", Toml::TomlValue(authors_array));
-        table.insert("license", license);
-        table.insert("output", "exe");
-        table.insert("sourceFolder", "src");
-        table.insert("buildFolder", "build");
+        Toml::TomlArray authors_array;
+        for (const auto& author : authors) authors_array.push_back(Toml::TomlValue(author));
+        project["authors"] = Toml::TomlValue(authors_array);
+        project["license"] = license;
+        project["output"] = "exe";
+        project["sourceFolder"] = "src";
+        project["buildFolder"] = "build";
+        table["project"] = Toml::TomlValue(project.get());
 
         auto tasks = Toml::Table::make("tasks");
-        tasks.insert("dev", "neoluma run --debug");
-        table.insert("tasks", Toml::TomlValue(tasks));
+        tasks["dev"] = "neoluma run --debug";
+        table["tasks"] = Toml::TomlValue(tasks.get());
 
-        // Save to file
         std::ofstream config(projectPath / std::format("{}.nlp", formatProjectFolderName(name)));
         if (config.is_open()){
-            cpptoml::toml_writer writer(config);
-            writer.visit(*table);
+            Toml::serializeTable(config, table);
         }
         config.close();
 

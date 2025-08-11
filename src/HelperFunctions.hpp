@@ -79,3 +79,13 @@ T input(const std::string& prompt = "") {
         return val;
     }
 }
+
+/*
+std::string readFileToString(const std::string& filepath) {
+    std::ifstream file(filepath);
+    if (!file) throw std::runtime_error("Failed to open file: " + filepath);
+    std::ostringstream ss;
+    ss << file.rdbuf();
+    return ss.str();
+}
+*/
