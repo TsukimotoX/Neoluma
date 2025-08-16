@@ -5,6 +5,7 @@
 #include <print>
 #include "../Libraries/toml/toml.hpp"
 #include "../Libraries/Asker/asker.hpp"
+#include "../Libraries/color/color.hpp"
 
 // ==== Helping functions
 

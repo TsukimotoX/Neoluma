@@ -28,25 +28,7 @@ struct CLIArgs {
 };
 
 // Argument parsing
-CLIArgs parseArgs(int argc, char** argv) {
-    CLIArgs args;
-    if (argc > 1) args.command = argv[1];
-
-    for (int i = 2; i < argc; i++) {
-        std::string token = argv[i];
-        if (token.rfind("--", 0) == 0) {
-            std::string key = token.substr(2);
-            std::string value;
-            if (i+1 < argc && argv[i+1][0] != '-') {
-                value = argv[i++];
-            }
-            args.options[key] = value;
-        } else {
-            args.positional.push_back(token);
-        }
-    }
-    return args;
-}
+CLIArgs parseArgs(int argc, char** argv);
 
 // ==== Main functions ====
 
