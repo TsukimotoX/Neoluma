@@ -1,0 +1,5 @@
+// Welcome to Neoluma! Have fun building!
+@entry
+fn main() {
+    print("Hello from Neoluma!");
+}

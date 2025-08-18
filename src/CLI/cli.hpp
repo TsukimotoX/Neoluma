@@ -75,6 +75,9 @@ inline std::string formatProjectFolderName(const std::string& input) {
     return result;
 }
 
+// Splits the string by delimeter
+std::vector<std::string> split(std::string str, char delimiter);
+
 // Licenses templates
 
 class Licenses {

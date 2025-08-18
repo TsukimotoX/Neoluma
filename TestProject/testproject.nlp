@@ -1,0 +1,12 @@
+
+[project]
+name = "TestProject"
+version = "1.0"
+authors = ["TsukimotoX"]
+license = "custom"
+output = "exe"
+sourceFolder = "src/"
+buildFolder = ".build/"
+
+[tasks]
+dev = "neoluma run --debug"

@@ -31,6 +31,7 @@ namespace Toml {
         return elems;
     }
 
+    // MEMORY LEAK! FIX REQUIRED LATER. BETTER YET, THIS LIBRARY MUST BE REMADE FROM GROUND UP
     Table& getOrCreateTable(Table& root, const std::vector<std::string>& path) {
         Table* current = &root;
         for (const auto& p : path) {

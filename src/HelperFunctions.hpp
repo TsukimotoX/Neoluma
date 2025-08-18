@@ -6,8 +6,6 @@
 #include <optional>
 #include <iostream>
 #include <format>
-#include <sstream>
-#include <fstream>
 #include <filesystem>
 
 class ASTNode;
@@ -40,28 +38,12 @@ T* as(MemoryPtr<ASTNode>& node) {
     return dynamic_cast<T*>(node.get());
 }
 
-
 // Other
 inline std::string trim(std::string s) {
     size_t start = s.find_first_not_of(" \t\r\n");
     size_t end = s.find_last_not_of(" \t\r\n");
     if (start == std::string::npos || end == std::string::npos) return "";
     return s.substr(start, end - start + 1);
-}
-
-inline std::vector<std::string> split(std::string str, char delimiter) {
-    std::vector<std::string> result;
-    std::string current;
-    for (char c : str) {
-        if (c == delimiter) {
-            result.push_back(trim(current));
-            current.clear();
-        } else {
-            current += c;
-        }
-    }
-    result.push_back(trim(current));
-    return result;
 }
 
 template<typename T>
@@ -79,13 +61,3 @@ T input(const std::string& prompt = "") {
         return val;
     }
 }
-
-/*
-std::string readFileToString(const std::string& filepath) {
-    std::ifstream file(filepath);
-    if (!file) throw std::runtime_error("Failed to open file: " + filepath);
-    std::ostringstream ss;
-    ss << file.rdbuf();
-    return ss.str();
-}
-*/

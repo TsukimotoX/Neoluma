@@ -8,30 +8,28 @@
 #include <sstream>
 
 namespace Toml {
+    enum class TomlType { Comment, String, Integer, Float, Boolean, Array, Table };
+
     struct TomlValue;
-
+    
     using TomlArray = std::vector<TomlValue>;
-    using TomlTable = std::vector<std::pair<std::string, TomlValue>>;
-
+    using TomlTable = std::map<std::string, TomlValue>;
+    
     struct TomlValue {
-        enum class Type { String, Boolean, Integer, Float, Array, Table } type;
-
+        TomlType type;
         std::variant<std::string, int64_t, double, bool, TomlArray, TomlTable> value;
-
         TomlValue() = default;
-        TomlValue(const std::string& str) : type(Type::String), value(str) {}
-        TomlValue(const char* str) : type(Type::String), value(std::string(str)) {}
+        TomlValue(const std::string& str) : type(TomlType::String), value(str) {}
+        TomlValue(bool b) : type(TomlType::Boolean), value(b) {}
+        TomlValue(int64_t i) : type(TomlType::Integer), value(i) {}
+        TomlValue(double f) : type(TomlType::Float), value(f) {}
+        TomlValue(const TomlArray& arr) : type(TomlType::Array), value(arr) {}
+        TomlValue(const TomlTable& tbl) : type(TomlType::Table), value(tbl) {}
 
-        TomlValue(bool b) : type(Type::Boolean), value(b) {}
-        TomlValue(int64_t i) : type(Type::Integer), value(i) {}
-        TomlValue(double f) : type(Type::Float), value(f) {}
-        TomlValue(const TomlArray& arr) : type(Type::Array), value(arr) {}
-        TomlValue(const TomlTable& tbl) : type(Type::Table), value(tbl) {}
-        
         TomlValue& operator[](const std::string& key);
-
+        const TomlValue& operator[](const std::string& key) const;
     };
-
+    /*
     inline TomlArray Array(std::initializer_list<TomlValue> list);
 
     struct Table {
@@ -49,4 +47,5 @@ namespace Toml {
     TomlValue parseValue(const std::string& value);
 
     Table parseToml(std::istream& in);
-}
+    */
+};

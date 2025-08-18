@@ -1,10 +1,11 @@
 #include "cli.hpp"
-#include "../HelperFunctions.hpp"
 #include <iostream>
 #include <vector>
 #include <print>
+#include <sstream>
+#include <fstream>
 #include "../Libraries/toml/toml.hpp"
-#include "../Libraries/Asker/asker.hpp"
+#include "../Libraries/asker/asker.hpp"
 #include "../Libraries/color/color.hpp"
 
 // ==== Helping functions
@@ -19,26 +20,52 @@ CLIArgs parseArgs(int argc, char** argv) {
         if (token.rfind("--", 0) == 0) {
             std::string key = token.substr(2);
             std::string value;
-            if (i+1 < argc && argv[i+1][0] != '-') {
-                value = argv[i++];
+
+            while (i + 1 < argc && argv[i + 1][0] != '-') {
+                if (!value.empty()) value += " ";
+                value += argv[++i];
             }
             args.options[key] = value;
         } else {
             args.positional.push_back(token);
         }
     }
+
     return args;
 }
+
+// Splits the string by delimeter
+std::vector<std::string> split(std::string str, char delimiter) {
+    std::vector<std::string> result;
+    std::string current;
+    for (char c : str) {
+        if (c == delimiter) {
+            result.push_back(trim(current));
+            current.clear();
+        } else {
+            current += c;
+        }
+    }
+    result.push_back(trim(current));
+    return result;
+}
+
+// Reads the file
+std::string readFile(const std::string& filePath) {
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open file: " + filePath);
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+} 
 
 // Returns progress bar for CLI
 void showProgressBar(const std::string& stepName, int step, int total) {
     int percentage = (step * 100) / total;
     int hashes = percentage / 5;
-    if (percentage != 100) {
-        std::println("{} [ {} ({}{}) {}% ] {}", Color::Text::BrightYellow, stepName, std::string(hashes, '#'), std::string(20 - hashes, '_'), percentage, Color::Text::BrightCyan);
-    } else {
-        std::println("{} [ {} ({}{}) {}%! ] {}", Color::Text::BrightGreen, stepName, std::string(hashes, '#'), std::string(20 - hashes, '_'), percentage, Color::Text::BrightCyan);
-    }
+    std::println("{} [ {} ({}{}) {}% ] {}", Color::TextHex("#f6ff75"), stepName, std::string(hashes, '#'), std::string(20 - hashes, '_'), percentage, Color::TextHex("#01e0d4"));
 }
 
 // Clears terminal screen
@@ -48,14 +75,15 @@ void clearScreen() {
 
 // Asks a question
 std::string askQuestion(const std::string& question) {
-    return asker::input(std::format("{}{} {}", Color::Text::BrightBlue, question, Color::Text::Magenta), true);
+    return asker::input(question, true);
 }
-
-// other
 
 ProjectConfig parseProjectFile(const std::string& file) {
+    std::string projectFile = readFile(file);
     return ProjectConfig {};
 }
+
+// ==== Main functions ====
 
 void build(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
@@ -95,7 +123,7 @@ void createProject() {
     clearScreen();
     showProgressBar("📃 Creating a new Neoluma project ", step++, steps);
     std::string licenses[14] = { "MIT", "Apache 2.0", "GNU GPL v3", "BSD 2-Clause \"Simplified\"", "BSD 3-Clause \"New\" or \"Revised\"", "Boost Software 1.0", "CC0 v1 Universal", "Eclipse", "GNU AGPL v3", "GNU GPL v2", "GNU LGPL v2.1", "Mozilla 2.0", "The Unlicense", "Custom"};
-    std::string license = asker::selectList(std::format("{}📃 What license does your project have? {}", Color::Text::BrightBlue, Color::Text::BrightMagenta), licenses);
+    std::string license = asker::selectList("📃 What license does your project have?", licenses);
     
     if (license == "MIT") config.license = "mit";
     else if (license == "Apache 2.0") config.license = "apache";
@@ -114,13 +142,13 @@ void createProject() {
     
     clearScreen();
     showProgressBar("📃 Creating a new Neoluma project ", step++, steps);
-    bool confirmation = asker::confirm(std::format("{}😎 Let's sum up your project!\n   Project Name: {};\n   Version: {};\n   Authors: {};\n   License: {};\n\nIs that correct?{}", Color::Text::BrightYellow, config.name, config.version, authorList, license, Color::Reset));
+    bool confirmation = asker::confirm(std::format("{}😎 Let's sum up your project!\n   Project Name: {};\n   Version: {};\n   Authors: {};\n   License: {};\n\n{}Is that correct?{}", Color::TextHex("#FF8C75"), config.name, config.version, authorList, license, Color::TextHex("#96fcbd"), Color::Reset));
     if (confirmation) {
         createProject(config);
         clearScreen();
-        std::println("{}✅ Project created! Have fun building in Neoluma!{}", Color::Text::BrightGreen, Color::Reset);
+        std::println("{}✅ Project created! Have fun building in Neoluma!{}", Color::TextHex("#75ff87"), Color::Reset);
     } else {
-        std::println("❌ Project cancelled. You didn't write 'Yes'. If it's a mistake, try create a project again! (and don't type anything beyond 'Yes' on comfirmation. No space, not anything.)");
+        std::println("{}❌ Project cancelled. If it's a mistake, try create a project again!{}", Color::TextHex("#ff5050"), Color::Reset);
     }
     std::println(Color::Reset);
 }
@@ -171,6 +199,16 @@ fn main() {
 }
 
 void printHelp() {
-    std::println("Neoluma is a high-level, all-purpose programming language designed to be a language for everything.\nWhether you're writing a small script or building an entire operating system, Neoluma is made to scale with you. With a Python-like syntax and C#/C++-inspired architecture, \nit's both expressive and powerful.\n\nUsage:\n  neoluma build <project.nlp>  - Compile project to executable\n  neoluma run <project.nlp>    - Compile and immediately run\n  neoluma check <project.nlp>  - Syntax-check without building\n  neoluma new <name>           - Create new project\n  neoluma version              - Print compiler version");
+    std::println(R""""(Neoluma is a high-level, all-purpose programming language designed to be a language for everything.
+Whether you're writing a small script or building an entire operating system, Neoluma is made to scale with you. With a Python-like syntax and C#/C++-inspired architecture,
+it's both expressive and powerful.
+
+Usage:
+  neoluma build <project.nlp>  - Compile project to executable
+  neoluma run <project.nlp>    - Compile and immediately run
+  neoluma check <project.nlp>  - Syntax-check without building
+  neoluma new <name>           - Create new project
+  neoluma version              - Print compiler version
+)"""");
 }
 
