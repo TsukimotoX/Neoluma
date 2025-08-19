@@ -7,6 +7,8 @@
 #include "../Libraries/toml/toml.hpp"
 #include "../Libraries/asker/asker.hpp"
 #include "../Libraries/color/color.hpp"
+#include "../Core/Lexer/lexer.hpp"
+#include "helpers.hpp"
 
 // ==== Helping functions
 
@@ -34,53 +36,33 @@ CLIArgs parseArgs(int argc, char** argv) {
     return args;
 }
 
-// Splits the string by delimeter
-std::vector<std::string> split(std::string str, char delimiter) {
-    std::vector<std::string> result;
-    std::string current;
-    for (char c : str) {
-        if (c == delimiter) {
-            result.push_back(trim(current));
-            current.clear();
-        } else {
-            current += c;
-        }
-    }
-    result.push_back(trim(current));
-    return result;
-}
-
-// Reads the file
-std::string readFile(const std::string& filePath) {
-    std::ifstream file(filePath);
-    if (!file.is_open()) {
-        throw std::runtime_error("Failed to open file: " + filePath);
-    }
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-} 
-
-// Returns progress bar for CLI
-void showProgressBar(const std::string& stepName, int step, int total) {
-    int percentage = (step * 100) / total;
-    int hashes = percentage / 5;
-    std::println("{} [ {} ({}{}) {}% ] {}", Color::TextHex("#f6ff75"), stepName, std::string(hashes, '#'), std::string(20 - hashes, '_'), percentage, Color::TextHex("#01e0d4"));
-}
-
-// Clears terminal screen
-void clearScreen() {
-    std::cout << "\033[0m\033[2J\033[H";
-}
-
-// Asks a question
-std::string askQuestion(const std::string& question) {
-    return asker::input(question, true);
-}
-
 ProjectConfig parseProjectFile(const std::string& file) {
-    std::string projectFile = readFile(file);
-    return ProjectConfig {};
+    std::string contents = readFile(file);
+    std::istringstream ss(contents);
+    Toml::TomlTable root = Toml::parseToml(ss);
+
+    ProjectConfig config;
+
+    // project table parsing
+    auto it = std::find_if(root.begin(), root.end(), [](const auto& kv){ return kv.first == "project"; });
+    if (it != root.end() && it->second.type == Toml::TomlType::Table) {
+        const auto& project = std::get<Toml::TomlTable>(it->second.value);
+        config.name = getString(project, "name", config.name);
+        config.version = getString(project, "version", config.version);
+        config.author = getStringArray(project, "authors");
+        config.license = getString(project, "license", config.license);
+        config.sourceFolder = getString(project, "sourceFolder", config.sourceFolder);
+        config.output = getString(project, "output", config.output);
+        config.buildFolder = getString(project, "buildFolder", config.buildFolder);
+    }
+
+    // get configured tasks, dependencies, tests and languagePacks
+    config.tasks = extractMap(root, "tasks");
+    config.dependencies = extractMap(root, "dependencies");
+    config.tests = extractMap(root, "tests");
+    config.languagePacks = extractMap(root, "languagePacks");
+
+    return config;
 }
 
 // ==== Main functions ====
@@ -104,9 +86,8 @@ void check(const std::string& nlpFile) {
 }
 
 void createProject() {
-    // IS GOING TO BE REMADE WITH INTERACTIVE INQUIRER ASSISTANT!!! 
     ProjectConfig config;
-    int steps = 5; int step = 0;
+    int steps = 5; int step = 1;
 
     clearScreen();
     showProgressBar("📃 Creating a new Neoluma project ", step++, steps);
@@ -166,8 +147,8 @@ fn main() {
 })"""";
     mainFile.close();
 
-    auto table = Toml::Table::make("");
-    auto project = Toml::Table::make("project");
+    Toml::Table table;
+    Toml::Table project;
     project["name"] = config.name;
     project["version"] = config.version;
 
@@ -178,15 +159,15 @@ fn main() {
     project["output"] = config.output;
     project["sourceFolder"] = config.sourceFolder;
     project["buildFolder"] = config.buildFolder;
-    table["project"] = Toml::TomlValue(project.get());
+    table["project"] = project.get();
 
-    auto tasks = Toml::Table::make("tasks");
+    Toml::Table tasks;
     tasks["dev"] = "neoluma run --debug";
-    table["tasks"] = Toml::TomlValue(tasks.get());
+    table["tasks"] = tasks.get();
 
     std::ofstream cfg(projectPath / std::format("{}.nlp", formatProjectFolderName(config.name)));
     if (cfg.is_open()){
-        Toml::serializeTable(cfg, table);
+        Toml::serializeTable(cfg, table.get());
     }
     cfg.close();
 
