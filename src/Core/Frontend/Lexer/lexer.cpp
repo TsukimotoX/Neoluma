@@ -174,8 +174,6 @@ void Lexer::skipComment() {
 void Lexer::printTokens() const {
     std::println("=== Lexer Output ===");
     for (const auto& token : tokens) {
-        std::println("Token: ");
-
         switch (token.type) {
             case TokenType::Identifier: std::cout << "[Identifier]"; break;
             case TokenType::Keyword:    std::cout << "[Keyword]   "; break;

@@ -7,7 +7,7 @@
 #include <unordered_set>
 
 std::unordered_map<std::string, Keywords> keywordMap = {
-    {"function", Keywords::Function}, {"class", Keywords::Class}, {"enum", Keywords::Enum}, {"interface", Keywords::Interface}, {"namespace", Keywords::Namespace},
+    {"function", Keywords::Function}, {"fn", Keywords::Function}, {"class", Keywords::Class}, {"enum", Keywords::Enum}, {"interface", Keywords::Interface}, {"namespace", Keywords::Namespace},
     {"if", Keywords::If}, {"else", Keywords::Else},
     {"for", Keywords::For}, {"while", Keywords::While}, {"break", Keywords::Break}, {"continue", Keywords::Continue},
     {"switch", Keywords::Switch}, {"case", Keywords::Case}, {"default", Keywords::Default},

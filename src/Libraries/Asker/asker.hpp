@@ -1,3 +1,4 @@
+#pragma once
 /* 
 * Asker is an internal Neoluma library for handling CLI input
 */
@@ -10,7 +11,7 @@ enum Key { NONE, UP, DOWN, ENTER, BACKSPACE };
 #ifdef _WIN32
 #include <conio.h>
 
-Key getKey() {
+inline Key getKey() {
     int c = _getch();
     if (c == 13) return ENTER;
     if (c == 8) return BACKSPACE;
@@ -22,26 +23,26 @@ Key getKey() {
     return NONE;
 }
 
-void enableRaw() {} // do nothing on windows
-void disableRaw() {}
+inline void enableRaw() {} // do nothing on windows
+inline void disableRaw() {}
 #else
 #include <termios.h>
 #include <unistd.h>
 
 static struct termios term;
 
-void enableRaw() {
+inline void enableRaw() {
     tcgetattr(STDIN_FILENO, &term);
     struct termios raw = term;
     raw.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &raw);
 }
 
-void disableRaw() {
+inline void disableRaw() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &term);
 }
 
-Key getKey() {
+inline Key getKey() {
     int c = getchar();
     if (c == '\n') return ENTER;
     if (c == 127) return BACKSPACE;
@@ -56,7 +57,7 @@ Key getKey() {
 }
 #endif
 
-void clearBlock(int lines) {
+inline void clearBlock(int lines) {
     std::println("\033[{}A",lines);
 }
 

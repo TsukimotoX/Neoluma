@@ -6,7 +6,7 @@
 #include "../Libraries/asker/asker.hpp"
 
 // Splits the string by delimeter
-std::vector<std::string> split(std::string str, char delimiter) {
+inline std::vector<std::string> split(std::string str, char delimiter) {
     std::vector<std::string> result;
     std::string current;
     for (char c : str) {
@@ -22,7 +22,7 @@ std::vector<std::string> split(std::string str, char delimiter) {
 }
 
 // Reads the file
-std::string readFile(const std::string& filePath) {
+inline std::string readFile(const std::string& filePath) {
     std::ifstream file(filePath);
     if (!file.is_open()) {
         throw std::runtime_error("Failed to open file: " + filePath);
@@ -33,7 +33,7 @@ std::string readFile(const std::string& filePath) {
 } 
 
 // Returns progress bar for CLI
-void showProgressBar(const std::string& stepName, int step, int total) {
+inline void showProgressBar(const std::string& stepName, int step, int total) {
     int percentage = (step * 100) / total;
     int hashes = percentage / 5;
     if (percentage != 100) std::println("{} [ {} ({}{}) {}% ] {}", Color::TextHex("#f6ff75"), stepName, std::string(hashes, '#'), std::string(20 - hashes, '_'), percentage, Color::TextHex("#01e0d4"));
@@ -41,17 +41,17 @@ void showProgressBar(const std::string& stepName, int step, int total) {
 }
 
 // Clears terminal screen
-void clearScreen() {
+inline void clearScreen() {
     std::cout << "\033[0m\033[2J\033[H";
 }
 
 // Asks a question
-std::string askQuestion(const std::string& question) {
+inline std::string askQuestion(const std::string& question) {
     return asker::input(question, true);
 }
 
 // -------- stuff required for parseProjectFile
-std::string getString(const Toml::TomlTable& table, const std::string& key, const std::string& def = "") {
+inline std::string getString(const Toml::TomlTable& table, const std::string& key, const std::string& def = "") {
     for (const auto& [k, v] : table) {
         if (k == key && v.type == Toml::TomlType::String)
             return std::get<std::string>(v.value);
@@ -59,7 +59,7 @@ std::string getString(const Toml::TomlTable& table, const std::string& key, cons
     return def;
 }
 
-std::vector<std::string> getStringArray(const Toml::TomlTable& table, const std::string& key) {
+inline std::vector<std::string> getStringArray(const Toml::TomlTable& table, const std::string& key) {
     for (const auto& [k, v] : table) {
         if (k == key && v.type == Toml::TomlType::Array) {
             std::vector<std::string> result;
@@ -74,7 +74,7 @@ std::vector<std::string> getStringArray(const Toml::TomlTable& table, const std:
     return {};
 }
 
-std::map<std::string, std::string> extractMap(const Toml::TomlTable& root, const std::string& key) {
+inline std::map<std::string, std::string> extractMap(const Toml::TomlTable& root, const std::string& key) {
     std::map<std::string, std::string> result;
 
     for (const auto& [k, v] : root) {

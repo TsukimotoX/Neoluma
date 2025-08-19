@@ -2,9 +2,11 @@
 #include <iostream>
 #include <print>
 #include <filesystem>
+
 #include "CLI/cli.hpp"
 #include "Libraries/color/color.hpp"
-#include <windows.h>
+#include "CLI/helpers.hpp"
+#include "Core/Lexer/lexer.hpp"
 
 std::string findProjectFile(const std::string& folder) {
     for (const auto& entry : std::filesystem::directory_iterator(folder)) {
@@ -16,9 +18,11 @@ std::string findProjectFile(const std::string& folder) {
 }
 
 int main(int argc, char** argv) {
+    /*
     #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     #endif
+    */
     CLIArgs args = parseArgs(argc, argv);
 
     if (args.command == "new") {
@@ -52,6 +56,13 @@ int main(int argc, char** argv) {
         }
         
         check(projectFilePath);
+    } else if (args.command == "test") { // internal test for checking the work of lexer and parser. to be removed.
+        // ./.build/.executables/Neoluma.exe test --file src/program.nm
+        std::string source = readFile(args.options.at("file"));
+        Lexer lexer = Lexer(source);
+        lexer.tokenize();
+        lexer.printTokens();
+
     } else {
         printHelp();
     }

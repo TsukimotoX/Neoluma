@@ -5,7 +5,6 @@
 #include <string>
 #include <unordered_map>
 
-
 enum TokenType {
     NullLiteral,
     Identifier, //Combined Variable, function and class names, and etc.
