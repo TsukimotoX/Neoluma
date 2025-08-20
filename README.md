@@ -1,4 +1,4 @@
-<img src="neoluma.png" width="360px"/>
+<img src="neoluma.png" alt="this logo looks like from a nursery rhymes channel" width="360px"/>
 
 # Neoluma
 
