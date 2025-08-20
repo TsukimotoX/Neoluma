@@ -92,6 +92,6 @@ Neoluma is in early development. Contributions and feedback are welcome!
 
 ---
 
-**Created by [Tsukimoto](https://github.com/TsukimotoX) under [Apache License](./LICENSE)** — more documentation and compiler features coming soon!
+**Created by [Tsukimoto](https://github.com/TsukimotoX) under temporaru [Apache License](./LICENSE)** — more documentation and compiler features coming soon!
 
 This project uses [LLVM](https://llvm.org/) under the Apache License v2.0 with LLVM Exceptions.
