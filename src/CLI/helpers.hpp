@@ -5,6 +5,13 @@
 #include "../Libraries/toml/toml.hpp"
 #include "../Libraries/asker/asker.hpp"
 
+inline std::string trim(const std::string& s) {
+    size_t start = 0, end = s.size();
+    while (start < end && isspace((unsigned char)s[start])) start++;
+    while (end > start && isspace((unsigned char)s[end - 1])) end--;
+    return s.substr(start, end - start);
+}
+
 // Splits the string by delimeter
 inline std::vector<std::string> split(std::string str, char delimiter) {
     std::vector<std::string> result;

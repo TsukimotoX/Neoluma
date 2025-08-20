@@ -6,7 +6,7 @@
 #include "CLI/cli.hpp"
 #include "Libraries/color/color.hpp"
 #include "CLI/helpers.hpp"
-#include "Core/Lexer/lexer.hpp"
+#include "Core/Frontend/Lexer/lexer.hpp"
 
 std::string findProjectFile(const std::string& folder) {
     for (const auto& entry : std::filesystem::directory_iterator(folder)) {

@@ -3,8 +3,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <format>
 #include <unordered_map>
-#include <unordered_set>
 
 std::unordered_map<std::string, Keywords> keywordMap = {
     {"function", Keywords::Function}, {"fn", Keywords::Function}, {"class", Keywords::Class}, {"enum", Keywords::Enum}, {"interface", Keywords::Interface}, {"namespace", Keywords::Namespace},
@@ -14,7 +14,7 @@ std::unordered_map<std::string, Keywords> keywordMap = {
     {"try", Keywords::Try}, {"catch", Keywords::Catch}, {"throw", Keywords::Throw},
     {"async", Keywords::Async}, {"await", Keywords::Await},
     {"yield", Keywords::Yield}, {"return", Keywords::Return},
-    {"static", Keywords::Static}, {"decorator", Keywords::Decorator},
+    {"static", Keywords::Static}, {"decorator", Keywords::Decorator}, {"const", Keywords::Const},
     {"as", Keywords::As}, {"with", Keywords::With}, {"in", Keywords::In}, {":", Keywords::In}, {"lambda", Keywords::Lambda},
     {"debug", Keywords::Debug}, {"public", Keywords::Public}, {"protected", Keywords::Protected}, {"private", Keywords::Private},
 };
@@ -51,31 +51,31 @@ std::string Token::toString() const {
     std::string typeStr;
 
     switch (type) {
-        case TokenType::NullLiteral: typeStr = "NullLiteral"; break;
-        case TokenType::Identifier: typeStr = "Identifier"; break;
-        case TokenType::Keyword: typeStr = "Keyword"; break;
-        case TokenType::Decorator: typeStr = "Decorator"; break;
-        case TokenType::Preprocessor: typeStr = "Preprocessor"; break;
-        case TokenType::Delimeter: typeStr = "Delimeter"; break;
-        case TokenType::Operator: typeStr = "Operator"; break;
+        case TokenType::NullLiteral:     typeStr = "NullLiteral"; break;
+        case TokenType::Identifier:      typeStr = "Identifier"; break;
+        case TokenType::Keyword:         typeStr = "Keyword"; break;
+        case TokenType::Decorator:       typeStr = "Decorator"; break;
+        case TokenType::Preprocessor:    typeStr = "Preprocessor"; break;
+        case TokenType::Delimeter:       typeStr = "Delimeter"; break;
+        case TokenType::Operator:        typeStr = "Operator"; break;
         case TokenType::AssignmentArrow: typeStr = "AssignmentArrow"; break;
-        case TokenType::Question: typeStr = "Question"; break;
-        case TokenType::Unknown: typeStr = "Unknown"; break;
-        case TokenType::EndOfFile: typeStr = "EndOfFile"; break;
+        case TokenType::Question:        typeStr = "Question"; break;
+        case TokenType::Unknown:         typeStr = "Unknown"; break;
+        case TokenType::EndOfFile:       typeStr = "EndOfFile"; break;
+        case TokenType::Type:            typeStr = "Type"; break;
 
-        case TokenType::Integer: typeStr = "Integer"; break;
-        case TokenType::Float: typeStr = "Float"; break;
-        case TokenType::Number: typeStr = "Number"; break;
-        case TokenType::String: typeStr = "String"; break;
-        case TokenType::Void: typeStr = "Void"; break;
-        case TokenType::Array: typeStr = "Array"; break;
-        case TokenType::Boolean: typeStr = "Boolean"; break;
-        case TokenType::Dictionary: typeStr = "Dictionary"; break;
-        case TokenType::Set: typeStr = "Set"; break;
-        case TokenType::Result: typeStr = "Result"; break;
-        default: typeStr = "<UNK>"; break;
+        case TokenType::Integer:         typeStr = "Integer"; break;
+        case TokenType::Float:           typeStr = "Float"; break;
+        case TokenType::Number:          typeStr = "Number"; break;
+        case TokenType::String:          typeStr = "String"; break;
+        case TokenType::Void:            typeStr = "Void"; break;
+        case TokenType::Array:           typeStr = "Array"; break;
+        case TokenType::Boolean:         typeStr = "Boolean"; break;
+        case TokenType::Dictionary:      typeStr = "Dictionary"; break;
+        case TokenType::Set:             typeStr = "Set"; break;
+        case TokenType::Result:          typeStr = "Result"; break;
+        default:                         typeStr = "<UNK>"; break;
     }
-
-    return "[" + typeStr + "(\"" + value + "\")]";
+    return std::format("[{}] -> \"{}\"\n", typeStr, value);
 }
 

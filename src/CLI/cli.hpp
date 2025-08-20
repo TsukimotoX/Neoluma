@@ -1,9 +1,9 @@
 #pragma once
-#include "../HelperFunctions.hpp"
 #include <iostream>
 #include <vector>
 #include <map>
 #include <chrono>
+#include "helpers.hpp"
 
 // ProjectConfig is a struct that allows me to determine project structure.
 struct ProjectConfig {

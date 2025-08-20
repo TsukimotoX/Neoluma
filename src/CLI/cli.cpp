@@ -4,11 +4,11 @@
 #include <print>
 #include <sstream>
 #include <fstream>
+#include <filesystem>
 #include "../Libraries/toml/toml.hpp"
 #include "../Libraries/asker/asker.hpp"
 #include "../Libraries/color/color.hpp"
-#include "../Core/Lexer/lexer.hpp"
-#include "helpers.hpp"
+#include "../Core/Frontend/Lexer/lexer.hpp"
 
 // ==== Helping functions
 

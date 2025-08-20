@@ -3,4 +3,7 @@
 @entry
 fn main(args: string[], num) {
     print("Hello, Neoluma!");
+    a: number = 1.23e10;
+    b: int = 15;
+    print(a+b);
 }

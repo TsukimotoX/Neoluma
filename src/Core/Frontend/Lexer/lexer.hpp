@@ -12,7 +12,7 @@ public:
     void printTokens() const;
 private:
     std::string source;
-    size_t pos;
+    size_t pos = 0;
 
     // Helpers
     char curChar() const;

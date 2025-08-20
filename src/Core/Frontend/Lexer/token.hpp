@@ -1,35 +1,17 @@
-#ifndef TOKEN_HPP
-#define TOKEN_HPP
+#pragma once
 
 #include <optional>
 #include <string>
 #include <unordered_map>
 
 enum TokenType {
-    NullLiteral,
-    Identifier, //Combined Variable, function and class names, and etc.
-    Keyword,
-    Decorator,
-    Preprocessor,
-    Delimeter,
-    Operator,
-    AssignmentArrow,
-    Question,
-    Unknown,
-    EndOfFile,
+    NullLiteral, Identifier, //Combined Variable, function and class names, and etc.
+    Keyword, Decorator, Preprocessor, Delimeter, Operator,
+    AssignmentArrow, Question, Unknown, EndOfFile,
 
     Type, // Represents a type of tokens below
-    Integer,
-    Float,
-    Number,
-    Boolean,
-    String,
-    Array,
-    Set,
-    Dictionary,
-    Void,
-    Result,
-    // ADD CONST RETARD YOU FORGOT
+    Integer, Float, Number, Boolean, String, 
+    Array, Set, Dictionary, Void, Result,
 };
 
 struct Token {
@@ -46,7 +28,7 @@ enum class Keywords {
     Try, Catch, Throw,
     Async, Await,
     Yield, Return,
-    Static, Decorator,
+    Static, Decorator, Const,
     As, With, In, Lambda,
     Debug, Public, Protected, Private
 };
@@ -74,5 +56,3 @@ extern std::unordered_map<std::string, Operators> operatorMap;
 extern std::unordered_map<std::string, Decorators> decoratorMap;
 extern std::unordered_map<std::string, Preprocessors> preprocessorMap;
 extern std::unordered_map<std::string, Delimeters> delimeterMap;
-
-#endif

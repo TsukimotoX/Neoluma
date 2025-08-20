@@ -6,7 +6,7 @@
 #include <vector>
 #include <print>
 
-Lexer::Lexer(const std::string& source) : source(source), pos(0) {}
+Lexer::Lexer(const std::string& source) : source(source) {}
 
 // ==== Main ====
 std::vector<Token> Lexer::tokenize() {
@@ -53,28 +53,27 @@ void Lexer::parseIK() {
     while (!isAtEnd() && (isalnum(curChar()) || curChar() == '_')) word += move();
     
     if (keywordMap.find(word) != keywordMap.end()) tokens.push_back(Token{TokenType::Keyword, word});
-    else if (typesMap.find(word) != typesMap.end()) tokens.push_back(Token{typesMap[word], word});
+    else if (typesMap.find(word) != typesMap.end()) tokens.push_back(Token{TokenType::Type, word});
     else if (word == "true" || word == "false") tokens.push_back(Token{TokenType::Boolean, word});
     else if (word == "null") tokens.push_back(Token{TokenType::NullLiteral, word});
     else if (operatorMap.find(word) != operatorMap.end()) tokens.push_back(Token{TokenType::Operator, word});
     else tokens.push_back(Token{TokenType::Identifier, word});
 }
 void Lexer::parseNumber() {
-    //TODO:: Add exponents (maybe)
     std::string number;
 
     while (!isAtEnd() && isdigit(curChar())) number += move();
     
     if (!isAtEnd() && curChar() == '.'){
         number += move();
-        while (!isAtEnd() && isdigit(curChar())) number += move();
+        while (!isAtEnd() && (isdigit(curChar()) || curChar() == 'e')) number += move();
     }
 
     tokens.push_back(Token{TokenType::Number, number});
 }
 void Lexer::parseString() {
     /* hardest thing to make. strings in neoluma can be multiline,
-       have f-strings (variables inside {}) inside them and support \n \t or anything i forgor.
+       have f-strings (variables inside ${}) inside them and support \n \t or anything i forgor.
     */
 
     move();
@@ -159,6 +158,7 @@ void Lexer::skipComment() {
     else if (match('*')) {
         // multiline
         while (!isAtEnd()) {
+            if (curChar() == '\n') move();
             if (curChar() == '*' && (pos + 1 < source.size()) && source[pos + 1] == '/') {
                 move(); // '*'
                 move(); // '/'
@@ -166,6 +166,8 @@ void Lexer::skipComment() {
             }
             move();
         }
+        // todo: give position.
+        if (isAtEnd()) std::println(std::cerr, "[Lexer] Unterminated comment.");
     }
     // not comment
     else tokens.push_back(Token{TokenType::Operator, "/"});
@@ -174,22 +176,7 @@ void Lexer::skipComment() {
 void Lexer::printTokens() const {
     std::println("=== Lexer Output ===");
     for (const auto& token : tokens) {
-        switch (token.type) {
-            case TokenType::Identifier: std::cout << "[Identifier]"; break;
-            case TokenType::Keyword:    std::cout << "[Keyword]   "; break;
-            case TokenType::Number:     std::cout << "[Number]    "; break;
-            case TokenType::String:     std::cout << "[String]    "; break;
-            case TokenType::Operator:   std::cout << "[Operator]  "; break;
-            case TokenType::Delimeter:  std::cout << "[Delimeter] "; break;
-            case TokenType::Preprocessor: std::cout << "[Preproc]   "; break;
-            case TokenType::Decorator:  std::cout << "[Decorator] "; break;
-            case TokenType::EndOfFile:        std::cout << "[EOF]       "; break;
-            default: std::cout << "[Unknown]"; break;
-        }
-
-        std::cout << " -> \"" << token.value << "\"";
-
-        std::cout << "\n";
+        std::cout << token.toString();
     }
     std::println("====================");
 }
