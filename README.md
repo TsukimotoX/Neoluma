@@ -1,3 +1,5 @@
+![](neoluma.png =512x512)
+
 # Neoluma
 
 **Neoluma** is a high-level, all-purpose programming language designed to be a language for everything. Whether you're writing a small script or building an entire operating system, Neoluma is made to scale with you. With a Python-like syntax and C#/C++-inspired architecture, it's both expressive and powerful.
@@ -11,8 +13,8 @@
 - **Custom fixed-point `number` type**, plus `int`, `float`, `bool`, `string`, `set`, `dict`, `array`, `result`, `void`
 - **Annotations and decorators**: `@entry`, `@comptime`, `@unsafe`, `@override`, etc.
 - **Preprocessor directives**:
-  - `#use` — for external libraries and non-Neoluma files (e.g., C++ bindings)
-  - `#import` — for local `.nm` Neoluma modules
+  - `#unsafe` — for making pointers work in a file
+  - `#import` — for local `.nm` Neoluma modules and for external libraries(e.g., C++ bindings)
   - `#baremetal` for working with bare-metal and etc.
 - **Async/await** built into the language
 - **Compile-time evaluation**, lambdas, and macro system (WIP)
