@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 760" role="img" aria-label="Neoluma icon">
+  <defs>
+    <linearGradient id="gN" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A2BD6"/>
+      <stop offset="100%" stop-color="#7B5BFF"/>
+    </linearGradient>
+    <linearGradient id="gS" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFD66B"/>
+      <stop offset="100%" stop-color="#FF8A2A"/>
+    </linearGradient>
+    <style>
+      .ray{ stroke:#FFB23A; stroke-width:20; stroke-linecap:round; opacity:.95 }
+    </style>
+  </defs>
+  
+  <!-- N -->
+  <path d="M150,600 L150,200
+           C150,150 650,1000 600,380
+           "
+        fill="none" stroke="url(#gN)" stroke-width="180" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Sun and rays -->
+  <g transform="translate(600,200)">
+    <circle r="86" fill="url(#gS)"/>
+  
+    <line class="ray" x1="0" y1="-150" x2="0" y2="-100"/> <!-- straight up -->
+    <line class="ray" x1="75" y1="-130" x2="50" y2="-90"/> <!-- 45° right -->
+    <line class="ray" x1="-75" y1="-130" x2="-50" y2="-90"/> <!-- 45° left -->
+    <line class="ray" x1="130" y1="-75" x2="90" y2="-50"/> <!-- 60° right -->
+    <line class="ray" x1="-130" y1="-75" x2="-90" y2="-50"/> <!-- 60° left -->
+  </g>
+</svg>
