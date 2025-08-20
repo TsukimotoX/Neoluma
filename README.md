@@ -1,6 +1,6 @@
-<img src="neoluma.png" width="200px"/>
+<img src="neoluma.png" width="360px"/>
 
-                          # Neoluma
+# Neoluma
 
 **Neoluma** is a high-level, all-purpose programming language designed to be a language for everything. Whether you're writing a small script or building an entire operating system, Neoluma is made to scale with you. With a Python-like syntax and C#/C++-inspired architecture, it's both expressive and powerful.
 
