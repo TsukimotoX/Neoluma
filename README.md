@@ -1,4 +1,4 @@
-![](neoluma.png =512x512)
+![](neoluma.png)
 
 # Neoluma
 
