@@ -15,7 +15,8 @@
 - **Preprocessor directives**:
   - `#unsafe` — for making pointers work in a file
   - `#import` — for local `.nm` Neoluma modules and for external libraries(e.g., C++ bindings)
-  - `#baremetal` for working with bare-metal and etc.
+  - `#baremetal` - for working with bare-metal and etc.
+  - `#macro` - for giving a definition of something to something
 - **Async/await** built into the language
 - **Compile-time evaluation**, lambdas, and macro system (WIP)
 - **Automatic and manual memory management**
@@ -43,7 +44,7 @@ project_name/
 
 ```neoluma
 @entry
-function main() {
+fn main() {
     name = "Neoluma";
     print("Hello, {name}!")
 }
