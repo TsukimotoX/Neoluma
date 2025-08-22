@@ -11,9 +11,6 @@
   "categories": [
     "Programming Languages"
   ],
-  "activationEvents": [
-    "onLanguage:neoluma"
-  ],
   "contributes": {
     "languages": [
       {
