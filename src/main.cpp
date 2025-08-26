@@ -33,7 +33,9 @@ int main(int argc, char** argv) {
                 config.author = split(args.options.at("author"), ',');
             }
             config.version = args.options.count("version") ? args.options.at("version") : config.version;
-            config.license = args.options.count("license") ? args.options.at("license") : config.license;
+            if (args.options.count("license")) {
+                config.license = IDtoLicense(args.options.at("license"));
+            }
             
             createProject(config);
         } else { // If no arguments provided, aka "neoluma new", it will run an integrated assistant to set up a project.
@@ -51,18 +53,11 @@ int main(int argc, char** argv) {
         }
 
         if (projectFilePath.empty()) {
-            std::println("{}    [Neoluma/Check] Project file was not found!{}" ,Color::TextHex("#ff5050"), Color::Reset);
+            std::println("{}[Neoluma/Check] Project file was not found!{}" ,Color::TextHex("#ff5050"), Color::Reset);
             return 2;
         }
         
         check(projectFilePath);
-    } else if (args.command == "test") { // internal test for checking the work of lexer and parser. to be removed.
-        // ./.build/.executables/Neoluma.exe test --file src/program.nm
-        std::string source = readFile(args.options.at("file"));
-        Lexer lexer = Lexer(source);
-        lexer.tokenize();
-        lexer.printTokens();
-
     } else {
         printHelp();
     }

@@ -6,11 +6,10 @@
 #include <vector>
 #include <print>
 
-Lexer::Lexer(const std::string& source) : source(source) {}
-
 // ==== Main ====
-std::vector<Token> Lexer::tokenize() {
+std::vector<Token> Lexer::tokenize(const std::string& source) {
     tokens.clear();
+    this->source = source;
 
     while (!isAtEnd()) {
         char c = curChar();
@@ -23,7 +22,7 @@ std::vector<Token> Lexer::tokenize() {
         else if (std::string("(){};,.[\\]").find(c) != std::string::npos) parseDelimeter();
         else if (c == '#') parsePreprocessor();
         else if (c == '@') parseDecorator();
-        else if (c == '/' && (source[pos+1] == '/' || source[pos+1] == '*')) skipComment();
+        else if (c == '/' && (this->source[pos+1] == '/' || this->source[pos+1] == '*')) skipComment();
         else {
             std::string unknown(1, move());
             std::println(std::cerr, "[Lexer] Unknown character: '{}'", unknown);

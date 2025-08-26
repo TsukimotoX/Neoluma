@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include "../Core/Extras/ProjectManager/projectmanager.hpp"
 #include "../Libraries/toml/toml.hpp"
 #include "../Libraries/asker/asker.hpp"
 
@@ -97,3 +98,61 @@ inline std::map<std::string, std::string> extractMap(const Toml::TomlTable& root
     return result;
 }
 // --------
+
+
+inline std::string licenseID(License license) {
+    switch (license) {
+        case License::AGPL: return "agpl"; break;
+        case License::Apache: return "apache"; break;
+        case License::Boost: return "boost"; break;
+        case License::BSD2: return "bsd2"; break;
+        case License::BSD3: return "bsd3"; break;
+        case License::CC0: return "cc0"; break;
+        case License::Eclipse: return "eclipse"; break;
+        case License::GPL2: return "gpl2"; break;
+        case License::GPL3: return "gpl3"; break;
+        case License::LGPL: return "lgpl"; break;
+        case License::MIT: return "mit"; break;
+        case License::Mozilla: return "mozilla"; break;
+        case License::Unlicense: return "unlicense"; break;
+        default: return "custom"; break;
+    }
+}
+
+inline std::string outputID(PTOutputType type) {
+    switch (type) {
+        case PTOutputType::Executable: return "exe"; break;
+        case PTOutputType::IntermediateRepresentation: return "ir"; break;
+        case PTOutputType::Object: return "obj"; break;
+        case PTOutputType::SharedLibrary: return "sharedlib"; break;
+        case PTOutputType::StaticLibrary: return "staticlib"; break;
+        default: return ""; break;
+    }
+}
+
+inline License IDtoLicense(std::string license) {
+    if (license == "mit") return License::MIT;
+    else if (license == "apache") return License::Apache;
+    else if (license == "gpl3") return License::GPL3;
+    else if (license == "bsd2") return License::BSD2;
+    else if (license == "bsd3") return License::BSD3;
+    else if (license == "boost") return License::Boost;
+    else if (license == "cc0") return License::CC0;
+    else if (license == "eclipse") return License::Eclipse;
+    else if (license == "agpl") return License::AGPL;
+    else if (license == "gpl2") return License::GPL2;
+    else if (license == "lgpl") return License::LGPL;
+    else if (license == "mozilla") return License::Mozilla;
+    else if (license == "unlicense") return License::Unlicense;
+    else return License::Custom;
+}
+
+inline PTOutputType IDtoOutput(std::string outputType) {
+    if (outputType == "exe") return PTOutputType::Executable;
+    else if (outputType == "ir") return PTOutputType::IntermediateRepresentation;
+    else if (outputType == "obj") return PTOutputType::Object;
+    else if (outputType == "sharedlib") return PTOutputType::SharedLibrary;
+    else if (outputType == "staticlib") return PTOutputType::StaticLibrary;
+    else std::println(std::cerr, "{}[NeolumaCLI/IDtoOutput] The format of PTOutputType is incorrect. Available ones are: exe, ir, obj, sharedlib, staticlib ", Color::TextHex("#ff5050"));
+    return PTOutputType::None;
+}

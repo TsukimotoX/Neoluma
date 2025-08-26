@@ -7,9 +7,7 @@
 
 class Lexer {
 public: 
-    // I will change it to just requiring source later. too expensive to create dozens of lexers to compile a single program, damn.
-    explicit Lexer(const std::string& source);
-    std::vector<Token> tokenize();
+    std::vector<Token> tokenize(const std::string& source);
     void printTokens() const;
 private:
     std::string source;

@@ -9,37 +9,9 @@
 #include "../Libraries/asker/asker.hpp"
 #include "../Libraries/color/color.hpp"
 #include "../Core/Frontend/Lexer/lexer.hpp"
+#include "../Core/Extras/ProjectManager/projectmanager.hpp"
 
 // ==== Helping functions
-
-std::string licenseID(License license) {
-    switch (license) {
-        case License::AGPL: return "agpl"; break;
-        case License::Apache: return "apache"; break;
-        case License::Boost: return "boost"; break;
-        case License::BSD2: return "bsd2"; break;
-        case License::BSD3: return "bsd3"; break;
-        case License::CC0: return "cc0"; break;
-        case License::Eclipse: return "eclipse"; break;
-        case License::GPL2: return "gpl2"; break;
-        case License::GPL3: return "gpl3"; break;
-        case License::LGPL: return "lgpl"; break;
-        case License::MIT: return "mit"; break;
-        case License::Mozilla: return "mozilla"; break;
-        case License::Unlicense: return "unlicense"; break;
-        default: return "custom"; break;
-    }
-}
-
-std::string outputID(PTOutputType type) {
-    switch (type) {
-        case PTOutputType::Executable: return "exe"; break;
-        case PTOutputType::IntermediateRepresentation: return "ir"; break;
-        case PTOutputType::Object: return "obj"; break;
-        case PTOutputType::SharedLibrary: return "sharedlib"; break;
-        case PTOutputType::StaticLibrary: return "staticlib"; break;
-    }
-}
 
 // Argument parsing
 CLIArgs parseArgs(int argc, char** argv) {
@@ -79,9 +51,9 @@ ProjectConfig parseProjectFile(const std::string& file) {
         config.name = getString(project, "name", config.name);
         config.version = getString(project, "version", config.version);
         config.author = getStringArray(project, "authors");
-        config.license = getString(project, "license", config.license);
+        config.license = IDtoLicense(getString(project, "license", licenseID(config.license)));
         config.sourceFolder = getString(project, "sourceFolder", config.sourceFolder);
-        config.output = getString(project, "output", config.output);
+        config.output = IDtoOutput(getString(project, "output", outputID(config.output)));
         config.buildFolder = getString(project, "buildFolder", config.buildFolder);
     }
 
@@ -113,6 +85,11 @@ void check(const std::string& nlpFile) {
     ProjectManager* manager = new ProjectManager(config);
     std::println("✅ Syntax check for: {}", config.name);
     // add recursively adding files
+    for (const auto& file : std::filesystem::recursive_directory_iterator(config.sourceFolder)) {
+        if (file.is_regular_file()) {
+            manager->addFile(file.path().string());
+        }
+    }
     manager->check();
     // todo: only lexer and parser
 }

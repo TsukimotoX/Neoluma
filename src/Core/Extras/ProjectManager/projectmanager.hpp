@@ -56,7 +56,7 @@ struct PlatformTarget {
 
 enum class License { MIT, Apache, GPL2, GPL3, BSD2, BSD3, Boost, CC0, Eclipse, AGPL, LGPL, Mozilla, Unlicense, Custom };
 
-enum class PTOutputType { Executable, StaticLibrary, SharedLibrary, Object, IntermediateRepresentation };
+enum class PTOutputType { Executable, StaticLibrary, SharedLibrary, Object, IntermediateRepresentation, None };
 
 // ProjectConfig is a struct that allows me to determine project structure.
 struct ProjectConfig {
