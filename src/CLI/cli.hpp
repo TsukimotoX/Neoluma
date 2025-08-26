@@ -4,21 +4,7 @@
 #include <map>
 #include <chrono>
 #include "helpers.hpp"
-
-// ProjectConfig is a struct that allows me to determine project structure.
-struct ProjectConfig {
-    std::string name = "Untitled Project";
-    std::string version = "1.0.0";
-    std::vector<std::string> author = { "Untitled Author" };
-    std::string license = "mit";
-    std::string sourceFolder = "src/";
-    std::string output = "exe";
-    std::string buildFolder = ".build/";
-    std::map<std::string, std::string> dependencies;
-    std::map<std::string, std::string> tasks;
-    std::map<std::string, std::string> tests;
-    std::map<std::string, std::string> languagePacks;
-};
+#include "../Core/Extras/ProjectManager/projectmanager.hpp"
 
 // CLIArgs is a struct that allows me to parse CLI arguments
 struct CLIArgs {
@@ -83,20 +69,20 @@ std::vector<std::string> split(std::string str, char delimiter);
 class Licenses {
 public:
     // Available identifiers: mit, apache, gpl2, gpl3, bsd2, bsd3, boost, cc0, eclipse, agpl, lgpl, mozilla, unlicense. Otherwise returns specific message
-    static std::string checkLicense(ProjectConfig config, std::string license) {
-        if (license == "mit") return MIT(listAuthors(config.author));
-        else if (license == "apache") return Apachev2();
-        else if (license == "gpl2") return GNUGPLv2();
-        else if (license == "gpl3") return GNUGPLv3();
-        else if (license == "bsd2") return BSDv2Simplified(listAuthors(config.author));
-        else if (license == "bsd3") return BSDv3NewRevised(listAuthors(config.author));
-        else if (license == "boost") return Boostv1();
-        else if (license == "cc0") return CC0v1();
-        else if (license == "eclipse") return Eclipsev2();
-        else if (license == "agpl") return GNUAGPLv3();
-        else if (license == "lgpl") return GNULGPLv2_1();
-        else if (license == "mozilla") return Mozillav2();
-        else if (license == "unlicense") return Unlicense();
+    static std::string checkLicense(ProjectConfig config, License license) {
+        if (license == License::MIT) return MIT(listAuthors(config.author));
+        else if (license == License::Apache) return Apachev2();
+        else if (license == License::GPL2) return GNUGPLv2();
+        else if (license == License::GPL3) return GNUGPLv3();
+        else if (license == License::BSD2) return BSDv2Simplified(listAuthors(config.author));
+        else if (license == License::BSD3) return BSDv3NewRevised(listAuthors(config.author));
+        else if (license == License::Boost) return Boostv1();
+        else if (license == License::CC0) return CC0v1();
+        else if (license == License::Eclipse) return Eclipsev2();
+        else if (license == License::AGPL) return GNUAGPLv3();
+        else if (license == License::LGPL) return GNULGPLv2_1();
+        else if (license == License::Mozilla) return Mozillav2();
+        else if (license == License::Unlicense) return Unlicense();
         return "We haven't found licenses for your case. Please delete this text and insert your license here, or delete the license file completely.";
     }
 

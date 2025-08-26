@@ -12,6 +12,35 @@
 
 // ==== Helping functions
 
+std::string licenseID(License license) {
+    switch (license) {
+        case License::AGPL: return "agpl"; break;
+        case License::Apache: return "apache"; break;
+        case License::Boost: return "boost"; break;
+        case License::BSD2: return "bsd2"; break;
+        case License::BSD3: return "bsd3"; break;
+        case License::CC0: return "cc0"; break;
+        case License::Eclipse: return "eclipse"; break;
+        case License::GPL2: return "gpl2"; break;
+        case License::GPL3: return "gpl3"; break;
+        case License::LGPL: return "lgpl"; break;
+        case License::MIT: return "mit"; break;
+        case License::Mozilla: return "mozilla"; break;
+        case License::Unlicense: return "unlicense"; break;
+        default: return "custom"; break;
+    }
+}
+
+std::string outputID(PTOutputType type) {
+    switch (type) {
+        case PTOutputType::Executable: return "exe"; break;
+        case PTOutputType::IntermediateRepresentation: return "ir"; break;
+        case PTOutputType::Object: return "obj"; break;
+        case PTOutputType::SharedLibrary: return "sharedlib"; break;
+        case PTOutputType::StaticLibrary: return "staticlib"; break;
+    }
+}
+
 // Argument parsing
 CLIArgs parseArgs(int argc, char** argv) {
     CLIArgs args;
@@ -81,8 +110,11 @@ void run(const std::string& nlpFile) {
 
 void check(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
+    ProjectManager* manager = new ProjectManager(config);
     std::println("✅ Syntax check for: {}", config.name);
-    // todo: вызываем только лексер+парсер
+    // add recursively adding files
+    manager->check();
+    // todo: only lexer and parser
 }
 
 void createProject() {
@@ -105,21 +137,21 @@ void createProject() {
     showProgressBar("📃 Creating a new Neoluma project ", step++, steps);
     std::string licenses[14] = { "MIT", "Apache 2.0", "GNU GPL v3", "BSD 2-Clause \"Simplified\"", "BSD 3-Clause \"New\" or \"Revised\"", "Boost Software 1.0", "CC0 v1 Universal", "Eclipse", "GNU AGPL v3", "GNU GPL v2", "GNU LGPL v2.1", "Mozilla 2.0", "The Unlicense", "Custom"};
     std::string license = asker::selectList("📃 What license does your project have?", licenses);
-    
-    if (license == "MIT") config.license = "mit";
-    else if (license == "Apache 2.0") config.license = "apache";
-    else if (license == "GNU GPL v3") config.license = "gpl3";
-    else if (license == "BSD 2-Clause \"Simplified\"") config.license = "bsd2";
-    else if (license == "BSD 3-Clause \"New\" or \"Revised\"") config.license = "bsd3";
-    else if (license == "Boost Software 1.0") config.license = "boost";
-    else if (license == "CC0 v1 Universal") config.license = "cc0";
-    else if (license == "Eclipse") config.license = "eclipse";
-    else if (license == "GNU AGPL v3") config.license = "agpl";
-    else if (license == "GNU GPL v2") config.license = "gpl2";
-    else if (license == "GNU LGPL v2.1") config.license = "lgpl";
-    else if (license == "Mozilla 2.0") config.license = "mozilla";
-    else if (license == "The Unlicense") config.license = "unlicense";
-    else config.license = "custom";
+
+    if (license == "MIT") config.license = License::MIT;
+    else if (license == "Apache 2.0") config.license = License::Apache;
+    else if (license == "GNU GPL v3") config.license = License::GPL3;
+    else if (license == "BSD 2-Clause \"Simplified\"") config.license = License::BSD2;
+    else if (license == "BSD 3-Clause \"New\" or \"Revised\"") config.license = License::BSD3;
+    else if (license == "Boost Software 1.0") config.license = License::Boost;
+    else if (license == "CC0 v1 Universal") config.license = License::CC0;
+    else if (license == "Eclipse") config.license = License::Eclipse;
+    else if (license == "GNU AGPL v3") config.license = License::AGPL;
+    else if (license == "GNU GPL v2") config.license = License::GPL2;
+    else if (license == "GNU LGPL v2.1") config.license = License::LGPL;
+    else if (license == "Mozilla 2.0") config.license = License::Mozilla;
+    else if (license == "The Unlicense") config.license = License::Unlicense;
+    else config.license = License::Custom;
     
     clearScreen();
     showProgressBar("📃 Creating a new Neoluma project ", step++, steps);
@@ -155,8 +187,8 @@ fn main() {
     Toml::TomlArray authors_array;
     for (const auto& author : config.author) authors_array.push_back(Toml::TomlValue(author));
     project["authors"] = Toml::TomlValue(authors_array);
-    project["license"] = config.license;
-    project["output"] = config.output;
+    project["license"] = licenseID(config.license);
+    project["output"] = outputID(config.output);
     project["sourceFolder"] = config.sourceFolder;
     project["buildFolder"] = config.buildFolder;
     table["project"] = project.get();

@@ -39,6 +39,7 @@ enum class ASTNodeType {
     * - PreprocessorDirectiveNode ✅
     * - ModuleNode ✅
     * - ProgramNode ✅
+    * / TODO: Add condition node, with expression that must be true. like a binary operation kind of thing but for ==
 */
 
 enum class ASTVariableType {
@@ -53,6 +54,15 @@ enum class ASTModifierType {
 
 enum class ASTPreprocessorDirectiveType {
     Import, Unsafe, Baremetal, Float, Use, Macro
+};
+
+enum class ASTImportType {
+    /*
+    Native - from dependencies
+    Relative - relative to path
+    Foreign - imported from other language via langpacks.
+    */
+    Native, Relative, Foreign
 };
 
 class ASTNode {
@@ -218,7 +228,6 @@ public:
     }
 };
 
-
 class DecoratorNode : public ASTNode {
 public:
     std::string name; // the name of the decorator
@@ -321,15 +330,15 @@ public:
     }
 };
 
-
 // These nodes are unfinished for now, don't take them as final implementations.
 class ImportNode : public ASTNode {
 public:
     std::string moduleName; // the name of the module being imported
     std::vector<std::string> importNames; // the names of the items being imported from the module
+    ASTImportType importType;
 
-    ImportNode(const std::string& moduleName, const std::vector<std::string>& importNames = {})
-        : moduleName(moduleName), importNames(importNames) {
+    ImportNode(const std::string& moduleName, const std::vector<std::string>& importNames = {}, ASTImportType importType)
+        : moduleName(moduleName), importNames(importNames), importType(importType) {
         type = ASTNodeType::Import;
     }
 };
@@ -357,7 +366,7 @@ public:
 
 class ProgramNode : public ASTNode {
 public:
-    std::vector<std::unique_ptr<ASTNode>> body;
+    std::vector<ModuleNode> body;
 
     ProgramNode() {
         type = ASTNodeType::Program;
