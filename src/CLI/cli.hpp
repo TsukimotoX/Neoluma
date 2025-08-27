@@ -3428,11 +3428,7 @@ std::vector<std::string> getStringArray(const Toml::TomlTable& table, const std:
 
 std::map<std::string, std::string> extractMap(const Toml::TomlTable& root, const std::string& key);
 // --------
-
 std::string licenseID(License license);
-
 std::string outputID(PTOutputType type);
-
-License IDtoLicense(std::string license);
-
-PTOutputType IDtoOutput(std::string outputType);
+License parseLicense(std::string license);
+PTOutputType parseOutput(std::string outputType);

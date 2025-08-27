@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
             }
             config.version = args.options.count("version") ? args.options.at("version") : config.version;
             if (args.options.count("license")) {
-                config.license = IDtoLicense(args.options.at("license"));
+                config.license = parseLicense(args.options.at("license"));
             }
             
             createProject(config);
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
         }
 
         if (projectFilePath.empty()) {
-            std::println("{}[Neoluma/Check] Project file was not found!{}" ,Color::TextHex("#ff5050"), Color::Reset);
+            std::println("{}[Neoluma/Check] Project file was not found!{}", Color::TextHex("#ff5050"), Color::Reset);
             return 2;
         }
         

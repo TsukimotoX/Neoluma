@@ -142,9 +142,9 @@ ProjectConfig parseProjectFile(const std::string& file) {
         config.name = getString(project, "name", config.name);
         config.version = getString(project, "version", config.version);
         config.author = getStringArray(project, "authors");
-        config.license = IDtoLicense(getString(project, "license", licenseID(config.license)));
+        config.license = parseLicense(getString(project, "license", ""));
         config.sourceFolder = getString(project, "sourceFolder", config.sourceFolder);
-        config.output = IDtoOutput(getString(project, "output", outputID(config.output)));
+        config.output = parseOutput(getString(project, "output", ""));
         config.buildFolder = getString(project, "buildFolder", config.buildFolder);
     }
 
@@ -187,7 +187,7 @@ std::string outputID(PTOutputType type) {
     }
 }
 
-License IDtoLicense(std::string license) {
+License parseLicense(std::string license) {
     if (license == "mit") return License::MIT;
     else if (license == "apache") return License::Apache;
     else if (license == "gpl3") return License::GPL3;
@@ -204,7 +204,7 @@ License IDtoLicense(std::string license) {
     else return License::Custom;
 }
 
-PTOutputType IDtoOutput(std::string outputType) {
+PTOutputType parseOutput(std::string outputType) {
     if (outputType == "exe") return PTOutputType::Executable;
     else if (outputType == "ir") return PTOutputType::IntermediateRepresentation;
     else if (outputType == "obj") return PTOutputType::Object;
@@ -230,15 +230,17 @@ void run(const std::string& nlpFile) {
 
 void check(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
-    ProjectManager* manager = new ProjectManager(config);
+    ProjectManager manager = { config };
     std::println("✅ Syntax check for: {}", config.name);
     // add recursively adding files
-    for (const auto& file : std::filesystem::recursive_directory_iterator(config.sourceFolder)) {
+    for (const auto& file : std::filesystem::recursive_directory_iterator(std::filesystem::current_path() / config.sourceFolder)) {
         if (file.is_regular_file()) {
-            manager->addFile(file.path().string());
+            std::println("A file: {}", file.path().string());
+            manager.addFile(file.path().string());
         }
+        std::println("A folder: {}", file.path().string());
     }
-    manager->check();
+    manager.check();
     // todo: only lexer and parser
 }
 
