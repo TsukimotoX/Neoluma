@@ -1,6 +1,8 @@
 #include "HelperFunctions.hpp"
 #include "Libraries/color/color.hpp"
 #include <print>
+#include <fstream>
+#include <sstream>
 
 std::string trim(const std::string& s) {
     size_t start = 0, end = s.size();

@@ -109,5 +109,6 @@
     },
     "C_Cpp.intelliSenseEngine": "default",
     "clangd.arguments": ["--header-insertion=never"],
-    "C_Cpp.default.compilerPath": "C:/Program Files/LLVM/bin/clang++.exe"
+    "C_Cpp.default.compilerPath": "C:/Program Files/LLVM/bin/clang++.exe",
+    "C_Cpp.errorSquiggles": "enabled"
 }

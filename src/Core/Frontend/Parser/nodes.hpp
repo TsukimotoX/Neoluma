@@ -3,6 +3,8 @@
 #include <iostream>
 #include <vector>
 #include <optional>
+#include <variant>
+//#include "llvm/IR/Value.h"
 
 enum class ASTNodeType {
     Literal, Variable, Assignment, BinaryOperation, UnaryOperation, CallExpression,
@@ -53,7 +55,7 @@ enum class ASTModifierType {
 };
 
 enum class ASTPreprocessorDirectiveType {
-    Import, Unsafe, Baremetal, Float, Use, Macro
+    Import, Unsafe, Baremetal, Float, Macro
 };
 
 enum class ASTImportType {
@@ -72,10 +74,10 @@ public:
 
     virtual ~ASTNode() = default;
     virtual void toString() const;
-    virtual void generateCode(); // for the compiler to generate code from this AST node
+    //virtual LLVM::Value generateCode(); // for the compiler to generate code from this AST node
 };
 
- // All node types inherited from ASTNode, for the parser and compiler to determine.
+// All node types inherited from ASTNode, for the parser and compiler to determine.
 
 class LiteralNode : public ASTNode {
 public:
@@ -89,6 +91,7 @@ class VariableNode : public ASTNode {
 public:
     std::string varName; // name of the variable
     ASTVariableType varType; // type of the variable, e.g. Integer, Float, etc.
+    bool isNullable = false; // can the variable be nothing or not?
 
     VariableNode(const std::string& varName, ASTVariableType& varType): varName(varName), varType(varType) {
         type = ASTNodeType::Variable;
@@ -97,8 +100,9 @@ public:
 
 class AssignmentNode : public ASTNode {
 public:
-    VariableNode* variable; // the variable being assigned to
-    std::unique_ptr<ASTNode> variableValue; // the value being assigned
+    MemoryPtr<VariableNode> variable; // the variable being assigned to
+    MemoryPtr<ASTNode> variableValue; // the value being assigned
+    bool isInitialized = false; // does this assignment create a new variable or not?
 
     AssignmentNode(VariableNode* variable, const std::string& op, std::unique_ptr<ASTNode>& varValue): variable(variable), variableValue(std::move(varValue)) {
         this->value = op;

@@ -5,9 +5,15 @@ namespace Toml {
     // ==== Helper utilities ====
     TomlValue& getOrCreate(TomlTable& table, const std::string& key) {
         for (auto& [k, v] : table) {
-            if (k == key) return v;
+            if (k == key) {
+                if (v.type != TomlType::Table) v.type = TomlType::Table;
+                return v;
+            }
         }
-        table.emplace_back(key, TomlValue{});
+        TomlValue val;
+        val.type = TomlType::Table;
+        val.value = TomlTable{};
+        table.emplace_back(key, std::move(val));
         return table.back().second;
     }
 

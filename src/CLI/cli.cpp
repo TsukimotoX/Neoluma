@@ -103,8 +103,9 @@ std::map<std::string, std::string> extractMap(const Toml::TomlTable& root, const
 
     return result;
 }
+// --------
 
-// Argument parsing
+// Argument parsing 
 CLIArgs parseArgs(int argc, char** argv) {
     CLIArgs args;
     if (argc > 1) args.command = argv[1];
@@ -132,7 +133,6 @@ ProjectConfig parseProjectFile(const std::string& file) {
     std::string contents = readFile(file);
     std::istringstream ss(contents);
     Toml::TomlTable root = Toml::parseToml(ss);
-
     ProjectConfig config;
 
     // project table parsing
@@ -153,7 +153,7 @@ ProjectConfig parseProjectFile(const std::string& file) {
     config.dependencies = extractMap(root, "dependencies");
     config.tests = extractMap(root, "tests");
     config.languagePacks = extractMap(root, "languagePacks");
-
+    
     return config;
 }
 
@@ -233,12 +233,10 @@ void check(const std::string& nlpFile) {
     ProjectManager manager = { config };
     std::println("✅ Syntax check for: {}", config.name);
     // add recursively adding files
-    for (const auto& file : std::filesystem::recursive_directory_iterator(std::filesystem::current_path() / config.sourceFolder)) {
+    for (const auto& file : std::filesystem::recursive_directory_iterator(std::filesystem::path(nlpFile).parent_path() / std::filesystem::path(config.sourceFolder))) {
         if (file.is_regular_file()) {
-            std::println("A file: {}", file.path().string());
             manager.addFile(file.path().string());
         }
-        std::println("A folder: {}", file.path().string());
     }
     manager.check();
     // todo: only lexer and parser

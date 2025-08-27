@@ -1,3 +1,4 @@
+#import "more/add"
 // Welcome to Neoluma! Have fun building!
 @entry
 fn main() {

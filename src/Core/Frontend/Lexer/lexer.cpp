@@ -10,6 +10,7 @@
 std::vector<Token> Lexer::tokenize(const std::string& source) {
     tokens.clear();
     this->source = source;
+    pos = 0;
 
     while (!isAtEnd()) {
         char c = curChar();
@@ -172,8 +173,8 @@ void Lexer::skipComment() {
     else tokens.push_back(Token{NTokenType::Operator, "/"});
 }
 
-void Lexer::printTokens() const {
-    std::println("=== Lexer Output ===");
+void Lexer::printTokens(std::string file) const {
+    std::println("=== Lexer Output ({}) ===", file);
     for (const auto& token : tokens) {
         std::cout << token.toString();
     }

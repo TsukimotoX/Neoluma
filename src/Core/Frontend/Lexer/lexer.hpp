@@ -8,7 +8,7 @@
 class Lexer {
 public: 
     std::vector<Token> tokenize(const std::string& source);
-    void printTokens() const;
+    void printTokens(std::string file) const;
 private:
     std::string source;
     size_t pos = 0;
