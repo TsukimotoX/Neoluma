@@ -2,9 +2,9 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <chrono>
-#include "helpers.hpp"
 #include "../Core/Extras/ProjectManager/projectmanager.hpp"
+#include <chrono>
+#include "../Libraries/toml/toml.hpp"
 
 // CLIArgs is a struct that allows me to parse CLI arguments
 struct CLIArgs {
@@ -30,42 +30,12 @@ void printHelp();
 // ==== Helper functions ====
 
 // Lists authors by comma. If author is only mentioned once, just author name is inputted
-inline std::string listAuthors(const std::vector<std::string>& authors) {
-    std::ostringstream oss;
-    bool first = true;
-
-    for (const auto& raw : authors) {
-        std::string name = trim(raw);
-        if (name.empty()) continue;
-
-        if (!first) oss << ", ";
-        oss << name;
-        first = false;
-    }
-
-    return oss.str();
-}
+std::string listAuthors(const std::vector<std::string>& authors);
 
 // Renames the project folder to letters and underscores. Unnecessary, but for clean experience.
-inline std::string formatProjectFolderName(const std::string& input) {
-    std::string result = input;
-
-    for (char& c : result) {
-        if (c == ' ') {
-            c = '_';
-        } else {
-            c = std::tolower(static_cast<unsigned char>(c));
-        }
-    }
-    
-    return result;
-}
-
-// Splits the string by delimeter
-std::vector<std::string> split(std::string str, char delimiter);
+std::string formatProjectFolderName(const std::string& input);
 
 // Licenses templates
-
 class Licenses {
 public:
     // Available identifiers: mit, apache, gpl2, gpl3, bsd2, bsd3, boost, cc0, eclipse, agpl, lgpl, mozilla, unlicense. Otherwise returns specific message
@@ -3441,3 +3411,28 @@ For more information, please refer to <https://unlicense.org>
 )"""";
     }
 };
+
+// Returns progress bar for CLI
+void showProgressBar(const std::string& stepName, int step, int total);
+
+// Clears terminal screen
+void clearScreen();
+
+// Asks a question
+std::string askQuestion(const std::string& question);
+
+// -------- stuff required for parseProjectFile
+std::string getString(const Toml::TomlTable& table, const std::string& key, const std::string& def = "");
+
+std::vector<std::string> getStringArray(const Toml::TomlTable& table, const std::string& key);
+
+std::map<std::string, std::string> extractMap(const Toml::TomlTable& root, const std::string& key);
+// --------
+
+std::string licenseID(License license);
+
+std::string outputID(PTOutputType type);
+
+License IDtoLicense(std::string license);
+
+PTOutputType IDtoOutput(std::string outputType);

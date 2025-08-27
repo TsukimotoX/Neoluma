@@ -10,8 +10,99 @@
 #include "../Libraries/color/color.hpp"
 #include "../Core/Frontend/Lexer/lexer.hpp"
 #include "../Core/Extras/ProjectManager/projectmanager.hpp"
+#include "../HelperFunctions.hpp"
 
 // ==== Helping functions
+
+// Lists authors by comma. If author is only mentioned once, just author name is inputted
+std::string listAuthors(const std::vector<std::string>& authors) {
+    std::ostringstream oss;
+    bool first = true;
+
+    for (const auto& raw : authors) {
+        std::string name = trim(raw);
+        if (name.empty()) continue;
+
+        if (!first) oss << ", ";
+        oss << name;
+        first = false;
+    }
+
+    return oss.str();
+}
+
+// Renames the project folder to letters and underscores. Unnecessary, but for clean experience.
+std::string formatProjectFolderName(const std::string& input) {
+    std::string result = input;
+
+    for (char& c : result) {
+        if (c == ' ') {
+            c = '_';
+        } else {
+            c = std::tolower(static_cast<unsigned char>(c));
+        }
+    }
+    
+    return result;
+}
+
+// Returns progress bar for CLI
+void showProgressBar(const std::string& stepName, int step, int total) {
+    int percentage = (step * 100) / total;
+    int hashes = percentage / 5;
+    if (percentage != 100) std::println("{} [ {} ({}{}) {}% ] {}", Color::TextHex("#f6ff75"), stepName, std::string(hashes, '#'), std::string(20 - hashes, '_'), percentage, Color::TextHex("#01e0d4"));
+    else std::println("{} [ {} ({}{}) {}%! ] {}", Color::TextHex("#75ff87"), stepName, std::string(hashes, '#'), std::string(20 - hashes, '_'), percentage, Color::TextHex("#01e0d4"));
+}
+
+// Clears terminal screen
+void clearScreen() {
+    std::cout << "\033[0m\033[2J\033[H";
+}
+
+// Asks a question
+std::string askQuestion(const std::string& question) {
+    return asker::input(question, true);
+}
+
+// -------- stuff required for parseProjectFile
+std::string getString(const Toml::TomlTable& table, const std::string& key, const std::string& def) {
+    for (const auto& [k, v] : table) {
+        if (k == key && v.type == Toml::TomlType::String)
+            return std::get<std::string>(v.value);
+    }
+    return def;
+}
+
+std::vector<std::string> getStringArray(const Toml::TomlTable& table, const std::string& key) {
+    for (const auto& [k, v] : table) {
+        if (k == key && v.type == Toml::TomlType::Array) {
+            std::vector<std::string> result;
+            const auto& arr = std::get<Toml::TomlArray>(v.value);
+            for (const auto& item : arr) {
+                if (item.type == Toml::TomlType::String)
+                    result.push_back(std::get<std::string>(item.value));
+            }
+            return result;
+        }
+    }
+    return {};
+}
+
+std::map<std::string, std::string> extractMap(const Toml::TomlTable& root, const std::string& key) {
+    std::map<std::string, std::string> result;
+
+    for (const auto& [k, v] : root) {
+        if (k == key && v.type == Toml::TomlType::Table) {
+            const auto& tbl = std::get<Toml::TomlTable>(v.value);
+            for (const auto& [tk, tv] : tbl) {
+                if (tv.type == Toml::TomlType::String)
+                    result[tk] = std::get<std::string>(tv.value);
+            }
+        }
+    }
+
+    return result;
+}
 
 // Argument parsing
 CLIArgs parseArgs(int argc, char** argv) {
@@ -64,6 +155,63 @@ ProjectConfig parseProjectFile(const std::string& file) {
     config.languagePacks = extractMap(root, "languagePacks");
 
     return config;
+}
+
+std::string licenseID(License license) {
+    switch (license) {
+        case License::AGPL: return "agpl"; break;
+        case License::Apache: return "apache"; break;
+        case License::Boost: return "boost"; break;
+        case License::BSD2: return "bsd2"; break;
+        case License::BSD3: return "bsd3"; break;
+        case License::CC0: return "cc0"; break;
+        case License::Eclipse: return "eclipse"; break;
+        case License::GPL2: return "gpl2"; break;
+        case License::GPL3: return "gpl3"; break;
+        case License::LGPL: return "lgpl"; break;
+        case License::MIT: return "mit"; break;
+        case License::Mozilla: return "mozilla"; break;
+        case License::Unlicense: return "unlicense"; break;
+        default: return "custom"; break;
+    }
+}
+
+std::string outputID(PTOutputType type) {
+    switch (type) {
+        case PTOutputType::Executable: return "exe"; break;
+        case PTOutputType::IntermediateRepresentation: return "ir"; break;
+        case PTOutputType::Object: return "obj"; break;
+        case PTOutputType::SharedLibrary: return "sharedlib"; break;
+        case PTOutputType::StaticLibrary: return "staticlib"; break;
+        default: return ""; break;
+    }
+}
+
+License IDtoLicense(std::string license) {
+    if (license == "mit") return License::MIT;
+    else if (license == "apache") return License::Apache;
+    else if (license == "gpl3") return License::GPL3;
+    else if (license == "bsd2") return License::BSD2;
+    else if (license == "bsd3") return License::BSD3;
+    else if (license == "boost") return License::Boost;
+    else if (license == "cc0") return License::CC0;
+    else if (license == "eclipse") return License::Eclipse;
+    else if (license == "agpl") return License::AGPL;
+    else if (license == "gpl2") return License::GPL2;
+    else if (license == "lgpl") return License::LGPL;
+    else if (license == "mozilla") return License::Mozilla;
+    else if (license == "unlicense") return License::Unlicense;
+    else return License::Custom;
+}
+
+PTOutputType IDtoOutput(std::string outputType) {
+    if (outputType == "exe") return PTOutputType::Executable;
+    else if (outputType == "ir") return PTOutputType::IntermediateRepresentation;
+    else if (outputType == "obj") return PTOutputType::Object;
+    else if (outputType == "sharedlib") return PTOutputType::SharedLibrary;
+    else if (outputType == "staticlib") return PTOutputType::StaticLibrary;
+    else std::println(std::cerr, "{}[NeolumaCLI/IDtoOutput] The format of PTOutputType is incorrect. Available ones are: exe, ir, obj, sharedlib, staticlib ", Color::TextHex("#ff5050"));
+    return PTOutputType::None;
 }
 
 // ==== Main functions ====

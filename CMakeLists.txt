@@ -32,7 +32,7 @@ add_library(NeolumaLibs ${LIB_FILES}) # Self-written or used libraries.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.build/.executables)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.build/.libs)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.build/.libs)
-add_executable(Neoluma ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+add_executable(Neoluma ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/HelperFunctions.hpp ${CMAKE_CURRENT_SOURCE_DIR}/src/HelperFunctions.cpp)
 
 # Link all libraries
 target_link_libraries(Neoluma PRIVATE LLVMCore LLVMSupport LLVMIRReader NeolumaCore NeolumaCLI NeolumaLibs)

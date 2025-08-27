@@ -5,8 +5,12 @@
 
 #include "CLI/cli.hpp"
 #include "Libraries/color/color.hpp"
-#include "CLI/helpers.hpp"
 #include "Core/Frontend/Lexer/lexer.hpp"
+#include "HelperFunctions.hpp"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 std::string findProjectFile(const std::string& folder) {
     for (const auto& entry : std::filesystem::directory_iterator(folder)) {
@@ -18,11 +22,9 @@ std::string findProjectFile(const std::string& folder) {
 }
 
 int main(int argc, char** argv) {
-    /*
     #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     #endif
-    */
     CLIArgs args = parseArgs(argc, argv);
 
     if (args.command == "new") {

@@ -19,9 +19,9 @@ std::unordered_map<std::string, Keywords> keywordMap = {
     {"debug", Keywords::Debug}, {"public", Keywords::Public}, {"protected", Keywords::Protected}, {"private", Keywords::Private},
 };
 
-std::unordered_map<std::string, TokenType> typesMap = {
-    {"int", TokenType::Integer}, {"float", TokenType::Float}, {"number", TokenType::Number}, {"bool", TokenType::Boolean}, {"string", TokenType::String},
-    {"array", TokenType::Array}, {"set", TokenType::Set}, {"dict", TokenType::Dictionary}, {"void", TokenType::Void}, {"result", TokenType::Result}
+std::unordered_map<std::string, NTokenType> typesMap = {
+    {"int", NTokenType::Integer}, {"float", NTokenType::Float}, {"number", NTokenType::Number}, {"bool", NTokenType::Boolean}, {"string", NTokenType::String},
+    {"array", NTokenType::Array}, {"set", NTokenType::Set}, {"dict", NTokenType::Dictionary}, {"void", NTokenType::Void}, {"result", NTokenType::Result}
 };
 
 std::unordered_map<std::string, Operators> operatorMap = {
@@ -51,29 +51,29 @@ std::string Token::toString() const {
     std::string typeStr;
 
     switch (type) {
-        case TokenType::NullLiteral:     typeStr = "NullLiteral"; break;
-        case TokenType::Identifier:      typeStr = "Identifier"; break;
-        case TokenType::Keyword:         typeStr = "Keyword"; break;
-        case TokenType::Decorator:       typeStr = "Decorator"; break;
-        case TokenType::Preprocessor:    typeStr = "Preprocessor"; break;
-        case TokenType::Delimeter:       typeStr = "Delimeter"; break;
-        case TokenType::Operator:        typeStr = "Operator"; break;
-        case TokenType::AssignmentArrow: typeStr = "AssignmentArrow"; break;
-        case TokenType::Question:        typeStr = "Question"; break;
-        case TokenType::Unknown:         typeStr = "Unknown"; break;
-        case TokenType::EndOfFile:       typeStr = "EndOfFile"; break;
-        case TokenType::Type:            typeStr = "Type"; break;
+        case NTokenType::NullLiteral:     typeStr = "NullLiteral"; break;
+        case NTokenType::Identifier:      typeStr = "Identifier"; break;
+        case NTokenType::Keyword:         typeStr = "Keyword"; break;
+        case NTokenType::Decorator:       typeStr = "Decorator"; break;
+        case NTokenType::Preprocessor:    typeStr = "Preprocessor"; break;
+        case NTokenType::Delimeter:       typeStr = "Delimeter"; break;
+        case NTokenType::Operator:        typeStr = "Operator"; break;
+        case NTokenType::AssignmentArrow: typeStr = "AssignmentArrow"; break;
+        case NTokenType::Question:        typeStr = "Question"; break;
+        case NTokenType::UnknownToken:         typeStr = "Unknown"; break;
+        case NTokenType::EndOfFile:       typeStr = "EndOfFile"; break;
+        case NTokenType::Type:            typeStr = "Type"; break;
 
-        case TokenType::Integer:         typeStr = "Integer"; break;
-        case TokenType::Float:           typeStr = "Float"; break;
-        case TokenType::Number:          typeStr = "Number"; break;
-        case TokenType::String:          typeStr = "String"; break;
-        case TokenType::Void:            typeStr = "Void"; break;
-        case TokenType::Array:           typeStr = "Array"; break;
-        case TokenType::Boolean:         typeStr = "Boolean"; break;
-        case TokenType::Dictionary:      typeStr = "Dictionary"; break;
-        case TokenType::Set:             typeStr = "Set"; break;
-        case TokenType::Result:          typeStr = "Result"; break;
+        case NTokenType::Integer:         typeStr = "Integer"; break;
+        case NTokenType::Float:           typeStr = "Float"; break;
+        case NTokenType::Number:          typeStr = "Number"; break;
+        case NTokenType::String:          typeStr = "String"; break;
+        case NTokenType::Void:            typeStr = "Void"; break;
+        case NTokenType::Array:           typeStr = "Array"; break;
+        case NTokenType::Boolean:         typeStr = "Boolean"; break;
+        case NTokenType::Dictionary:      typeStr = "Dictionary"; break;
+        case NTokenType::Set:             typeStr = "Set"; break;
+        case NTokenType::Result:          typeStr = "Result"; break;
         default:                         typeStr = "<UNK>"; break;
     }
     return std::format("[{}] -> \"{}\"\n", typeStr, value);

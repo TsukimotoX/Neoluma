@@ -4,10 +4,10 @@
 #include <string>
 #include <unordered_map>
 
-enum TokenType {
+enum NTokenType {
     NullLiteral, Identifier, //Combined Variable, function and class names, and etc.
     Keyword, Decorator, Preprocessor, Delimeter, Operator,
-    AssignmentArrow, Question, Unknown, EndOfFile,
+    AssignmentArrow, Question, UnknownToken, EndOfFile,
 
     Type, // Represents a type of tokens below
     Integer, Float, Number, Boolean, String, 
@@ -15,7 +15,7 @@ enum TokenType {
 };
 
 struct Token {
-    TokenType type;
+    NTokenType type;
     std::string value;
     std::string toString() const;
 };
@@ -51,7 +51,7 @@ enum class Delimeters {
 };
 
 extern std::unordered_map<std::string, Keywords> keywordMap;
-extern std::unordered_map<std::string, TokenType> typesMap;
+extern std::unordered_map<std::string, NTokenType> typesMap;
 extern std::unordered_map<std::string, Operators> operatorMap;
 extern std::unordered_map<std::string, Decorators> decoratorMap;
 extern std::unordered_map<std::string, Preprocessors> preprocessorMap;

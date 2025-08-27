@@ -1,24 +1,8 @@
 #include "toml.hpp"
+#include "../../HelperFunctions.hpp"
 
 namespace Toml {
     // ==== Helper utilities ====
-    std::string trim(const std::string& s) {
-        size_t start = 0, end = s.size();
-        while (start < end && std::isspace((unsigned char)s[start])) start++;
-        while (end > start && std::isspace((unsigned char)s[end])) end--;
-        return s.substr(start, end - start);
-    }
-
-    std::vector<std::string> split(const std::string& s, char delim) {
-        std::vector<std::string> elems;
-        std::stringstream ss(s);
-        std::string item;
-        while (std::getline(ss, item, delim)) {
-            elems.push_back(trim(item));
-        }
-        return elems;
-    }
-
     TomlValue& getOrCreate(TomlTable& table, const std::string& key) {
         for (auto& [k, v] : table) {
             if (k == key) return v;
