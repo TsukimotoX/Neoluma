@@ -58,7 +58,7 @@ void Lexer::parseIK() {
     if (km.find(word) != km.end()) tokens.push_back(Token{TokenType::Keyword, word});
     else if (word == "true" || word == "false") tokens.push_back(Token{TokenType::Boolean, word});
     else if (word == "null") tokens.push_back(Token{TokenType::Null, word});
-    else if (operatorMap.find(word) != operatorMap.end()) tokens.push_back(Token{TokenType::Operator, word});
+    else if (om.find(word) != om.end()) tokens.push_back(Token{TokenType::Operator, word});
     else tokens.push_back(Token{TokenType::Identifier, word});
 }
 void Lexer::parseNumber() {
