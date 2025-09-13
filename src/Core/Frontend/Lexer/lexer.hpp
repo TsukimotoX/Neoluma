@@ -7,7 +7,7 @@
 class Lexer {
 public: 
     std::vector<Token> tokenize(const std::string& source);
-    void printTokens() const; // Debug command to check tokens correctness
+    void printTokens(const std::string& filename) const; // Debug command to check tokens correctness
 private:
     std::string source;
     size_t pos = 0;

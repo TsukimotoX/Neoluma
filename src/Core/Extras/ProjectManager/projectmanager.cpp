@@ -16,6 +16,8 @@ void ProjectManager::check() {
     // temporarily check things here. after that you move it into compiler
     for (const auto& file : listFiles()) {
         std::string source = readFile(file);
-        modulesAfterLexer.push_back(lexer.tokenize(source));
+        Lexer lexer;
+        lexer.tokenize(source);
+        lexer.printTokens(file);
     }
 }

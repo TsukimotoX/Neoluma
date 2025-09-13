@@ -4,5 +4,6 @@
 fn main() {
     a?: int = 5;
     b: string = "Hello!";
+    c = true;
     print("Hello from Neoluma!");
 }
