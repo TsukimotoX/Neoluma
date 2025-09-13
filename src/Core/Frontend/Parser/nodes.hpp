@@ -4,9 +4,10 @@
 #include <vector>
 #include <optional>
 #include <variant>
+#include "../../../HelperFunctions.hpp"
 //#include "llvm/IR/Value.h"
 
-enum class ASTNodeType {
+enum struct ASTNodeType {
     Literal, Variable, Assignment, BinaryOperation, UnaryOperation, CallExpression,
     Block, IfStatement, ForLoop, WhileLoop, TryCatch, ReturnStatement, 
     Function, Class, 
@@ -30,7 +31,7 @@ enum class ASTNodeType {
     * - TryCatchNode ✅
     * - ReturnStatementNode ✅
     * - FunctionNode ✅
-    * - ClassNode ✅
+    * - structNode ✅
     * - DecoratorNode ✅
     * - ParameterNode ✅
     * - ModifierNode ✅
@@ -44,21 +45,21 @@ enum class ASTNodeType {
     * / TODO: Add condition node, with expression that must be true. like a binary operation kind of thing but for ==
 */
 
-enum class ASTVariableType {
+enum struct ASTVariableType {
     Integer, Float, Number, Boolean, String,
     Array, Set, Dictionary, Void, Result,
     Undefined
 };
 
-enum class ASTModifierType {
+enum struct ASTModifierType {
     Public, Private, Protected, Static, Const, Override, Async
 };
 
-enum class ASTPreprocessorDirectiveType {
+enum struct ASTPreprocessorDirectiveType {
     Import, Unsafe, Baremetal, Float, Macro
 };
 
-enum class ASTImportType {
+enum struct ASTImportType {
     /*
     Native - from dependencies
     Relative - relative to path
@@ -67,8 +68,7 @@ enum class ASTImportType {
     Native, Relative, Foreign
 };
 
-class ASTNode {
-public:
+struct ASTNode {
     ASTNodeType type;
     std::string value; // for basic values like literals, etc.
 
@@ -79,7 +79,7 @@ public:
 
 // All node types inherited from ASTNode, for the parser and compiler to determine.
 
-class LiteralNode : public ASTNode {
+struct LiteralNode : ASTNode {
 public:
     LiteralNode(const std::string& val) {
         type = ASTNodeType::Literal;
@@ -87,130 +87,127 @@ public:
     }
 };
 
-class VariableNode : public ASTNode {
+struct VariableNode : ASTNode {
 public:
     std::string varName; // name of the variable
     ASTVariableType varType; // type of the variable, e.g. Integer, Float, etc.
     bool isNullable = false; // can the variable be nothing or not?
 
-    VariableNode(const std::string& varName, ASTVariableType& varType): varName(varName), varType(varType) {
+    VariableNode(const std::string& varName, ASTVariableType& varType, bool isNullable = false): varName(varName), varType(varType), isNullable(isNullable) {
         type = ASTNodeType::Variable;
     }
 };
 
-class AssignmentNode : public ASTNode {
-public:
-    MemoryPtr<VariableNode> variable; // the variable being assigned to
+struct AssignmentNode : ASTNode {
+    VariableNode* variable; // the variable being assigned to
     MemoryPtr<ASTNode> variableValue; // the value being assigned
     bool isInitialized = false; // does this assignment create a new variable or not?
 
-    AssignmentNode(VariableNode* variable, const std::string& op, std::unique_ptr<ASTNode>& varValue): variable(variable), variableValue(std::move(varValue)) {
+    AssignmentNode(VariableNode* variable, const std::string& op, MemoryPtr<ASTNode> varValue): variable(variable), variableValue(std::move(varValue)) {
         this->value = op;
         type = ASTNodeType::Assignment;
     }
 };
 
-class BinaryOperationNode : public ASTNode {
-public:
-    std::unique_ptr<ASTNode> leftOperand;
-    std::unique_ptr<ASTNode> rightOperand;
+struct BinaryOperationNode : ASTNode {
+    MemoryPtr<ASTNode> leftOperand;
+    MemoryPtr<ASTNode> rightOperand;
 
-    BinaryOperationNode(std::unique_ptr<ASTNode>& leftOp, const std::string& op, std::unique_ptr<ASTNode>& rightOp)
+    BinaryOperationNode(MemoryPtr<ASTNode>& leftOp, const std::string& op, MemoryPtr<ASTNode>& rightOp)
         : leftOperand(std::move(leftOp)), rightOperand(std::move(rightOp)) {
         type = ASTNodeType::BinaryOperation;
         value = op;
     }
 };
 
-class UnaryOperationNode : public ASTNode {
-public:
-    std::unique_ptr<ASTNode> operand; // because i'm terrible at english: it's the value after the operator, e.g. -x, !x, etc.
+struct UnaryOperationNode : ASTNode {
+    MemoryPtr<ASTNode> operand; // because i'm terrible at english: it's the value after the operator, e.g. -x, !x, etc.
 
-    UnaryOperationNode(const std::string& op, std::unique_ptr<ASTNode>& operand)
+    UnaryOperationNode(const std::string& op, MemoryPtr<ASTNode>& operand)
         : operand(std::move(operand)) {
         type = ASTNodeType::UnaryOperation;
         value = op;
     }
 };
 
-class BlockNode : public ASTNode {
+struct BlockNode : ASTNode {
 public:
-    std::vector<std::unique_ptr<ASTNode>> statements;
+    std::vector<MemoryPtr<ASTNode>> statements;
 
     BlockNode() {
         type = ASTNodeType::Block;
     }
 };
 
-class IfNode : public ASTNode {
+struct IfNode : ASTNode {
 public:
-    std::unique_ptr<ASTNode> condition; // the condition of the if statement
-    std::unique_ptr<BlockNode> thenBlock; // the block of code to execute if the condition is true
-    std::unique_ptr<BlockNode> elseBlock; // the block of code to execute if the condition is false
+    MemoryPtr<ASTNode> condition; // the condition of the if statement
+    MemoryPtr<BlockNode> thenBlock; // the block of code to execute if the condition is true
+    MemoryPtr<BlockNode> elseBlock; // the block of code to execute if the condition is false
 
-    IfNode(std::unique_ptr<ASTNode> condition, std::unique_ptr<BlockNode> thenBlock, std::unique_ptr<BlockNode> elseBlock = nullptr)
+    IfNode(MemoryPtr<ASTNode> condition, MemoryPtr<BlockNode> thenBlock, MemoryPtr<BlockNode> elseBlock = nullptr)
         : condition(std::move(condition)), thenBlock(std::move(thenBlock)), elseBlock(std::move(elseBlock)) {
         type = ASTNodeType::IfStatement;
     }
 };
 
-class SCDefaultNode : public ASTNode {
+struct SCDefaultNode : ASTNode {
 public:
-    std::unique_ptr<BlockNode> body; // the body of the default case
+    MemoryPtr<BlockNode> body; // the body of the default case
 
-    SCDefaultNode(std::unique_ptr<BlockNode> body)
+    SCDefaultNode(MemoryPtr<BlockNode> body)
         : body(std::move(body)) {
         type = ASTNodeType::SCDefault;
     }
 };
 
-class CaseNode : public ASTNode {
+struct CaseNode : ASTNode {
 public:
-    std::unique_ptr<ASTNode> condition; // the condition of the case
-    std::unique_ptr<BlockNode> body; // the body of the case
+    MemoryPtr<ASTNode> condition; // the condition of the case
+    MemoryPtr<BlockNode> body; // the body of the case
 
-    CaseNode(std::unique_ptr<ASTNode> condition, std::unique_ptr<BlockNode> body)
+    CaseNode(MemoryPtr<ASTNode> condition, MemoryPtr<BlockNode> body)
         : condition(std::move(condition)), body(std::move(body)) {
         type = ASTNodeType::Case;
     }
 };
 
-class SwitchNode : public ASTNode {
+struct SwitchNode : ASTNode {
 public:
-    std::unique_ptr<ASTNode> expression; // the expression to switch on
-    std::vector<std::unique_ptr<CaseNode>> cases; // the cases of the switch statement
-    std::unique_ptr<SCDefaultNode> defaultCase; // the default case of the switch statement
+    MemoryPtr<ASTNode> expression; // the expression to switch on
+    std::vector<MemoryPtr<CaseNode>> cases; // the cases of the switch statement
+    MemoryPtr<SCDefaultNode> defaultCase; // the default case of the switch statement
 
-    SwitchNode(std::unique_ptr<ASTNode> expression, std::vector<std::unique_ptr<CaseNode>> cases, std::unique_ptr<SCDefaultNode> defaultCase = nullptr)
+    SwitchNode(MemoryPtr<ASTNode> expression, std::vector<MemoryPtr<CaseNode>> cases, MemoryPtr<SCDefaultNode> defaultCase = nullptr)
         : expression(std::move(expression)), cases(std::move(cases)), defaultCase(std::move(defaultCase)) {
         type = ASTNodeType::Switch;
     }
 };
 
-class ForLoopNode : public ASTNode {
+struct ForLoopNode : ASTNode {
 public:
-    std::unique_ptr<VariableNode> variable; // the loop variable
-    std::unique_ptr<ASTNode> iterable; // the iterable to loop over
-    std::unique_ptr<BlockNode> body; // the body of the loop
+    MemoryPtr<VariableNode> variable; // the loop variable
+    MemoryPtr<ASTNode> iterable; // the iterable to loop over
+    MemoryPtr<BlockNode> body; // the body of the loop
 
-    ForLoopNode(std::unique_ptr<VariableNode> variable, std::unique_ptr<ASTNode> iterable, std::unique_ptr<BlockNode> body)
+    ForLoopNode(MemoryPtr<VariableNode> variable, MemoryPtr<ASTNode> iterable, MemoryPtr<BlockNode> body)
         : variable(std::move(variable)), iterable(std::move(iterable)), body(std::move(body)) {
         type = ASTNodeType::ForLoop;
     }
 };
 
-class WhileLoopNode : public ASTNode {
+struct WhileLoopNode : ASTNode {
 public:
-    std::unique_ptr<ASTNode> condition; // the condition of the while loop
-    std::unique_ptr<BlockNode> body; // the body of the loop
+    MemoryPtr<ASTNode> condition; // the condition of the while loop
+    MemoryPtr<BlockNode> body; // the body of the loop
 
-    WhileLoopNode(std::unique_ptr<ASTNode> condition, std::unique_ptr<BlockNode> body)
+    WhileLoopNode(MemoryPtr<ASTNode> condition, MemoryPtr<BlockNode> body)
         : condition(std::move(condition)), body(std::move(body)) {
         type = ASTNodeType::WhileLoop;
     }
 };
 
-class ParameterNode : public ASTNode {
+struct ParameterNode : ASTNode {
 public:
     std::string parameterName; // the name of the parameter
     ASTVariableType parameterType; // the type of the parameter
@@ -223,7 +220,7 @@ public:
     }
 };
 
-class ModifierNode : public ASTNode {
+struct ModifierNode : ASTNode {
 public:
     ASTModifierType modifier;
 
@@ -232,110 +229,110 @@ public:
     }
 };
 
-class DecoratorNode : public ASTNode {
+struct DecoratorNode : ASTNode {
 public:
     std::string name; // the name of the decorator
-    std::vector<std::unique_ptr<DecoratorNode>> decorators; // the decorators applied to the decorator
-    std::vector<std::unique_ptr<ModifierNode>> modifiers; // the modifiers applied to the decorator (e.g. async, static, etc.)
-    std::vector<std::unique_ptr<ParameterNode>> parameters; // the parameters of the decorator
-    std::unique_ptr<BlockNode> body; // the body of the decorator
+    std::vector<MemoryPtr<DecoratorNode>> decorators; // the decorators applied to the decorator
+    std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the decorator (e.g. async, static, etc.)
+    std::vector<MemoryPtr<ParameterNode>> parameters; // the parameters of the decorator
+    MemoryPtr<BlockNode> body; // the body of the decorator
 
-    DecoratorNode(const std::string& name, std::vector<std::unique_ptr<ParameterNode>> parameters, std::unique_ptr<BlockNode> body,
-                 std::vector<std::unique_ptr<DecoratorNode>> decorators = {}, std::vector<std::unique_ptr<ModifierNode>> modifiers = {})
+    DecoratorNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<BlockNode> body,
+                 std::vector<MemoryPtr<DecoratorNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
         : name(name), parameters(std::move(parameters)), body(std::move(body)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
         type = ASTNodeType::Decorator;
     }
 };
 
-class FunctionNode : public ASTNode {
+struct FunctionNode : ASTNode {
 public:
     std::string name; // the name of the function
-    std::vector<std::unique_ptr<DecoratorNode>> decorators; // the decorators applied to the function
-    std::vector<std::unique_ptr<ModifierNode>> modifiers; // the modifiers applied to the function (e.g. async, static, etc.)
-    std::vector<std::unique_ptr<ParameterNode>> parameters; // the parameters of the function
-    std::unique_ptr<BlockNode> body; // the body of the function
+    std::vector<MemoryPtr<DecoratorNode>> decorators; // the decorators applied to the function
+    std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the function (e.g. async, static, etc.)
+    std::vector<MemoryPtr<ParameterNode>> parameters; // the parameters of the function
+    MemoryPtr<BlockNode> body; // the body of the function
 
-    FunctionNode(const std::string& name, std::vector<std::unique_ptr<ParameterNode>> parameters, std::unique_ptr<BlockNode> body,
-                 std::vector<std::unique_ptr<DecoratorNode>> decorators = {}, std::vector<std::unique_ptr<ModifierNode>> modifiers = {})
+    FunctionNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<BlockNode> body,
+                 std::vector<MemoryPtr<DecoratorNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
         : name(name), parameters(std::move(parameters)), body(std::move(body)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
         type = ASTNodeType::Function;
     }
 };
 
-class ClassNode : public ASTNode {
+struct ClassNode : ASTNode {
 public:
     std::string name; // the name of the class
-    std::vector<std::unique_ptr<DecoratorNode>> decorators; // the decorators applied to the class
-    std::vector<std::unique_ptr<ModifierNode>> modifiers; // the modifiers applied to the class (e.g. public, private, etc.)
-    std::vector<std::unique_ptr<VariableNode>> fields; // the fields of the class
-    std::vector<std::unique_ptr<FunctionNode>> methods; // the methods of the class
+    std::vector<MemoryPtr<DecoratorNode>> decorators; // the decorators applied to the class
+    std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the class (e.g. public, private, etc.)
+    std::vector<MemoryPtr<VariableNode>> fields; // the fields of the class
+    std::vector<MemoryPtr<FunctionNode>> methods; // the methods of the class
 
-    ClassNode(const std::string& name, std::vector<std::unique_ptr<VariableNode>> fields, std::vector<std::unique_ptr<FunctionNode>> methods,
-              std::vector<std::unique_ptr<DecoratorNode>> decorators = {}, std::vector<std::unique_ptr<ModifierNode>> modifiers = {})
+    ClassNode(const std::string& name, std::vector<MemoryPtr<VariableNode>> fields, std::vector<MemoryPtr<FunctionNode>> methods,
+              std::vector<MemoryPtr<DecoratorNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
         : name(name), fields(std::move(fields)), methods(std::move(methods)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
         type = ASTNodeType::Class;
     }
 };
 
-class ReturnStatementNode : public ASTNode {
+struct ReturnStatementNode : ASTNode {
 public:
-    std::unique_ptr<ASTNode> expression; // the expression to return
+    MemoryPtr<ASTNode> expression; // the expression to return
 
-    ReturnStatementNode(std::unique_ptr<ASTNode>& expression)
+    ReturnStatementNode(MemoryPtr<ASTNode>& expression)
         : expression(std::move(expression)) {
         type = ASTNodeType::ReturnStatement;
     }
 };
 
-class CallExpressionNode : public ASTNode {
+struct CallExpressionNode : ASTNode {
 public:
-    std::unique_ptr<ASTNode> callee; // the function or method being called
-    std::vector<std::unique_ptr<ParameterNode>> arguments; // the arguments passed to the function or method
+    MemoryPtr<ASTNode> callee; // the function or method being called
+    std::vector<MemoryPtr<ParameterNode>> arguments; // the arguments passed to the function or method
 
-    CallExpressionNode(std::unique_ptr<ASTNode>& callee, std::vector<std::unique_ptr<ParameterNode>>& arguments)
+    CallExpressionNode(MemoryPtr<ASTNode>& callee, std::vector<MemoryPtr<ParameterNode>>& arguments)
         : callee(std::move(callee)), arguments(std::move(arguments)) {
         type = ASTNodeType::CallExpression;
     }
 };
 
-class ThrowStatementNode : public ASTNode {
+struct ThrowStatementNode : ASTNode {
 public:
-    std::unique_ptr<ASTNode> expression; // the expression to throw
+    MemoryPtr<ASTNode> expression; // the expression to throw
 
-    ThrowStatementNode(std::unique_ptr<ASTNode>& expression)
+    ThrowStatementNode(MemoryPtr<ASTNode>& expression)
         : expression(std::move(expression)) {
         type = ASTNodeType::ThrowStatement;
     }
 };
 
-class BreakStatementNode : public ASTNode {
+struct BreakStatementNode : ASTNode {
 public:
     BreakStatementNode() {
         type = ASTNodeType::BreakStatement;
     }
 };
 
-class ContinueStatementNode : public ASTNode {
+struct ContinueStatementNode : ASTNode {
 public:
     ContinueStatementNode() {
         type = ASTNodeType::ContinueStatement;
     }
 };
 
-class TryCatchNode : public ASTNode {
+struct TryCatchNode : ASTNode {
 public:
-    std::unique_ptr<BlockNode> tryBlock; // the block of code to try
-    std::unique_ptr<BlockNode> catchBlock; // the block of code to execute if an exception is thrown
-    std::unique_ptr<LiteralNode> exception; // the variable to store the exception in (optional)
+    MemoryPtr<BlockNode> tryBlock; // the block of code to try
+    MemoryPtr<BlockNode> catchBlock; // the block of code to execute if an exception is thrown
+    MemoryPtr<LiteralNode> exception; // the variable to store the exception in (optional)
 
-    TryCatchNode(std::unique_ptr<BlockNode>& tryBlock, std::unique_ptr<BlockNode>& catchBlock)
+    TryCatchNode(MemoryPtr<BlockNode>& tryBlock, MemoryPtr<BlockNode>& catchBlock)
         : tryBlock(std::move(tryBlock)), catchBlock(std::move(catchBlock)) {
         type = ASTNodeType::TryCatch;
     }
 };
 
 // These nodes are unfinished for now, don't take them as final implementations.
-class ImportNode : public ASTNode {
+struct ImportNode : ASTNode {
 public:
     std::string moduleName; // the name of the module being imported
     std::vector<std::string> importNames; // the names of the items being imported from the module
@@ -347,7 +344,7 @@ public:
     }
 };
 
-class PreprocessorDirectiveNode : public ASTNode {
+struct PreprocessorDirectiveNode : ASTNode {
 public:
     ASTPreprocessorDirectiveType directive; // the preprocessor directive (e.g. #include, #define, etc.)
 
@@ -358,17 +355,17 @@ public:
 };
 
 // core nodes
-class ModuleNode : public ASTNode {
+struct ModuleNode : ASTNode {
 public:
     std::string moduleName;
-    std::vector<std::unique_ptr<ASTNode>> body;
+    std::vector<MemoryPtr<ASTNode>> body;
 
     ModuleNode(const std::string& name) : moduleName(name) {
         type = ASTNodeType::Module;
     }
 };
 
-class ProgramNode : public ASTNode {
+struct ProgramNode : ASTNode {
 public:
     std::vector<ModuleNode> body;
 

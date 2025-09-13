@@ -1,5 +1,4 @@
-#ifndef LEXER_HPP
-#define LEXER_HPP
+#pragma once 
 
 #include <string>
 #include <vector>
@@ -8,7 +7,7 @@
 class Lexer {
 public: 
     std::vector<Token> tokenize(const std::string& source);
-    void printTokens(std::string file) const;
+    void printTokens() const; // Debug command to check tokens correctness
 private:
     std::string source;
     size_t pos = 0;
@@ -31,5 +30,3 @@ private:
 
     std::vector<Token> tokens;
 };
-
-#endif

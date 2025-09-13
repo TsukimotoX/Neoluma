@@ -27,11 +27,11 @@ std::vector<Token> Lexer::tokenize(const std::string& source) {
         else {
             std::string unknown(1, move());
             std::println(std::cerr, "[Lexer] Unknown character: '{}'", unknown);
-            tokens.push_back(Token{NTokenType::UnknownToken, unknown});
+            tokens.push_back(Token{TokenType::Unknown, unknown});
         }
     }
 
-    tokens.push_back(Token{NTokenType::EndOfFile, ""});
+    tokens.push_back(Token{TokenType::EndOfFile, ""});
     return tokens;
 }
 
@@ -51,13 +51,15 @@ void Lexer::parseIK() {
     std::string word;
     
     while (!isAtEnd() && (isalnum(curChar()) || curChar() == '_')) word += move();
+
+    auto km = getKeywordMap();
+    auto om = getOperatorMap();
     
-    if (keywordMap.find(word) != keywordMap.end()) tokens.push_back(Token{NTokenType::Keyword, word});
-    else if (typesMap.find(word) != typesMap.end()) tokens.push_back(Token{NTokenType::Type, word});
-    else if (word == "true" || word == "false") tokens.push_back(Token{NTokenType::Boolean, word});
-    else if (word == "null") tokens.push_back(Token{NTokenType::NullLiteral, word});
-    else if (operatorMap.find(word) != operatorMap.end()) tokens.push_back(Token{NTokenType::Operator, word});
-    else tokens.push_back(Token{NTokenType::Identifier, word});
+    if (km.find(word) != km.end()) tokens.push_back(Token{TokenType::Keyword, word});
+    else if (word == "true" || word == "false") tokens.push_back(Token{TokenType::Boolean, word});
+    else if (word == "null") tokens.push_back(Token{TokenType::Null, word});
+    else if (operatorMap.find(word) != operatorMap.end()) tokens.push_back(Token{TokenType::Operator, word});
+    else tokens.push_back(Token{TokenType::Identifier, word});
 }
 void Lexer::parseNumber() {
     std::string number;
@@ -69,7 +71,7 @@ void Lexer::parseNumber() {
         while (!isAtEnd() && (isdigit(curChar()) || curChar() == 'e')) number += move();
     }
 
-    tokens.push_back(Token{NTokenType::Number, number});
+    tokens.push_back(Token{TokenType::Number, number});
 }
 void Lexer::parseString() {
     /* hardest thing to make. strings in neoluma can be multiline,
@@ -103,7 +105,7 @@ void Lexer::parseString() {
     }
 
     move();
-    tokens.push_back(Token{NTokenType::String, value});
+    tokens.push_back(Token{TokenType::String, value});
 }
 void Lexer::parseOperator() {
     std::string op;
@@ -113,19 +115,19 @@ void Lexer::parseOperator() {
         std::string twoChar = op + curChar();
         if (operatorMap.find(twoChar) != operatorMap.end()) op += move();
 
-        if (op == "=>") tokens.push_back(Token{NTokenType::AssignmentArrow, op});
-        else if (op == "?") tokens.push_back(Token{NTokenType::Question, op});
-        else tokens.push_back(Token{NTokenType::Operator, op});
+        if (op == "=>") tokens.push_back(Token{TokenType::AssignmentArrow, op});
+        else if (op == "?") tokens.push_back(Token{TokenType::Question, op});
+        else tokens.push_back(Token{TokenType::Operator, op});
     }
 }
 void Lexer::parseDelimeter() {
     std::string delimeter;
     delimeter += move();
     
-    if (delimeterMap.find(delimeter) != delimeterMap.end()) tokens.push_back(Token{NTokenType::Delimeter, delimeter});
+    if (delimeterMap.find(delimeter) != delimeterMap.end()) tokens.push_back(Token{TokenType::Delimeter, delimeter});
     else {
         std::println(std::cerr, "[Lexer] Unknown delimeter: '{}'", delimeter);
-        tokens.push_back(Token{NTokenType::UnknownToken, delimeter});
+        tokens.push_back(Token{TokenType::Unknown, delimeter});
     }
 }
 void Lexer::parsePreprocessor() {
@@ -134,10 +136,10 @@ void Lexer::parsePreprocessor() {
 
     while (!isAtEnd() && isalpha(curChar())) word += move();
 
-    if (preprocessorMap.find(word) != preprocessorMap.end()) tokens.push_back(Token{NTokenType::Preprocessor, word});
+    if (preprocessorMap.find(word) != preprocessorMap.end()) tokens.push_back(Token{TokenType::Preprocessor, word});
     else {
         std::println(std::cerr, "[Lexer] Unknown preprocessor: #{}", word);
-        tokens.push_back(Token{NTokenType::UnknownToken, "#" + word});
+        tokens.push_back(Token{TokenType::Unknown, "#" + word});
     }
 }
 void Lexer::parseDecorator() {
@@ -146,10 +148,10 @@ void Lexer::parseDecorator() {
 
     while (!isAtEnd() && isalpha(curChar())) word += move();
 
-    if (decoratorMap.find(word) != decoratorMap.end()) tokens.push_back(Token{NTokenType::Decorator, word});
+    if (decoratorMap.find(word) != decoratorMap.end()) tokens.push_back(Token{TokenType::Decorator, word});
     else {
         std::println(std::cerr, "[Lexer] Unknown decorator: @{}", word);
-        tokens.push_back(Token{NTokenType::UnknownToken, "@" + word});
+        tokens.push_back(Token{TokenType::Unknown, "@" + word});
     }
 }
 void Lexer::skipComment() {
@@ -170,7 +172,7 @@ void Lexer::skipComment() {
         if (isAtEnd()) std::println(std::cerr, "[Lexer] Unterminated comment.");
     }
     // not comment
-    else tokens.push_back(Token{NTokenType::Operator, "/"});
+    else tokens.push_back(Token{TokenType::Operator, "/"});
 }
 
 void Lexer::printTokens(std::string file) const {

@@ -5,8 +5,10 @@
 #include <string>
 #include <format>
 #include <unordered_map>
+#include <format>
 
-std::unordered_map<std::string, Keywords> keywordMap = {
+// Maps for every entry
+const EKeyword keywordMap[] = {
     {"function", Keywords::Function}, {"fn", Keywords::Function}, {"class", Keywords::Class}, {"enum", Keywords::Enum}, {"interface", Keywords::Interface}, {"namespace", Keywords::Namespace},
     {"if", Keywords::If}, {"else", Keywords::Else},
     {"for", Keywords::For}, {"while", Keywords::While}, {"break", Keywords::Break}, {"continue", Keywords::Continue},
@@ -19,12 +21,7 @@ std::unordered_map<std::string, Keywords> keywordMap = {
     {"debug", Keywords::Debug}, {"public", Keywords::Public}, {"protected", Keywords::Protected}, {"private", Keywords::Private},
 };
 
-std::unordered_map<std::string, NTokenType> typesMap = {
-    {"int", NTokenType::Integer}, {"float", NTokenType::Float}, {"number", NTokenType::Number}, {"bool", NTokenType::Boolean}, {"string", NTokenType::String},
-    {"array", NTokenType::Array}, {"set", NTokenType::Set}, {"dict", NTokenType::Dictionary}, {"void", NTokenType::Void}, {"result", NTokenType::Result}
-};
-
-std::unordered_map<std::string, Operators> operatorMap = {
+const EOperator operatorMap[] {
     {"+", Operators::Add}, {"-", Operators::Subtract}, {"*", Operators::Multiply}, {"/", Operators::Divide}, {"%", Operators::Modulo}, {"^", Operators::Power},
     {"==", Operators::Equal}, {"!=", Operators::NotEqual}, {"<", Operators::LessThan}, {">", Operators::GreaterThan}, {"<=", Operators::LessThanOrEqual}, {">=", Operators::GreaterThanOrEqual},
     {"&&", Operators::LogicalAnd}, {"||", Operators::LogicalOr}, {"!", Operators::LogicalNot},
@@ -32,50 +29,114 @@ std::unordered_map<std::string, Operators> operatorMap = {
     {"+=", Operators::AddAssign}, {"-=", Operators::SubAssign}, {"*=", Operators::MulAssign}, {"/=", Operators::DivAssign}, {"%=", Operators::ModAssign}, {"^=", Operators::PowerAssign}
 };
 
-std::unordered_map<std::string, Decorators> decoratorMap = {
+const EDecorator decoratorMap[] {
     {"float", Decorators::Float}, {"entry", Decorators::Entry}, {"unsafe", Decorators::Unsafe}, {"comptime", Decorators::Comptime}, {"override", Decorators::Override},
 };
 
-std::unordered_map<std::string, Preprocessors> preprocessorMap = {
-    {"import", Preprocessors::Import}, {"from", Preprocessors::From}, {"use", Preprocessors::Use}, {"as", Preprocessors::As}, {"unsafe", Preprocessors::Unsafe}, {"baremetal", Preprocessors::Baremetal}, {"float", Preprocessors::Float}, {"macro", Preprocessors::Macro},
+const EPreprocessor preprocessorMap[] {
+    {"import", Preprocessors::Import}, {"from", Preprocessors::From}, {"as", Preprocessors::As}, {"unsafe", Preprocessors::Unsafe}, {"baremetal", Preprocessors::Baremetal}, {"float", Preprocessors::Float}, {"macro", Preprocessors::Macro},
 };
-std::unordered_map<std::string, Delimeters> delimeterMap {
+
+const EDelimeter delimeterMap[] {
     {"(", Delimeters::LeftParen}, {")", Delimeters::RightParen},
     {"{", Delimeters::LeftBracket}, {"}", Delimeters::RightBracket},
-    {";", Delimeters::Semicolon}, {",", Delimeters::Comma},
+    {";", Delimeters::Semicolon}, {"\n", Delimeters::Semicolon}, {",", Delimeters::Comma},
     {".", Delimeters::Dot}, {"[", Delimeters::LeftSquareBracket},
     {"]", Delimeters::RightSquareBracket},
 };
 
-std::string Token::toString() const {
+std::string Token::toStr() const {
     std::string typeStr;
 
     switch (type) {
-        case NTokenType::NullLiteral:     typeStr = "NullLiteral"; break;
-        case NTokenType::Identifier:      typeStr = "Identifier"; break;
-        case NTokenType::Keyword:         typeStr = "Keyword"; break;
-        case NTokenType::Decorator:       typeStr = "Decorator"; break;
-        case NTokenType::Preprocessor:    typeStr = "Preprocessor"; break;
-        case NTokenType::Delimeter:       typeStr = "Delimeter"; break;
-        case NTokenType::Operator:        typeStr = "Operator"; break;
-        case NTokenType::AssignmentArrow: typeStr = "AssignmentArrow"; break;
-        case NTokenType::Question:        typeStr = "Question"; break;
-        case NTokenType::UnknownToken:         typeStr = "Unknown"; break;
-        case NTokenType::EndOfFile:       typeStr = "EndOfFile"; break;
-        case NTokenType::Type:            typeStr = "Type"; break;
-
-        case NTokenType::Integer:         typeStr = "Integer"; break;
-        case NTokenType::Float:           typeStr = "Float"; break;
-        case NTokenType::Number:          typeStr = "Number"; break;
-        case NTokenType::String:          typeStr = "String"; break;
-        case NTokenType::Void:            typeStr = "Void"; break;
-        case NTokenType::Array:           typeStr = "Array"; break;
-        case NTokenType::Boolean:         typeStr = "Boolean"; break;
-        case NTokenType::Dictionary:      typeStr = "Dictionary"; break;
-        case NTokenType::Set:             typeStr = "Set"; break;
-        case NTokenType::Result:          typeStr = "Result"; break;
+        case TokenType::Keyword:         typeStr = "Keyword"; break;
+        case TokenType::Identifier:      typeStr = "Identifier"; break;
+        case TokenType::Number:          typeStr = "Number"; break;
+        case TokenType::Operator:        typeStr = "Operator"; break;
+        case TokenType::String:          typeStr = "String"; break;
+        case TokenType::Delimeter:       typeStr = "Delimeter"; break;
+        case TokenType::Unknown:         typeStr = "Unknown"; break;
+        case TokenType::Decorator:       typeStr = "Decorator"; break;
+        case TokenType::Preprocessor:    typeStr = "Preprocessor"; break;
+        case TokenType::EndOfFile:       typeStr = "EndOfFile"; break;
+        case TokenType::Null:            typeStr = "Null"; break;
         default:                         typeStr = "<UNK>"; break;
     }
+
     return std::format("[{}] -> \"{}\"\n", typeStr, value);
+}
+
+const std::unordered_map<std::string, Keywords>& getKeywordMap() {
+    static std::unordered_map<std::string, Keywords> map;
+    if (map.empty()) {
+        for (auto& k : keywordMap) map[k.name] = k.token;
+    }
+    return map;
+}
+const std::unordered_map<std::string, Operators>& getOperatorMap() {
+    static std::unordered_map<std::string, Operators> map;
+    if (map.empty()) {
+        for (auto& k : operatorMap) map[k.name] = k.token;
+    }
+    return map;
+}
+const std::unordered_map<std::string, Decorators>& getDecoratorMap() {
+    static std::unordered_map<std::string, Decorators> map;
+    if (map.empty()) {
+        for (auto& k : decoratorMap) map[k.name] = k.token;
+    }
+    return map;
+}
+const std::unordered_map<std::string, Preprocessors>& getPreprocessorMap() {
+    static std::unordered_map<std::string, Preprocessors> map;
+    if (map.empty()) {
+        for (auto& k : preprocessorMap) map[k.name] = k.token;
+    }
+    return map;
+}
+const std::unordered_map<std::string, Delimeters>& getDelimeterMap() {
+    static std::unordered_map<std::string, Delimeters> map;
+    if (map.empty()) {
+        for (auto& k : delimeterMap) map[k.name] = k.token;
+    }
+    return map;
+}
+
+
+
+const std::unordered_map<Keywords, std::string>& getKeywordNames() {
+    static std::unordered_map<Keywords, std::string> map;
+    if (map.empty()) {
+        for (auto& k : keywordMap) map[k.token] = k.name;
+    }
+    return map;
+}
+const std::unordered_map<Operators, std::string>& getOperatorNames() {
+    static std::unordered_map<Operators, std::string> map;
+    if (map.empty()) {
+        for (auto& k : operatorMap) map[k.token] = k.name;
+    }
+    return map;
+}
+const std::unordered_map<Decorators, std::string>& getDecoratorNames() {
+    static std::unordered_map<Decorators, std::string> map;
+    if (map.empty()) {
+        for (auto& k : decoratorMap) map[k.token] = k.name;
+    }
+    return map;
+}
+const std::unordered_map<Preprocessors, std::string>& getPreprocessorNames() {
+    static std::unordered_map<Preprocessors, std::string> map;
+    if (map.empty()) {
+        for (auto& k : preprocessorMap) map[k.token] = k.name;
+    }
+    return map;
+}
+const std::unordered_map<Delimeters, std::string>& getDelimeterNames() {
+    static std::unordered_map<Delimeters, std::string> map;
+    if (map.empty()) {
+        for (auto& k : delimeterMap) map[k.token] = k.name;
+    }
+    return map;
 }
 

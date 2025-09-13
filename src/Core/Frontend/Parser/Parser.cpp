@@ -603,18 +603,20 @@ MemoryPtr<PreprocessorDirectiveNode> Parser::parsePreprocessor() {
 MemoryPtr<ASTNode> Parser::parseBlockorStatement() {
     if (match(NTokenType::Delimeter, "{")) {
         MemoryPtr<BlockNode> block = parseBlock();
-        if (!block) {
-            std::println(std::cerr, "[Neoluma/Parser] Expected block after 'if/elif/else' condition");
-            return nullptr;
-        }
+        guardCheck(std::move(block), "[Neoluma/Parser] Expected block after 'if/elif/else' condition");
         return std::move(block);
     }
     else {
         MemoryPtr<ASTNode> block = parseStatement();
-        if (!block) {
-            std::println(std::cerr, "[Neoluma/Parser] Expected statement after 'if/elif/else' condition");
-            return nullptr;
-        }
+        guardCheck(block, "[Neoluma/Parser] Expected statement after 'if/elif/else' condition");
         return std::move(block);
+    }
+}
+
+// Simplifies guard conditions to one line. Condition is unary reversed inside condition. Pass without !.
+void guardCheck(const MemoryPtr<ASTNode>& condition, const std::string& errorMsg) {
+    if (!condition) {
+        std::println(std::cerr, errorMsg);
+        throw std::runtime_error(errorMsg);
     }
 }
