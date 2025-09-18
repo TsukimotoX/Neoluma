@@ -28,23 +28,23 @@ private:
     std::string moduleName;
 
     Token& curToken() { 
-        if (pos >= tokens.size()) { Token token = Token{NTokenType::EndOfFile, ""}; return token; }
+        if (pos >= tokens.size()) { Token token = Token{TokenType::EndOfFile, ""}; return token; }
         return tokens[pos]; 
     };
     Token next() { 
-        if (pos >= tokens.size()) return Token{NTokenType::EndOfFile, ""};
+        if (pos >= tokens.size()) return Token{TokenType::EndOfFile, ""};
         return tokens[pos++]; 
     };
     Token lookupNext() {
-        if (pos + 1 >= tokens.size()) return Token{NTokenType::EndOfFile, ""};
+        if (pos + 1 >= tokens.size()) return Token{TokenType::EndOfFile, ""};
         return tokens[pos + 1];
     }
-    bool match(NTokenType type, const std::string& value = "") {
+    bool match(TokenType type, const std::string& value = "") {
         if (curToken().type != type) return false;
         if (!value.empty() && curToken().value != value) return false;
         return true;
     };
-    bool isAtEnd() { return pos >= tokens.size() || curToken().type == NTokenType::EndOfFile; }
+    bool isAtEnd() { return pos >= tokens.size() || curToken().type == TokenType::EndOfFile; }
 
     // Expression parsing
     MemoryPtr<ASTNode> parsePrimary();
@@ -77,4 +77,5 @@ private:
 
     // Helper functions
     MemoryPtr<ASTNode> parseBlockorStatement();
+    bool isNextLine();
 };

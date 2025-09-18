@@ -15,22 +15,10 @@
     Please proceed with caution.
 
 */
-void Parser::printModule() {
-    // as empty as my meaning of life
-}
+
 
 // ==== Main parsing ====
 MemoryPtr<ModuleNode> Parser::parseModule() {
-    /*
-    создать узел ModuleNode
-    пока не достиг конца:
-        прочитай узел stmt с типом ASTNode
-        если узла нет:
-            ошибка
-        иначе:
-            добавить узел stmt в узел ModuleNode
-    вернуть ModuleNode
-    */
     auto moduleNode = makeMemoryPtr<ModuleNode>();
 
     while (!isAtEnd()) {
@@ -48,44 +36,17 @@ MemoryPtr<ModuleNode> Parser::parseModule() {
 
 // ==== Statement parsing ====
 MemoryPtr<ASTNode> Parser::parseStatement() {
-    /* (это отстой)
-    получить токен
-    если токен имеет тип Keyword:
-        если токен if -> обработай условие if
-        если токен switch -> обработай поиск switch
-        если токен try -> прочитай блок и поймай ошибку
-        если токен for -> пройдись по циклу n-раз
-        если токен while -> пройдись по циклу пока условие не выполнилось
-        если токен return -> оформи возврат значения
-        если токен throw -> вызови ошибку программы и уничтожение
-        если токен break -> вызови остановку цикла
-        если токен continue -> продолжи с следующей итерации цикла
-        если токен fn или function -> пройдись по функции
-        если токен class -> пройдись по классу
-        если токен # -> обработай препроцессор
-        если токен @ -> обработай декоратор
-    
-    если токен это идентификатор:
-        посмотри следующий токен
-        если это оператор -> проведи операцию присвоения
-
-        НЕТУ ОБРАБОТКИ ФУНКЦИЙ И ПРИСВОЕНИЕ ПЕРЕМЕННЫХ, И ДРУГОЕ!!!
-    
-    если это блок и начинается с { -> отпарси блок
-
-    иначе спарси бинарную операцию
-    */
     Token token = curToken();
+    auto km = getKeywordMap();
 
     // === Control Flow Keywords ===
     if (token.type == TokenType::Keyword) {
-        if (token.value == "if") return parseIf();
-        if (token.value == "switch") return parseSwitch();
-        if (token.value == "try") return parseTryCatch();
-        if (token.value == "for") return parseFor();
-        if (token.value == "while") return parseWhile();
-
-        if (token.value == "return") {
+        if (km[token.value] == Keywords::If) return parseIf();
+        if (km[token.value] == Keywords::Switch) return parseSwitch();
+        if (km[token.value] == Keywords::Try) return parseTryCatch();
+        if (km[token.value] == Keywords::For) return parseFor();
+        if (km[token.value] == Keywords::While) return parseWhile();
+        if (km[token.value] == Keywords::Return) {
             next();
             MemoryPtr<ASTNode> expr = parseExpression();
             if (!expr) {
@@ -95,7 +56,7 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
             return makeMemoryPtr<ReturnStatementNode>(expr);
         }
 
-        if (token.value == "throw") {
+        if (km[token.value] == Keywords::Throw) {
             next();
             MemoryPtr<ASTNode> expr = parseExpression();
             if (!expr) {
@@ -105,36 +66,23 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
             return makeMemoryPtr<ThrowStatementNode>(expr);
         }
 
-        if (token.value == "break") {
+        if (km[token.value] == Keywords::Break) {
             next();
             return makeMemoryPtr<BreakStatementNode>();
         }
 
-        if (token.value == "continue") {
+        if (km[token.value] == Keywords::Continue) {
             next();
             return makeMemoryPtr<ContinueStatementNode>();
         }
 
-        if (token.value == "fn" || token.value == "function") return parseFunction();
-        if (token.value == "class") return parseClass();
-        if (token.value == "import") return parseImport();
+        if (km[token.value] == Keywords::Function) return parseFunction();
+        if (km[token.value] == Keywords::Class) return parseClass();
+        /* УБЕРИ ЕГО НАХУЙ ОТСЮДА
+        if (km[token.value] == Keywords::Import) return parseImport();
         if (token.value == "#") return parsePreprocessor();
         if (token.value == "@") return parseDecorator();
-    }
-
-    // === Assignments ===
-    if (token.type == TokenType::Identifier) {
-        Token nextTok = lookupNext();
-
-        if (nextTok.type == TokenType::Operator && (
-            nextTok.value == "=" || nextTok.value == "+=" || nextTok.value == "-=" ||
-            nextTok.value == "*=" || nextTok.value == "/=" || nextTok.value == "%=" ||
-            nextTok.value == "^=")) {
-            return parseAssignment();
-        }
-
-        // TODO: Maybe function call? detect "(" after identifier
-        // TODO: Variable declaration later?
+        */
     }
 
     // === Block ===
@@ -184,16 +132,8 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
     */
     Token token = curToken();
 
-    // Unary operations
-    if (token.type == TokenType::Operator && 
-        (token.value == "!" || token.value == "-" || token.value == "not")) {
-        std::string op = token.value;
-        next();
-        return parseUnary(op);
-    } 
-
     // Parenthesis
-    else if (token.type == TokenType::Delimeter && token.value == "(") {
+    if (token.type == TokenType::Delimeter && token.value == "(") {
         next();
         MemoryPtr<ASTNode> expr = parseExpression();
         if (!match(TokenType::Delimeter, ")")) {
@@ -204,8 +144,7 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
         return expr;
     } 
     // Data type
-    else if (token.type == TokenType::Number || token.type == TokenType::String || 
-               token.type == TokenType::Boolean || token.type == TokenType::NullLiteral) {
+    else if (token.type == TokenType::Number || token.type == TokenType::String) {
         next();
         return makeMemoryPtr<LiteralNode>(token.value);
     } 
@@ -241,30 +180,27 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
 }
 
 MemoryPtr<ASTNode> Parser::parseExpression() {
-    /*
-    Просто парсинг бинарной операции. Не совсем хороший вариант...
-    */
+    Token token = curToken();
+    auto om = getOperatorMap();
+
+    // Assignments
+    if (token.type == TokenType::Identifier && 
+        lookupNext().type == TokenType::Operator && 
+        om[lookupNext().value] == Operators::Assign) return parseAssignment();
+    // Unary operations
+    else if (om.find(token.value) != om.end()) {
+        Operators op = om[token.value];
+        if (op == Operators::LogicalNot || op == Operators::Subtract) {
+            next();
+            return parseUnary(token.value);
+        }
+    }
+    
+    // Binary operation fallback
     return parseBinary(0);
 }
 
 MemoryPtr<ASTNode> Parser::parseBinary(int prevPredecence = 0) {
-    /*
-    парсинг левого выражения
-    если его нет, возвращаем ничего (???)
-
-    бесконечный цикл:
-        берем токен оператора
-        смотрим какой оператор по приоритету
-        если это не оператор или текущий приоритет меньше прошлого, ломай цикл
-        парсим оператор
-        далее
-        парсим рекурсивно бинарные выражения справа, парся бинарную операцию с приоритетом +1
-        если правого выражения нет, возвращаем ничего (???)
-
-        создаем узел BinaryOperationNode с выражением левого, оператора, правого разрядов
-        двигаем бинарное выражение в левое выражение
-    возвращаем левое выражение
-    */
     MemoryPtr<ASTNode> left = parsePrimary();
     if (!left) return nullptr;
 
@@ -285,11 +221,6 @@ MemoryPtr<ASTNode> Parser::parseBinary(int prevPredecence = 0) {
 }
 
 MemoryPtr<UnaryOperationNode> Parser::parseUnary(const std::string& op) {
-    /*
-    Парсим первичное выражение, операнд
-    если операнда нет, ошибку что отсутствует унарный оператор (???)
-    Возвращаем узел UnaryOperationNode
-    */
     MemoryPtr<ASTNode> operand = parsePrimary();
     if (!operand) {
         std::println(std::cerr, "[Neoluma/Parser] Missing operand after unary operator: {}", op);
@@ -299,21 +230,6 @@ MemoryPtr<UnaryOperationNode> Parser::parseUnary(const std::string& op) {
 }
 
 MemoryPtr<AssignmentNode> Parser::parseAssignment(){
-    /*
-    берем токен
-    если это не идентификатор, то ошибка (??? а что с variable???)
-    вычленяем имя из идентификатора
-    далее
-    операторы присвоения в множестве (??? нахера)
-    берем токен
-    если это не оператор или оператор не найден в множестве, то ошибка
-    вычленяем оператор
-    далее
-    парсим бинарную операцию (???)
-    если ничего нет, то ошибка
-
-    возвращаем AssignmentNode с названием, оператором и значением
-    */
     Token token = curToken();
     if (token.type != TokenType::Identifier) {
         std::println(std::cerr, "[Neoluma/Parser] Expected identifier for assignment");
@@ -322,12 +238,10 @@ MemoryPtr<AssignmentNode> Parser::parseAssignment(){
     std::string variableName = token.value;
     next();
 
-    static const std::unordered_set<std::string> assignmentOps = {
-        "=", "+=", "-=", "*=", "/=", "%=", "^="
-    };
+    auto om = getOperatorMap();
 
     token = curToken();
-    if ((!match(TokenType::Operator)) || assignmentOps.find(token.value) == assignmentOps.end()) {
+    if ((!match(TokenType::Operator)) || (om[token.value] == Operators::AddAssign || om[token.value] == Operators::SubAssign || om[token.value] == Operators::MulAssign || om[token.value] == Operators::DivAssign || om[token.value] == Operators::ModAssign || om[token.value] == Operators::PowerAssign )) {
         std::println(std::cerr, "[Neoluma/Parser] Expected assignment operator (=, +=, -=, and etc.)");
         return nullptr;
     }
@@ -345,18 +259,9 @@ MemoryPtr<AssignmentNode> Parser::parseAssignment(){
 }
 
 MemoryPtr<ReturnStatementNode> Parser::parseReturn(){
-    /*
-    пропускаем
-    если текущий тип это ;, то возвращаем ничего в ReturnStatementNode (???)
-    парсим бинарную операцию
-    если ее нет, то ошибка
-    если return не заканчивается ;, то ошибка (???)
-    далее
-    возвращаем ReturnStatementNode
-    */
     next();
 
-    if (curToken().type == TokenType::Delimeter && curToken().value == ";") {
+    if (curToken().type == TokenType::Delimeter && isNextLine()) {
         return makeMemoryPtr<ReturnStatementNode>(nullptr);
     }
 
@@ -366,7 +271,7 @@ MemoryPtr<ReturnStatementNode> Parser::parseReturn(){
         return nullptr;
     }
 
-    if (curToken().type != TokenType::Delimeter || curToken().value != ";") {
+    if (curToken().type != TokenType::Delimeter || !isNextLine()) {
         std::println(std::cerr, "[Neoluma/Parser] Expected ';' after return expression");
         return nullptr;
     }
@@ -377,24 +282,10 @@ MemoryPtr<ReturnStatementNode> Parser::parseReturn(){
 
 // ==== Control flow ====
 MemoryPtr<IfNode> Parser::parseIf() {
-    /*
-    пропускаем
-    если скобки нет, ошибка
-    далее
-    парсим условие (бинарное выражение) (???)
-    если условия нет, ошибка
-    если условие не закрыто скобкой, ошибка
-
-    парсим блок или утверждение в ifBlock
-    делаем пустой elseBlock
-
-    если есть else:
-        двигаем
-        парсим блок или утверждение в elseBlock
-    возвращаем IfNode с условием и двумя блоками
-    */
     next();
-    if (!match(TokenType::Delimeter, "(")) {
+
+    auto dm = getDelimeterNames();
+    if (!match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected '(' after 'if'");
         return nullptr;
     }
@@ -404,7 +295,7 @@ MemoryPtr<IfNode> Parser::parseIf() {
         std::println(std::cerr, "[Neoluma/Parser] Expected condition expression after 'if'");
         return nullptr;
     }
-    if (!match(TokenType::Delimeter, ")")) {
+    if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected ')' after condition in 'if'");
         return nullptr;
     }
@@ -412,7 +303,8 @@ MemoryPtr<IfNode> Parser::parseIf() {
     MemoryPtr<ASTNode> ifBlock = parseBlockorStatement();
     MemoryPtr<ASTNode> elseBlock = nullptr;
 
-    if (match(TokenType::Keyword, "else")) {
+    auto km = getKeywordNames();
+    if (match(TokenType::Keyword, km[Keywords::Else])) {
         next();
         elseBlock = parseBlockorStatement();
     }
@@ -892,20 +784,24 @@ MemoryPtr<PreprocessorDirectiveNode> Parser::parsePreprocessor() {
 MemoryPtr<ASTNode> Parser::parseBlockorStatement() {
     if (match(TokenType::Delimeter, "{")) {
         MemoryPtr<BlockNode> block = parseBlock();
-        guardCheck(std::move(block), "[Neoluma/Parser] Expected block after 'if/elif/else' condition");
+        if(!block) {
+            std::println("[Neoluma/Parser] Expected block after 'if/elif/else' condition");
+            return nullptr;
+        }
         return std::move(block);
     }
     else {
         MemoryPtr<ASTNode> block = parseStatement();
-        guardCheck(block, "[Neoluma/Parser] Expected statement after 'if/elif/else' condition");
+        if(!block) {
+            std::println("[Neoluma/Parser] Expected statement after 'if/elif/else' condition");
+            return nullptr;
+        }
         return std::move(block);
     }
 }
 
-// Simplifies guard conditions to one line. Condition is unary reversed inside condition. Pass without !.
-void guardCheck(const MemoryPtr<ASTNode>& condition, const std::string& errorMsg) {
-    if (!condition) {
-        std::println(std::cerr, errorMsg);
-        return;
-    }
+// Detects nextline expression
+bool Parser::isNextLine(){
+    if (curToken().value == ";" || curToken().value == "\n") return true;
+    return false;
 }
