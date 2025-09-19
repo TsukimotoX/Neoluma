@@ -78,7 +78,7 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
 
         if (km[token.value] == Keywords::Function) return parseFunction();
         if (km[token.value] == Keywords::Class) return parseClass();
-        /* УБЕРИ ЕГО НАХУЙ ОТСЮДА
+        /* УБЕРИ ЕГО ОТСЮДА
         if (km[token.value] == Keywords::Import) return parseImport();
         if (token.value == "#") return parsePreprocessor();
         if (token.value == "@") return parseDecorator();
@@ -96,40 +96,7 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
 
 // ==== Expression parsing ====
 MemoryPtr<ASTNode> Parser::parsePrimary(){
-    /*
-    получить токен
-    если это оператор отрицания, т.е. унарный:
-        оператор является значением токена
-        следующий токен
-        вернуть парсинг унарных выражений
-    иначе если токен это разделитель и начинается с ( :
-        пропускаем (
-        парсим выражение внутри
-        если не закрывается скобка с ), ошибка
-        следующий токен (???)
-        возврат выражения
-    иначе если токен или число или строка или логическое выражение или ничего:
-        пропуск (???)
-        создаем и возвращаем значение буквальное
-    иначе если это идентификатор или переменная:
-        пропускаем токен
-
-        если скобка открывается:
-            пропуск
-            создаем список аргументов из узлов ParameterNode
-            пока скобка не закрылась и программа не закончилась:
-                парсим бинарное выражение
-                если оно существует, добавляем как ParameterNode в список аргументов
-
-                если есть запятая, дальше
-                иначе цикл ломается
-            если скобка не закрыта, ошибка
-
-            создаем VariableNode (???)
-            возвращаем CallExpressionNode VariableNode'а (???)
-        возвращаем создание идентификатора (???)
-    если ничего не подошло, значит парсить нечего, возвращай ошибку
-    */
+    // TODO: Arrays, sets, dicts, and other datatypes + lambdas
     Token token = curToken();
 
     // Parenthesis
@@ -148,10 +115,21 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
         next();
         return makeMemoryPtr<LiteralNode>(token.value);
     } 
+    // Booleans
+    else if (token.type == TokenType::Identifier && (token.value == "true" || token.value == "false")) {
+        next();
+        return makeMemoryPtr<LiteralNode>(token.value);
+    }
+    // Null
+    else if (token.type == TokenType::Null) {
+        next();
+        return makeMemoryPtr<LiteralNode>("null");
+    }
     // Identifier or variable
     else if (token.type == TokenType::Identifier) {
         Token id = next();
         
+        // If function call
         if (match(TokenType::Delimeter, "(")) {
             next();
             std::vector<MemoryPtr<ParameterNode>> args;
@@ -168,11 +146,12 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
                 return nullptr;
             }
 
-            auto callee = makeMemoryPtr<VariableNode>(id.value); // Variable or identifier
+            auto callee = makeMemoryPtr<VariableNode>(id.value);
             return makeMemoryPtr<CallExpressionNode>(std::move(callee), args);
         }
 
-        return makeMemoryPtr<VariableNode>(id.value); // Variable or identifier
+        // else identifier
+        return makeMemoryPtr<VariableNode>(id.value);
     }
 
     std::println(std::cerr, "[Neoluma/Parser] Unexpected token in primary expression: {}", token.value);
