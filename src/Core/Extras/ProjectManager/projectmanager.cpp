@@ -1,5 +1,6 @@
 #include "projectmanager.hpp"
 #include "../../Frontend/Lexer/lexer.hpp"
+#include "../../../../unused_tab/Parser/parser.hpp"
 #include "../../../HelperFunctions.hpp"
 #include <fstream>
 #include <sstream>
@@ -19,5 +20,6 @@ void ProjectManager::check() {
         Lexer lexer;
         lexer.tokenize(source);
         lexer.printTokens(file);
+        
     }
 }

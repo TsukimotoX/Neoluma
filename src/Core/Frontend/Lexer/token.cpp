@@ -40,10 +40,10 @@ const EPreprocessor preprocessorMap[] {
 
 const EDelimeter delimeterMap[] {
     {"(", Delimeters::LeftParen}, {")", Delimeters::RightParen},
-    {"{", Delimeters::LeftBracket}, {"}", Delimeters::RightBracket},
-    {";", Delimeters::Semicolon}, {"\n", Delimeters::Semicolon}, {",", Delimeters::Comma},
-    {".", Delimeters::Dot}, {"[", Delimeters::LeftSquareBracket},
-    {"]", Delimeters::RightSquareBracket},
+    {"{", Delimeters::LeftBraces}, {"}", Delimeters::RightBraces},
+    {";", Delimeters::Semicolon}, {":", Delimeters::Colon}, {"\n", Delimeters::Semicolon}, {",", Delimeters::Comma},
+    {".", Delimeters::Dot}, {"[", Delimeters::LeftBracket},
+    {"]", Delimeters::RightBracket},
 };
 
 std::string Token::toStr() const {

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <optional>
+#include <array>
 #include <variant>
 #include "../../../HelperFunctions.hpp"
 //#include "llvm/IR/Value.h"
@@ -16,6 +17,7 @@ enum struct ASTNodeType {
     Module, Program, 
     Import, Decorator, Preprocessor, 
     BreakStatement, ContinueStatement, ThrowStatement,
+    Array, Set, Dict, Void, Result, Enum, Interface
 };
 /* ASTNodes checklist!!!
     * - LiteralNode ✅
@@ -42,7 +44,13 @@ enum struct ASTNodeType {
     * - PreprocessorDirectiveNode ✅
     * - ModuleNode ✅
     * - ProgramNode ✅
-    * / TODO: Add condition node, with expression that must be true. like a binary operation kind of thing but for ==
+    * - ArrayNode ✅
+    * - SetNode ✅
+    * - DictNode ✅
+    * - VoidNode ✅
+    * - ResultNode ✅
+    * - EnumNode ✅
+    * - InterfaceNode ✅
 */
 
 enum struct ASTVariableType {
@@ -79,10 +87,79 @@ struct ASTNode {
 
 // All node types inherited from ASTNode, for the parser and compiler to determine.
 
+struct ArrayNode : ASTNode {
+    std::vector<MemoryPtr<ASTNode>> elements;
+    MemoryPtr<ASTNode> typeHint;
+
+    ArrayNode(std::vector<MemoryPtr<ASTNode>> elements, MemoryPtr<ASTNode> typeHint) {
+        this->type = ASTNodeType::Array;
+        this->elements = std::move(elements);
+        this->typeHint = std::move(typeHint);
+    }
+};
+
+struct SetNode : ASTNode {
+    std::vector<MemoryPtr<ASTNode>> elements;
+    MemoryPtr<ASTNode> typeHint;
+
+    SetNode(std::vector<MemoryPtr<ASTNode>> elements, MemoryPtr<ASTNode> typeHint) {
+        this->type = ASTNodeType::Set;
+        this->elements = std::move(elements);
+        this->typeHint = std::move(typeHint);
+    }
+};
+
+struct DictNode : ASTNode {
+    std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>> elements;
+    std::array<ASTVariableType, 2> types;
+
+    DictNode(const std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>>& elements, const std::array<ASTVariableType, 2>& types) {
+        this->type = ASTNodeType::Dict;
+        this->elements = elements;
+        this->types = types;
+    }
+};
+
+struct VoidNode : ASTNode {
+    VoidNode() { this->type = ASTNodeType::Void; }
+};
+
+struct ResultNode : ASTNode {
+    MemoryPtr<ASTNode> t;
+    MemoryPtr<ASTNode> e = nullptr;
+    bool isError;
+
+    ResultNode(MemoryPtr<ASTNode> t, MemoryPtr<ASTNode> e = nullptr, bool isError = false) 
+    : t(std::move(t)), e(std::move(e)) {
+        this->type = ASTNodeType::Result;
+    }
+};
+
+struct EnumNode : ASTNode {
+    // im not sure if this is how you do all of this shit
+    std::vector<MemoryPtr<VariableNode>> elements;
+
+    EnumNode(std::vector<MemoryPtr<VariableNode>> elements) {
+        this->type = ASTNodeType::Enum;
+        this->elements = std::move(elements);
+    }
+};
+
+// just an enum but for classes lol
+struct InterfaceNode : ASTNode {
+    std::vector<VariableNode> elements;
+
+    InterfaceNode(const std::vector<VariableNode>& elements) {
+        this->type = ASTNodeType::Enum;
+        this->elements = elements;
+    }
+};
+
 struct LiteralNode : ASTNode {
-public:
-    LiteralNode(const std::string& val) {
+    ASTVariableType varType; // type of the variable, e.g. Integer, Float, etc.
+    LiteralNode(const ASTVariableType& varType = ASTVariableType::Undefined, const std::string& val) {
         type = ASTNodeType::Literal;
+        this->varType = varType;
         value = val;
     }
 };
@@ -90,10 +167,9 @@ public:
 struct VariableNode : ASTNode {
 public:
     std::string varName; // name of the variable
-    ASTVariableType varType; // type of the variable, e.g. Integer, Float, etc.
     bool isNullable = false; // can the variable be nothing or not?
 
-    VariableNode(const std::string& varName, ASTVariableType& varType, bool isNullable = false): varName(varName), varType(varType), isNullable(isNullable) {
+    VariableNode(const std::string& varName, bool isNullable = false): varName(varName), isNullable(isNullable) {
         type = ASTNodeType::Variable;
     }
 };

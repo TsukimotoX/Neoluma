@@ -16,6 +16,15 @@
 
 */
 
+/* ==== Current TODO list: ====
+    - Make sure parseStatement() supports everything (add enum, interface, parse Modifiers, static/yield/const/etc. and other features)
+    - Add arrays, sets, dicts, and other data types + lambas into parseBinary()
+    - Make a function that detects data types
+    - Create Nodes appropriate to them ✅
+    - Add binary operations for logical purposes (a&b, a|b, and etc)
+    - Remake Preprocessor functions, including imports and other subkeywords
+    - Add with as, lambda, other stuff your stupid dreamer brain thought of. Can you stop for once, Tsuki?!
+*/
 
 // ==== Main parsing ====
 MemoryPtr<ModuleNode> Parser::parseModule() {
@@ -35,12 +44,16 @@ MemoryPtr<ModuleNode> Parser::parseModule() {
 }
 
 // ==== Statement parsing ====
+// TODO: make sure it supports everything
 MemoryPtr<ASTNode> Parser::parseStatement() {
     Token token = curToken();
     auto km = getKeywordMap();
 
+    if (token.value == "#") return parsePreprocessor();
+    else if (token.value == "@") return parseDecorator();
+
     // === Control Flow Keywords ===
-    if (token.type == TokenType::Keyword) {
+    else if (token.type == TokenType::Keyword) {
         if (km[token.value] == Keywords::If) return parseIf();
         if (km[token.value] == Keywords::Switch) return parseSwitch();
         if (km[token.value] == Keywords::Try) return parseTryCatch();
@@ -78,11 +91,8 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
 
         if (km[token.value] == Keywords::Function) return parseFunction();
         if (km[token.value] == Keywords::Class) return parseClass();
-        /* УБЕРИ ЕГО ОТСЮДА
-        if (km[token.value] == Keywords::Import) return parseImport();
-        if (token.value == "#") return parsePreprocessor();
-        if (token.value == "@") return parseDecorator();
-        */
+        if (km[token.value] == Keywords::Enum) return parseEnum();
+        if (km[token.value] == Keywords::Interface) return parseInterface();
     }
 
     // === Block ===
@@ -95,31 +105,28 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
 }
 
 // ==== Expression parsing ====
+// TODO: Arrays, sets, dicts, and other datatypes + lambdas
 MemoryPtr<ASTNode> Parser::parsePrimary(){
-    // TODO: Arrays, sets, dicts, and other datatypes + lambdas
     Token token = curToken();
+    auto dm = getDelimeterNames();
 
     // Parenthesis
-    if (token.type == TokenType::Delimeter && token.value == "(") {
+    if (token.type == TokenType::Delimeter && token.value == dm[Delimeters::LeftParen]) {
         next();
         MemoryPtr<ASTNode> expr = parseExpression();
-        if (!match(TokenType::Delimeter, ")")) {
+        if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
             std::println(std::cerr, "[Neoluma/Parser] Expected ')' after expression");
             return nullptr;
         }
         next();
         return expr;
     } 
-    // Data type
-    else if (token.type == TokenType::Number || token.type == TokenType::String) {
+    // Data type + Booleans
+    else if ((token.type == TokenType::Number || token.type == TokenType::String) 
+    || (token.type == TokenType::Identifier && (token.value == "true" || token.value == "false"))) {
         next();
         return makeMemoryPtr<LiteralNode>(token.value);
     } 
-    // Booleans
-    else if (token.type == TokenType::Identifier && (token.value == "true" || token.value == "false")) {
-        next();
-        return makeMemoryPtr<LiteralNode>(token.value);
-    }
     // Null
     else if (token.type == TokenType::Null) {
         next();
@@ -130,18 +137,18 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
         Token id = next();
         
         // If function call
-        if (match(TokenType::Delimeter, "(")) {
+        if (match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
             next();
             std::vector<MemoryPtr<ParameterNode>> args;
 
-            while (!match(TokenType::Delimeter, ")") && !isAtEnd()) {
+            while (!match(TokenType::Delimeter, dm[Delimeters::RightParen]) && !isAtEnd()) {
                 auto arg = parseExpression();
                 if (arg) args.push_back(makeMemoryPtr<ParameterNode>(std::move(arg)));
                 
-                if (match(TokenType::Delimeter, ",")) next();
+                if (match(TokenType::Delimeter, dm[Delimeters::Comma])) next();
                 else break;
             }
-            if (!match(TokenType::Delimeter, ")")) {
+            if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
                 std::println(std::cerr, "[Neoluma/Parser] Expected ')' after arguments");
                 return nullptr;
             }
@@ -292,38 +299,11 @@ MemoryPtr<IfNode> Parser::parseIf() {
 }
 
 MemoryPtr<SwitchNode> Parser::parseSwitch() {
-    /*
-    пропускаем
-    если скобки открывающейся нет, ошибка
-    далее
-    парсим бинарное выражение (???)
-    если его нет, ошибка
-    если закрывающейся скобки нет, ошибка
-    если открывающейся { скобки нет, ошибка
-    далее
-    создаем список CaseNode 
-    создаем пустое условие по умолчанию SCDefaultNode
-
-    пока не закрыто через }:
-        берем токен
-        если слово case:
-            пропускаем
-            парсим условие (???)
-            если нет :, ошибка
-            далее
-            делаем ноду блока (??? а почему так? это требует `case: {}`)
-            добавляем в кейсы ноду с условием и блоком
-        иначе если слово default:
-            пропуск
-            если нет :, ошибка
-            далее
-            делаем ноду блока (???)
-            добавляем в кейсы ноду с условием и блоком
-        иначе ошибка
-    возвращаем SwitchNode с выражением, кейсами и дефолтом
-    */
     next();
-    if (!match(TokenType::Delimeter, "(")) {
+    auto dm = getDelimeterNames();
+    auto km = getKeywordNames();
+
+    if (!match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected '(' after 'switch'");
         return nullptr;
     }
@@ -335,13 +315,13 @@ MemoryPtr<SwitchNode> Parser::parseSwitch() {
         return nullptr;
     }
 
-    if (!match(TokenType::Delimeter, ")")) {
+    if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected ')' after switch expression");
         return nullptr;
     }
     next();
 
-    if (!match(TokenType::Delimeter, "{")) {
+    if (!match(TokenType::Delimeter, dm[Delimeters::LeftBraces])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected '{' after switch");
         return nullptr;
     }
@@ -350,13 +330,13 @@ MemoryPtr<SwitchNode> Parser::parseSwitch() {
     std::vector<MemoryPtr<CaseNode>> cases;
     MemoryPtr<SCDefaultNode> defaultCase = nullptr;
 
-    while (!match(TokenType::Delimeter, "}")) {
+    while (!match(TokenType::Delimeter, dm[Delimeters::RightBracket])) {
         Token tok = curToken();
 
-        if (tok.type == TokenType::Keyword && tok.value == "case") {
+        if (match(TokenType::Keyword, km[Keywords::Case])) {
             next();
             MemoryPtr<ASTNode> condition = parseExpression();
-            if (!match(TokenType::Delimeter, ":")) {
+            if (!match(TokenType::Delimeter, dm[Delimeters::Colon])) {
                 std::println(std::cerr, "[Neoluma/Parser] Expected ':' after case condition");
                 return nullptr;
             }
@@ -364,9 +344,9 @@ MemoryPtr<SwitchNode> Parser::parseSwitch() {
             auto body = as<BlockNode>(parseBlockorStatement());
             cases.push_back(makeMemoryPtr<CaseNode>(condition, body));
         }
-        else if (tok.type == TokenType::Keyword && tok.value == "default") {
+        else if (match(TokenType::Keyword, km[Keywords::Default])) {
             next();
-            if (!match(TokenType::Delimeter, ":")) {
+            if (!match(TokenType::Delimeter, dm[Delimeters::Colon])) {
                 std::println(std::cerr, "[Neoluma/Parser] Expected ':' after default");
                 return nullptr;
             }
@@ -384,17 +364,8 @@ MemoryPtr<SwitchNode> Parser::parseSwitch() {
 }
 
 MemoryPtr<TryCatchNode> Parser::parseTryCatch() {
-    /*
-    пропуск
-    парсим блок или утверждение try
-    если нет блока, ошибка
-    если нет catch, ошибка
-    далее
-    парсим блок или утверждение catch
-    если нет блока, ошибка
-    возвращаем TryCatchNode с блоками
-    */
     next();
+    auto km = getKeywordNames();
 
     auto tryBlock = as<BlockNode>(parseBlockorStatement());
     if (!tryBlock) {
@@ -402,7 +373,7 @@ MemoryPtr<TryCatchNode> Parser::parseTryCatch() {
         return nullptr;
     }
 
-    if (!match(TokenType::Keyword, "catch")) {
+    if (!match(TokenType::Keyword, km[Keywords::Catch])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected 'catch' after 'try'");
         return nullptr;
     }
@@ -418,24 +389,10 @@ MemoryPtr<TryCatchNode> Parser::parseTryCatch() {
 }
 
 MemoryPtr<ForLoopNode> Parser::parseFor() {
-    /*
-    пропускаем
-    если нет скобки, ошибка
-    далее
-    если нет идентификатора (???), ошибка
-    записываем значение variable
-    делаем ноду Variable с типом Void (???)
-    далее
-    если нет оператора :, ошибка
-    парсим бинарное выражение (???)
-    если нет выражения, ошибка
-    если условие не закрыто ), ошибка
-    парсим блок или утверждение
-    если блока нет, ошибка
-    делаем ForLoopNode c переменной, итеративным элементом и блоком выполнения
-    */
     next();
-    if (!match(TokenType::Delimeter, "(")) {
+    auto dm = getDelimeterNames();
+
+    if (!match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected '(' after 'for'");
         return nullptr;
     }
@@ -450,7 +407,7 @@ MemoryPtr<ForLoopNode> Parser::parseFor() {
     auto varNode = makeMemoryPtr<VariableNode>(varName, ASTVariableType::Void);
     next();
 
-    if (!match(TokenType::Operator, ":")) {
+    if (!match(TokenType::Operator, dm[Delimeters::Colon])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected ':' after loop variable in for");
         return nullptr;
     }
@@ -462,7 +419,7 @@ MemoryPtr<ForLoopNode> Parser::parseFor() {
         return nullptr;
     }
 
-    if (!match(TokenType::Delimeter, ")")) {
+    if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected ')' after for condition");
         return nullptr;
     }
@@ -477,19 +434,10 @@ MemoryPtr<ForLoopNode> Parser::parseFor() {
 }
 
 MemoryPtr<WhileLoopNode> Parser::parseWhile() {
-    /*
-    пропускаем
-    если нет скобки, ошибка
-    далее
-    парсим бинарное выражение (???)
-    если нет выражения, ошибка
-    если условие не закрыто ), ошибка
-    парсим блок или утверждение
-    если блока нет, ошибка
-    делаем WhileLoopNode c условием и блоком выполнения
-    */
     next();
-    if (!match(TokenType::Delimeter, "(")) {
+    auto dm = getDelimeterNames();
+
+    if (!match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected '(' after 'while'");
         return nullptr;
     }
@@ -499,7 +447,7 @@ MemoryPtr<WhileLoopNode> Parser::parseWhile() {
         std::println(std::cerr, "[Neoluma/Parser] Invalid condition in while loop");
         return nullptr;
     }
-    if (!match(TokenType::Delimeter, ")")) {
+    if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected ')' after while condition");
         return nullptr;
     }
@@ -514,48 +462,27 @@ MemoryPtr<WhileLoopNode> Parser::parseWhile() {
 }
 
 // ==== Declarations ====
+// TODO: detect type later
 MemoryPtr<FunctionNode> Parser::parseFunction() {
-    /*
-    пропускаем
-    берем токен
-    если токен не идентификатор, ошибка
-    вычленяем имя функции
-    дальше
-    если нет открывающейся скобки, ошибка
-    дальше
-    создаем список узлов параметров ParameterNode
-    пока не закрывается скобка:
-        берем имя параметра
-        если параметр не является идентификатором, то ошибка
-        далее
-        тип параметра - void (надо добавить детекцию)
-        добавляем ParameterNode c переменной и типом в список параметров
-        если есть запятая, продолжаем парсить следующий.
-        иначе ломаем цикл
-    если нет закрывающейся скобки, ошибка
-    далее
-    парсим тело функции BlockNode
-    если тела нет, возвращаем ничего (??? пусть ошибка будет, почему?)
-    возвращаем FunctionNode с именем, параметрами и телом функции
-    */
     next();
+    auto dm = getDelimeterNames();
 
     Token nameToken = curToken();
-    if (nameToken.type != TokenType::Identifier) {
+    if (!match(TokenType::Identifier)) {
         std::println(std::cerr, "[Neoluma/Parser] Expected function name");
         return nullptr;
     }
     std::string funcName = nameToken.value;
     next();
 
-    if (!match(TokenType::Delimeter, "(")) {
+    if (!match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected '(' after function name");
         return nullptr;
     }
     next();
 
     std::vector<MemoryPtr<ParameterNode>> params;
-    while (!match(TokenType::Delimeter, ")")) {
+    while (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
         Token paramName = curToken();
         if (paramName.type != TokenType::Identifier) {
             std::println(std::cerr, "[Neoluma/Parser] Expected parameter name");
@@ -566,11 +493,11 @@ MemoryPtr<FunctionNode> Parser::parseFunction() {
         ASTVariableType type = ASTVariableType::Void; // TODO: detect type later
         params.push_back(makeMemoryPtr<ParameterNode>(paramName.value, type));
 
-        if (match(TokenType::Delimeter, ",")) next();
+        if (match(TokenType::Delimeter, dm[Delimeters::Comma])) next();
         else break;
     }
 
-    if (!match(TokenType::Delimeter, ")")) {
+    if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected ')' after function parameters");
         return nullptr;
     }
@@ -583,42 +510,19 @@ MemoryPtr<FunctionNode> Parser::parseFunction() {
 }
 
 MemoryPtr<ClassNode> Parser::parseClass() {
-    /*
-    пропускаем
-    получаем токен
-    если токен не идентификатор, ошибка
-    сохраняем имя класса
-    далее
-    если нет {, ошибка (??? так это блок по факту, с хера ли?)
-    далее
-    создаем список полей в классе (VariableNode)
-    создаем список методов в классе (FunctionNode)
-    пока не закрытая фигурная скобка:
-        берем токен
-        если начинается с кейворда функции:
-            парсим функцию
-            добавляем в список методов (??? а проверки нет что если краш парсинга функции)
-        иначе если это идентификатор:
-            берем имя
-            далее
-            присваиваем дефолтное значение void (надо исправить)
-            добавляем в список полей.
-            если есть ;, идем дальше (??? обработки нет ошибки, а если она крашнется?)
-        иначе ошибка
-    далее
-    возвращаем узел ClassNode с названием, полями и методами
-    */
     next();
+    auto dm = getDelimeterNames();
+    auto km = getKeywordNames();
 
     Token nameToken = curToken();
-    if (nameToken.type != TokenType::Identifier) {
+    if (!match(TokenType::Identifier)) {
         std::println(std::cerr, "[Neoluma/Parser] Expected class name");
         return nullptr;
     }
     std::string className = nameToken.value;
     next();
 
-    if (!match(TokenType::Delimeter, "{")) {
+    if (!match(TokenType::Delimeter, dm[Delimeters::LeftBraces])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected '{' to start class body");
         return nullptr;
     }
@@ -627,10 +531,10 @@ MemoryPtr<ClassNode> Parser::parseClass() {
     std::vector<MemoryPtr<VariableNode>> fields;
     std::vector<MemoryPtr<FunctionNode>> methods;
 
-    while (!match(TokenType::Delimeter, "}")) {
+    while (!match(TokenType::Delimeter, dm[Delimeters::RightBraces])) {
         Token t = curToken();
 
-        if (t.type == TokenType::Keyword && t.value == "function") {
+        if (match(TokenType::Keyword, km[Keywords::Function])) {
             auto method = parseFunction();
             if (method) methods.push_back(std::move(method));
         }
@@ -639,7 +543,7 @@ MemoryPtr<ClassNode> Parser::parseClass() {
             next();
             ASTVariableType varType = ASTVariableType::Void;
             fields.push_back(makeMemoryPtr<VariableNode>(fieldName, varType));
-            if (match(TokenType::Delimeter, ";")) next();
+            if (curToken().type == TokenType::Delimeter && isNextLine()) next();
         }
         else {
             std::println(std::cerr, "[Neoluma/Parser] Unexpected token in class body");
@@ -652,19 +556,9 @@ MemoryPtr<ClassNode> Parser::parseClass() {
 }
 
 MemoryPtr<BlockNode> Parser::parseBlock() {
-    /*
-    если не начинается с {, ошибка
-    далее
-    создаем BlockNode
-    пока не закрывается через }:
-        парсим утверждения
-        если их нет, ошибка (??? до этого точно дойдет?)
-        добавляем в блок утверждение
-        если заканчивается через ;, двигаем дальше
-    пропускаем закрывающуюся скобку
-    возвращаем блок
-    */
-    if (!match(TokenType::Delimeter, "{")) {
+    auto dm = getDelimeterNames();
+
+    if (!match(TokenType::Delimeter, dm[Delimeters::LeftBraces])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected '{' to start block");
         return nullptr;
     }
@@ -672,44 +566,27 @@ MemoryPtr<BlockNode> Parser::parseBlock() {
 
     auto block = makeMemoryPtr<BlockNode>();
 
-    while (!match(TokenType::Delimeter, "}")) {
+    while (!match(TokenType::Delimeter, dm[Delimeters::RightBraces])) {
         MemoryPtr<ASTNode> stmt = parseStatement();
         if (!stmt) {
             std::println(std::cerr, "[Neoluma/Parser] Failed to parse statement in block");
             return nullptr;
         }
         block->statements.push_back(std::move(stmt));
-        if (match(TokenType::Delimeter, ";")) next();
+        if (curToken().type == TokenType::Delimeter && isNextLine()) next();
     }
 
     next();
     return block;
 }
 
+// Finish it
 MemoryPtr<DecoratorNode> Parser::parseDecorator() {
-    /*
-    пропускаем @
-    если нет идентификатора, ошибка
-    берем имя
-    далее
-    создаем список узлов параметров ParameterNode
-    если начинается с (:
-        пропускаем токен
-        пока не закрывается с ):
-            берем токен
-            если это не идентификатор, ломаем цикл
-            добавляем в список параметр с типом Void (опять)
-            далее
-            если есть запятая, продолжаем
-            иначе ломает цикл
-        если скобка не закрыта, ошибка
-        далее
-    возвращаем ноду декоратора с именем, параметрами, и...что за херня?! это не закончено, как я мог упустить такое?!
-    */
-    next(); // consume '@'
+    next();
+    auto dm = getDelimeterNames();
 
     Token nameToken = curToken();
-    if (nameToken.type != TokenType::Identifier) {
+    if (!match(TokenType::Identifier)) {
         std::println(std::cerr, "[Neoluma/Parser] Expected decorator name");
         return nullptr;
     }
@@ -717,41 +594,39 @@ MemoryPtr<DecoratorNode> Parser::parseDecorator() {
     next();
 
     std::vector<MemoryPtr<ParameterNode>> params;
-    if (match(TokenType::Delimeter, "(")) {
-        next(); // consume '('
-        while (!match(TokenType::Delimeter, ")")) {
+    if (match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
+        next();
+        while (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
             Token p = curToken();
-            if (p.type != TokenType::Identifier) break;
+            if (!match(TokenType::Identifier)) break;
             ASTVariableType dummy = ASTVariableType::Void;
             params.push_back(makeMemoryPtr<ParameterNode>(p.value, dummy));
             next();
-            if (match(TokenType::Delimeter, ",")) next();
+            if (match(TokenType::Delimeter, dm[Delimeters::Comma])) next();
             else break;
         }
-        if (!match(TokenType::Delimeter, ")")) {
+        if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
             std::println(std::cerr, "[Neoluma/Parser] Unterminated decorator params");
             return nullptr;
         }
-        next(); // consume ')'
+        next();
     }
 
     return makeMemoryPtr<DecoratorNode>(name, params, nullptr);
 }
 
+// Finish that
 MemoryPtr<PreprocessorDirectiveNode> Parser::parsePreprocessor() {
-    /*
-    пропуск #
-    берем токен
-    если не идентификатор, ошибка
-    ставим импорт (??? надо переделать под корень)
-    возвращаем препроцессор ноду с типом и значением
-    */
-    next(); // consume '#'
+    next();
     Token token = curToken();
+    auto pm = getPreprocessorMap();
+
     if (token.type != TokenType::Identifier) {
         std::println(std::cerr, "[Neoluma/Parser] Expected preprocessor directive");
         return nullptr;
     }
+
+    //if (pm[token.value] == Preprocessors::Import) return parseImport();
 
     ASTPreprocessorDirectiveType type = ASTPreprocessorDirectiveType::Import; // TODO: Map properly
     return makeMemoryPtr<PreprocessorDirectiveNode>(type, token.value);
@@ -761,7 +636,9 @@ MemoryPtr<PreprocessorDirectiveNode> Parser::parsePreprocessor() {
 
 // Parses either a block or a single statement after an 'if' condition.
 MemoryPtr<ASTNode> Parser::parseBlockorStatement() {
-    if (match(TokenType::Delimeter, "{")) {
+    auto dm = getDelimeterNames();
+
+    if (match(TokenType::Delimeter, dm[Delimeters::LeftBraces])) {
         MemoryPtr<BlockNode> block = parseBlock();
         if(!block) {
             std::println("[Neoluma/Parser] Expected block after 'if/elif/else' condition");
@@ -776,6 +653,10 @@ MemoryPtr<ASTNode> Parser::parseBlockorStatement() {
             return nullptr;
         }
         return std::move(block);
+    }
+    if (!match(TokenType::Delimeter, dm[Delimeters::RightBraces])) {
+        std::println("[Neoluma/Parser] Block wasn't closed with '}'.");
+        return nullptr;
     }
 }
 

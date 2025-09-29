@@ -1,9 +1,15 @@
-#import std
+#import "std"
 
 @entry
-fn main(args: string[], num) {
+fn main() {
     print("Hello, Neoluma!");
     a: number = 1.23e10;
     b: int = 15;
     print(a+b);
+    /*
+    c: array = [1, "dog", 3];
+    for (i : c) {
+        print(i);
+    }
+    */
 }

@@ -31,6 +31,9 @@ private:
         if (pos >= tokens.size()) { Token token = Token{TokenType::EndOfFile, ""}; return token; }
         return tokens[pos]; 
     };
+    Token lookBack() {
+        return tokens[pos--];
+    }
     Token next() { 
         if (pos >= tokens.size()) return Token{TokenType::EndOfFile, ""};
         return tokens[pos++]; 
@@ -68,6 +71,12 @@ private:
     MemoryPtr<FunctionNode> parseFunction();
     MemoryPtr<ClassNode> parseClass();
     MemoryPtr<BlockNode> parseBlock();
+
+    MemoryPtr<ArrayNode> parseArray();
+    MemoryPtr<SetNode> parseSet();
+    MemoryPtr<DictNode> parseDict();
+    MemoryPtr<EnumNode> parseEnum();
+    MemoryPtr<InterfaceNode> parseInterface();
 
     // Imports, decorators, modifiers, preprocessor
     MemoryPtr<ImportNode> parseImport();
