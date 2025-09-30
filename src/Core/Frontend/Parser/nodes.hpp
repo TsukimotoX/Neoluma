@@ -155,6 +155,10 @@ struct InterfaceNode : ASTNode {
     }
 };
 
+struct LambdaNode : ASTNode {
+    
+}
+
 struct LiteralNode : ASTNode {
     ASTVariableType varType; // type of the variable, e.g. Integer, Float, etc.
     LiteralNode(const ASTVariableType& varType = ASTVariableType::Undefined, const std::string& val) {

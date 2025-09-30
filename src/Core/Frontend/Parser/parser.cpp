@@ -125,13 +125,13 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
             next();
             // Check for lambda expressions here
             if (match(TokenType::Operator, on[Operators::AssignmentArrow])) {
+                next();
                 auto block = parseBlock();
                 if (!block) {
                     std::println(std::cerr, "[Neoluma/Parser] Could not find a block of code after assignment arrow.");
                     return nullptr;
                 }
-                // im not sure what to return here. is a function but also not.
-                return makeMemoryPtr<>()
+                return makeMemoryPtr<LambdaNode>(expr, block);
             }
             return expr;
         }
@@ -142,17 +142,16 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
 
             while (!match(TokenType::Delimeter, dn[Delimeters::RightBracket])) {
                 e.push_back(parseExpression());
-                // To allow multiline expressions of arrays. I think this would be absolutely neat sugar for everybody.
-                if (curToken().type == TokenType::Delimeter && isNextLine()) next();
+                if (curToken().type == TokenType::Delimeter && isNextLine()) next(); // To allow multiline expressions of arrays. I think this would be absolutely neat sugar for everybody.
+                if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
             }
+            next();
             return makeMemoryPtr<ArrayNode>(e/*, typeHint miss*/);
         }
         // Sets / dicts
         else if (token.value == dn[Delimeters::LeftBraces]) {
             next();
-            bool isDict = false;
-
-            if (lookupNext().type == TokenType::Delimeter && lookupNext().value == dn[Delimeters::Colon]) isDict = true;
+            bool isDict = (lookupNext().type == TokenType::Delimeter && lookupNext().value == dn[Delimeters::Colon]);
 
             if (isDict) {
                 std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>> e;
@@ -170,16 +169,17 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
                     else break;
                 }
                 return makeMemoryPtr<DictNode>(e/*, typeHint miss*/);
+            } else {
+                std::vector<MemoryPtr<ASTNode>> e;
+                while (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
+                    e.push_back(parseExpression());
+                    next(); // todo: check if needed later
+                    if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
+                    else break;
+                }
+                next();
+                return makeMemoryPtr<SetNode>(e/*, typeHint miss*/);
             }
-
-            std::vector<MemoryPtr<ASTNode>> e;
-            while (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
-                e.push_back(parseExpression());
-                next(); // also im anxious to use next sometimes cuz idk if parseExpression has next before return or not
-                if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
-                else break;
-            }
-            return makeMemoryPtr<SetNode>(e/*, typeHint miss*/);
         }
     } 
     // Data type + Booleans
