@@ -34,7 +34,7 @@ enum class Operators {
     LogicalAnd, LogicalOr, LogicalNot,
     Assign, Nullable,
     AddAssign, SubAssign, MulAssign, DivAssign, ModAssign, PowerAssign,
-    AssignmentArrow //UNRELEASED
+    AssignmentArrow 
 };
 enum class Decorators {
     Float, Entry, Unsafe, Comptime, Override

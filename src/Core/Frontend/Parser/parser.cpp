@@ -18,7 +18,7 @@
 
 /* ==== Current TODO list: ====
     - Make sure parseStatement() supports everything (add enum, interface, parse Modifiers, static/yield/const/etc. and other features)
-    - Add arrays, sets, dicts, and other data types + lambas into parseBinary()
+    - Add arrays, sets, dicts, and other data types + lambas into parsePrimary()
     - Make a function that detects data types
     - Create Nodes appropriate to them ✅
     - Add binary operations for logical purposes (a&b, a|b, and etc)
@@ -48,6 +48,7 @@ MemoryPtr<ModuleNode> Parser::parseModule() {
 MemoryPtr<ASTNode> Parser::parseStatement() {
     Token token = curToken();
     auto km = getKeywordMap();
+    auto dm = getDelimeterNames();
 
     if (token.value == "#") return parsePreprocessor();
     else if (token.value == "@") return parseDecorator();
@@ -96,7 +97,7 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
     }
 
     // === Block ===
-    if (token.type == TokenType::Delimeter && token.value == "{") {
+    if (match(TokenType::Delimeter, dm[Delimeters::LeftBraces])) {
         return parseBlock();
     }
 
@@ -108,18 +109,78 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
 // TODO: Arrays, sets, dicts, and other datatypes + lambdas
 MemoryPtr<ASTNode> Parser::parsePrimary(){
     Token token = curToken();
-    auto dm = getDelimeterNames();
+    auto dn = getDelimeterNames();
+    auto on = getOperatorNames();
 
-    // Parenthesis
-    if (token.type == TokenType::Delimeter && token.value == dm[Delimeters::LeftParen]) {
-        next();
-        MemoryPtr<ASTNode> expr = parseExpression();
-        if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
-            std::println(std::cerr, "[Neoluma/Parser] Expected ')' after expression");
-            return nullptr;
+    // Parenthesis, lambdas, arrays, sets, dicts
+    if (token.type == TokenType::Delimeter) {
+        // Parenthesis / lambdas
+        if (token.value == dn[Delimeters::LeftParen]) {
+            next();
+            MemoryPtr<ASTNode> expr = parseExpression();
+            if (!match(TokenType::Delimeter, dn[Delimeters::RightParen])) {
+                std::println(std::cerr, "[Neoluma/Parser] Expected ')' after expression");
+                return nullptr;
+            }
+            next();
+            // Check for lambda expressions here
+            if (match(TokenType::Operator, on[Operators::AssignmentArrow])) {
+                auto block = parseBlock();
+                if (!block) {
+                    std::println(std::cerr, "[Neoluma/Parser] Could not find a block of code after assignment arrow.");
+                    return nullptr;
+                }
+                // im not sure what to return here. is a function but also not.
+                return makeMemoryPtr<>()
+            }
+            return expr;
         }
-        next();
-        return expr;
+        // Arrays
+        else if (token.value == dn[Delimeters::LeftBracket]) {
+            next();
+            std::vector<MemoryPtr<ASTNode>> e;
+
+            while (!match(TokenType::Delimeter, dn[Delimeters::RightBracket])) {
+                e.push_back(parseExpression());
+                // To allow multiline expressions of arrays. I think this would be absolutely neat sugar for everybody.
+                if (curToken().type == TokenType::Delimeter && isNextLine()) next();
+            }
+            return makeMemoryPtr<ArrayNode>(e/*, typeHint miss*/);
+        }
+        // Sets / dicts
+        else if (token.value == dn[Delimeters::LeftBraces]) {
+            next();
+            bool isDict = false;
+
+            if (lookupNext().type == TokenType::Delimeter && lookupNext().value == dn[Delimeters::Colon]) isDict = true;
+
+            if (isDict) {
+                std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>> e;
+                while (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
+                    auto key = parseExpression();
+                    next();
+                    if (!match(TokenType::Delimeter, dn[Delimeters::Colon])) {
+                        std::println(std::cerr, "[Neoluma/Parser] Could not find colon after key '{}'", key->value);
+                        return nullptr;
+                    }
+                    next();
+                    auto val = parseExpression();
+                    e.push_back({std::move(key), std::move(val)});
+                    if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
+                    else break;
+                }
+                return makeMemoryPtr<DictNode>(e/*, typeHint miss*/);
+            }
+
+            std::vector<MemoryPtr<ASTNode>> e;
+            while (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
+                e.push_back(parseExpression());
+                next(); // also im anxious to use next sometimes cuz idk if parseExpression has next before return or not
+                if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
+                else break;
+            }
+            return makeMemoryPtr<SetNode>(e/*, typeHint miss*/);
+        }
     } 
     // Data type + Booleans
     else if ((token.type == TokenType::Number || token.type == TokenType::String) 
@@ -132,23 +193,24 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
         next();
         return makeMemoryPtr<LiteralNode>("null");
     }
-    // Identifier or variable
+
+    // Identifier/variable or function call
     else if (token.type == TokenType::Identifier) {
         Token id = next();
         
         // If function call
-        if (match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
+        if (match(TokenType::Delimeter, dn[Delimeters::LeftParen])) {
             next();
             std::vector<MemoryPtr<ParameterNode>> args;
 
-            while (!match(TokenType::Delimeter, dm[Delimeters::RightParen]) && !isAtEnd()) {
+            while (!match(TokenType::Delimeter, dn[Delimeters::RightParen])) {
                 auto arg = parseExpression();
                 if (arg) args.push_back(makeMemoryPtr<ParameterNode>(std::move(arg)));
                 
-                if (match(TokenType::Delimeter, dm[Delimeters::Comma])) next();
+                if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
                 else break;
             }
-            if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
+            if (!match(TokenType::Delimeter, dn[Delimeters::RightParen])) {
                 std::println(std::cerr, "[Neoluma/Parser] Expected ')' after arguments");
                 return nullptr;
             }
@@ -556,9 +618,9 @@ MemoryPtr<ClassNode> Parser::parseClass() {
 }
 
 MemoryPtr<BlockNode> Parser::parseBlock() {
-    auto dm = getDelimeterNames();
+    auto dn = getDelimeterNames();
 
-    if (!match(TokenType::Delimeter, dm[Delimeters::LeftBraces])) {
+    if (!match(TokenType::Delimeter, dn[Delimeters::LeftBraces])) {
         std::println(std::cerr, "[Neoluma/Parser] Expected '{' to start block");
         return nullptr;
     }
@@ -566,7 +628,7 @@ MemoryPtr<BlockNode> Parser::parseBlock() {
 
     auto block = makeMemoryPtr<BlockNode>();
 
-    while (!match(TokenType::Delimeter, dm[Delimeters::RightBraces])) {
+    while (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
         MemoryPtr<ASTNode> stmt = parseStatement();
         if (!stmt) {
             std::println(std::cerr, "[Neoluma/Parser] Failed to parse statement in block");
