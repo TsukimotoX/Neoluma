@@ -17,7 +17,7 @@ enum struct ASTNodeType {
     Module, Program, 
     Import, Decorator, Preprocessor, 
     BreakStatement, ContinueStatement, ThrowStatement,
-    Array, Set, Dict, Void, Result, Enum, Interface
+    Array, Set, Dict, Void, Result, Enum, Interface, Lambda
 };
 /* ASTNodes checklist!!!
     * - LiteralNode ✅
@@ -51,6 +51,7 @@ enum struct ASTNodeType {
     * - ResultNode ✅
     * - EnumNode ✅
     * - InterfaceNode ✅
+    * - LambdaNode ✅
 */
 
 enum struct ASTVariableType {
@@ -156,8 +157,15 @@ struct InterfaceNode : ASTNode {
 };
 
 struct LambdaNode : ASTNode {
-    
-}
+    std::vector<MemoryPtr<ASTNode>> params;
+    MemoryPtr<ASTNode> body;
+
+    LambdaNode(const std::vector<MemoryPtr<ASTNode>>& params, MemoryPtr<ASTNode>& body) {
+        this->type = ASTNodeType::Lambda;
+        this->params = params;
+        this->body = std::move(body);
+    }
+};
 
 struct LiteralNode : ASTNode {
     ASTVariableType varType; // type of the variable, e.g. Integer, Float, etc.
