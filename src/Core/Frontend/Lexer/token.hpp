@@ -26,7 +26,7 @@ enum class Keywords {
     Yield, Return,
     Static, Decorator, Const,
     As, With, In, Lambda,
-    Debug, Public, Protected, Private
+    Debug, Public, Protected, Private, Override
 };
 enum class Operators {
     Add, Subtract, Multiply, Divide, Modulo, Power,
@@ -37,7 +37,7 @@ enum class Operators {
     AssignmentArrow 
 };
 enum class Decorators {
-    Float, Entry, Unsafe, Comptime, Override
+    Float, Entry, Unsafe, Comptime
 };
 enum class Preprocessors {
     Import, From, As, Unsafe, Baremetal, Float, Macro

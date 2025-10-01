@@ -61,7 +61,7 @@ enum struct ASTVariableType {
 };
 
 enum struct ASTModifierType {
-    Public, Private, Protected, Static, Const, Override, Async
+    Public, Private, Protected, Static, Const, Override, Async, Debug
 };
 
 enum struct ASTPreprocessorDirectiveType {

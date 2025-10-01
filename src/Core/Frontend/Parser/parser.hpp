@@ -72,16 +72,13 @@ private:
     MemoryPtr<ClassNode> parseClass();
     MemoryPtr<BlockNode> parseBlock();
 
-    MemoryPtr<ArrayNode> parseArray();
-    MemoryPtr<SetNode> parseSet();
-    MemoryPtr<DictNode> parseDict();
     MemoryPtr<EnumNode> parseEnum();
     MemoryPtr<InterfaceNode> parseInterface();
 
     // Imports, decorators, modifiers, preprocessor
     MemoryPtr<ImportNode> parseImport();
     MemoryPtr<DecoratorNode> parseDecorator();
-    MemoryPtr<ModifierNode> parseModifier();
+    std::vector<MemoryPtr<ModifierNode>> parseModifier();
     MemoryPtr<PreprocessorDirectiveNode> parsePreprocessor();
 
     // Helper functions

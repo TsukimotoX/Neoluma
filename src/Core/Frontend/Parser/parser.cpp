@@ -677,6 +677,34 @@ MemoryPtr<DecoratorNode> Parser::parseDecorator() {
     return makeMemoryPtr<DecoratorNode>(name, params, nullptr);
 }
 
+std::vector<MemoryPtr<ModifierNode>> Parser::parseModifier() {
+    std::vector<MemoryPtr<ModifierNode>> modifiers;
+    auto kn = getKeywordNames();
+    
+    while (curToken().type == TokenType::Keyword) {
+        if (match(TokenType::Keyword, kn[Keywords::Static])) 
+            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Static));
+        else if (match(TokenType::Keyword, kn[Keywords::Const])) 
+            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Const));
+        else if (match(TokenType::Keyword, kn[Keywords::Public])) 
+            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Public));
+        else if (match(TokenType::Keyword, kn[Keywords::Protected])) 
+            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Protected));
+        else if (match(TokenType::Keyword, kn[Keywords::Private])) 
+            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Private));
+        else if (match(TokenType::Keyword, kn[Keywords::Override])) 
+            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Override));
+        else if (match(TokenType::Keyword, kn[Keywords::Async])) 
+            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Async));
+        else if (match(TokenType::Keyword, kn[Keywords::Debug])) 
+            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Debug));
+        else break;
+        next();
+    }
+
+    return modifiers;
+}
+
 // Finish that
 MemoryPtr<PreprocessorDirectiveNode> Parser::parsePreprocessor() {
     next();
