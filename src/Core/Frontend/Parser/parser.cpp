@@ -19,7 +19,7 @@
 /* ==== Current TODO list: ====
     - Make sure parseStatement() supports everything (add enum, interface, parse Modifiers, static/yield/const/etc. and other features)
     - Add arrays, sets, dicts, and other data types + lambas into parsePrimary() ✅
-    - Make a function that detects data types
+    - Make a function that detects data types ❌ -> will be moved to semantic analyser
     - Create Nodes appropriate to them ✅
     - Add binary operations for logical purposes (a&b, a|b, and etc)
     - Remake Preprocessor functions, including imports and other subkeywords
