@@ -50,53 +50,56 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
     auto km = getKeywordMap();
     auto dm = getDelimeterNames();
 
+    auto modifiers = parseModifier();
+
     if (token.value == "#") return parsePreprocessor();
-    else if (token.value == "@") return parseDecorator();
+    //else if (token.value == "@") return parseDecorator();
 
     // === Control Flow Keywords ===
     else if (token.type == TokenType::Keyword) {
-        if (km[token.value] == Keywords::If) return parseIf();
-        if (km[token.value] == Keywords::Switch) return parseSwitch();
-        if (km[token.value] == Keywords::Try) return parseTryCatch();
-        if (km[token.value] == Keywords::For) return parseFor();
-        if (km[token.value] == Keywords::While) return parseWhile();
-        if (km[token.value] == Keywords::Return) {
-            next();
-            MemoryPtr<ASTNode> expr = parseExpression();
-            if (!expr) {
-                std::cerr << "[Neoluma/Parser] Expected expression after 'return'";
-                return nullptr;
+        switch (km[token.value]) {
+            case Keywords::If: return parseIf();
+            case Keywords::Switch: return parseSwitch();
+            case Keywords::Try: return parseTryCatch();
+            case Keywords::For: return parseFor();
+            case Keywords::While: return parseWhile();
+            case Keywords::Return: {
+                next();
+                MemoryPtr<ASTNode> expr = parseExpression();
+                if (!expr) {
+                    std::cerr << "[Neoluma/Parser] Expected expression after 'return'";
+                    return nullptr;
+                }
+                return makeMemoryPtr<ReturnStatementNode>(expr);
             }
-            return makeMemoryPtr<ReturnStatementNode>(expr);
-        }
-
-        if (km[token.value] == Keywords::Throw) {
-            next();
-            MemoryPtr<ASTNode> expr = parseExpression();
-            if (!expr) {
-                std::cerr << "[Neoluma/Parser] Expected expression after 'throw'";
-                return nullptr;
+            case Keywords::Throw: {
+                next();
+                MemoryPtr<ASTNode> expr = parseExpression();
+                if (!expr) {
+                    std::cerr << "[Neoluma/Parser] Expected expression after 'throw'";
+                    return nullptr;
+                }
+                return makeMemoryPtr<ThrowStatementNode>(expr);
             }
-            return makeMemoryPtr<ThrowStatementNode>(expr);
+            case Keywords::Break: return makeMemoryPtr<BreakStatementNode>();
+            case Keywords::Continue: return makeMemoryPtr<ContinueStatementNode>();
         }
 
-        if (km[token.value] == Keywords::Break) {
-            next();
-            return makeMemoryPtr<BreakStatementNode>();
+        // for modifier affected structures
+        switch (km[token.value]) {
+            case Keywords::Function: return parseFunction(modifiers);
+            case Keywords::Class: return parseClass(modifiers);
+            case Keywords::Enum: return parseEnum(modifiers);
+            case Keywords::Interface: return parseInterface(modifiers);
+            case Keywords::Decorator: return parseDecorator(modifiers);
+            default:
+                if (!modifiers.empty()) std::println(std::cerr, "[Neoluma/Parser] Unexpected modifier before {}", token.value);
+                break;
         }
-
-        if (km[token.value] == Keywords::Continue) {
-            next();
-            return makeMemoryPtr<ContinueStatementNode>();
-        }
-
-        if (km[token.value] == Keywords::Function) return parseFunction();
-        if (km[token.value] == Keywords::Class) return parseClass();
-        if (km[token.value] == Keywords::Enum) return parseEnum();
-        if (km[token.value] == Keywords::Interface) return parseInterface();
     }
 
     // === Block ===
+    // why is it there though???????
     if (match(TokenType::Delimeter, dm[Delimeters::LeftBraces])) {
         return parseBlock();
     }
@@ -525,7 +528,7 @@ MemoryPtr<WhileLoopNode> Parser::parseWhile() {
 
 // ==== Declarations ====
 // TODO: detect type later
-MemoryPtr<FunctionNode> Parser::parseFunction() {
+MemoryPtr<FunctionNode> Parser::parseFunction(std::vector<MemoryPtr<ModifierNode>> modifiers) {
     next();
     auto dm = getDelimeterNames();
 
@@ -568,10 +571,10 @@ MemoryPtr<FunctionNode> Parser::parseFunction() {
     MemoryPtr<BlockNode> body = parseBlock();
     if (!body) return nullptr;
 
-    return makeMemoryPtr<FunctionNode>(funcName, params, body);
+    return makeMemoryPtr<FunctionNode>(funcName, modifiers, params, body);
 }
 
-MemoryPtr<ClassNode> Parser::parseClass() {
+MemoryPtr<ClassNode> Parser::parseClass(std::vector<MemoryPtr<ModifierNode>> modifiers) {
     next();
     auto dm = getDelimeterNames();
     auto km = getKeywordNames();
@@ -614,7 +617,7 @@ MemoryPtr<ClassNode> Parser::parseClass() {
     }
 
     next();
-    return makeMemoryPtr<ClassNode>(className, fields, methods);
+    return makeMemoryPtr<ClassNode>(className, methods, fields, methods, modifiers);
 }
 
 MemoryPtr<BlockNode> Parser::parseBlock() {
@@ -643,7 +646,7 @@ MemoryPtr<BlockNode> Parser::parseBlock() {
 }
 
 // Finish it
-MemoryPtr<DecoratorNode> Parser::parseDecorator() {
+MemoryPtr<DecoratorNode> Parser::parseDecorator(std::vector<MemoryPtr<ModifierNode>> modifiers) {
     next();
     auto dm = getDelimeterNames();
 
@@ -674,7 +677,7 @@ MemoryPtr<DecoratorNode> Parser::parseDecorator() {
         next();
     }
 
-    return makeMemoryPtr<DecoratorNode>(name, params, nullptr);
+    return makeMemoryPtr<DecoratorNode>(name, params, nullptr, modifiers);
 }
 
 std::vector<MemoryPtr<ModifierNode>> Parser::parseModifier() {

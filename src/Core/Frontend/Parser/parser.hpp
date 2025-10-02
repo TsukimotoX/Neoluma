@@ -68,16 +68,16 @@ private:
     MemoryPtr<WhileLoopNode> parseWhile();
 
     // Declarations
-    MemoryPtr<FunctionNode> parseFunction();
-    MemoryPtr<ClassNode> parseClass();
+    MemoryPtr<FunctionNode> parseFunction(std::vector<MemoryPtr<ModifierNode>> modifiers);
+    MemoryPtr<ClassNode> parseClass(std::vector<MemoryPtr<ModifierNode>> modifiers);
     MemoryPtr<BlockNode> parseBlock();
 
-    MemoryPtr<EnumNode> parseEnum();
-    MemoryPtr<InterfaceNode> parseInterface();
+    MemoryPtr<EnumNode> parseEnum(std::vector<MemoryPtr<ModifierNode>> modifiers);
+    MemoryPtr<InterfaceNode> parseInterface(std::vector<MemoryPtr<ModifierNode>> modifiers);
 
     // Imports, decorators, modifiers, preprocessor
     MemoryPtr<ImportNode> parseImport();
-    MemoryPtr<DecoratorNode> parseDecorator();
+    MemoryPtr<DecoratorNode> parseDecorator(std::vector<MemoryPtr<ModifierNode>> modifiers);
     std::vector<MemoryPtr<ModifierNode>> parseModifier();
     MemoryPtr<PreprocessorDirectiveNode> parsePreprocessor();
 
