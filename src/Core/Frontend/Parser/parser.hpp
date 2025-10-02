@@ -77,8 +77,9 @@ private:
 
     // Imports, decorators, modifiers, preprocessor
     MemoryPtr<ImportNode> parseImport();
-    MemoryPtr<DecoratorNode> parseDecorator(std::vector<MemoryPtr<ModifierNode>> modifiers);
-    std::vector<MemoryPtr<ModifierNode>> parseModifier();
+    MemoryPtr<ASTNode> parseDecorator(std::vector<MemoryPtr<ModifierNode>> modifiers = {}, bool isCall=false);
+    std::vector<MemoryPtr<CallExpressionNode>> parseDecoratorCalls();
+    std::vector<MemoryPtr<ModifierNode>> parseModifiers();
     MemoryPtr<PreprocessorDirectiveNode> parsePreprocessor();
 
     // Helper functions

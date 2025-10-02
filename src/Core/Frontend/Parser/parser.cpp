@@ -50,10 +50,10 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
     auto km = getKeywordMap();
     auto dm = getDelimeterNames();
 
-    auto modifiers = parseModifier();
-
+    auto modifiers = parseModifiers();
+    
     if (token.value == "#") return parsePreprocessor();
-    //else if (token.value == "@") return parseDecorator();
+    else if (token.value == "@") auto decorators = parseDecoratorCalls();
 
     // === Control Flow Keywords ===
     else if (token.type == TokenType::Keyword) {
@@ -646,7 +646,7 @@ MemoryPtr<BlockNode> Parser::parseBlock() {
 }
 
 // Finish it
-MemoryPtr<DecoratorNode> Parser::parseDecorator(std::vector<MemoryPtr<ModifierNode>> modifiers) {
+MemoryPtr<ASTNode> Parser::parseDecorator(std::vector<MemoryPtr<ModifierNode>> modifiers, bool isCall) {
     next();
     auto dm = getDelimeterNames();
 
@@ -662,10 +662,9 @@ MemoryPtr<DecoratorNode> Parser::parseDecorator(std::vector<MemoryPtr<ModifierNo
     if (match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
         next();
         while (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
-            Token p = curToken();
+            Token tok = curToken();
             if (!match(TokenType::Identifier)) break;
-            ASTVariableType dummy = ASTVariableType::Void;
-            params.push_back(makeMemoryPtr<ParameterNode>(p.value, dummy));
+            params.push_back(makeMemoryPtr<ParameterNode>(tok.value, ASTVariableType::Undefined));
             next();
             if (match(TokenType::Delimeter, dm[Delimeters::Comma])) next();
             else break;
@@ -677,10 +676,24 @@ MemoryPtr<DecoratorNode> Parser::parseDecorator(std::vector<MemoryPtr<ModifierNo
         next();
     }
 
-    return makeMemoryPtr<DecoratorNode>(name, params, nullptr, modifiers);
+    if (isCall) return makeMemoryPtr<CallExpressionNode>(makeMemoryPtr<VariableNode>(name), params);
+
+    auto block = parseBlock();
+
+    return makeMemoryPtr<DecoratorNode>(name, params, block, modifiers);
 }
 
-std::vector<MemoryPtr<ModifierNode>> Parser::parseModifier() {
+std::vector<MemoryPtr<CallExpressionNode>> Parser::parseDecoratorCalls() {
+    std::vector<MemoryPtr<CallExpressionNode>> calls;
+    while (!match(TokenType::Keyword)) {
+        auto p = as<CallExpressionNode>(parseDecorator({}, true));
+        calls.push_back(std::move(p));
+        next();
+    }
+    return calls;
+}
+
+std::vector<MemoryPtr<ModifierNode>> Parser::parseModifiers() {
     std::vector<MemoryPtr<ModifierNode>> modifiers;
     auto kn = getKeywordNames();
     

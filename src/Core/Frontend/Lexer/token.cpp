@@ -19,6 +19,7 @@ const EKeyword keywordMap[] = {
     {"static", Keywords::Static}, {"decorator", Keywords::Decorator}, {"const", Keywords::Const},
     {"as", Keywords::As}, {"with", Keywords::With}, {"in", Keywords::In}, {":", Keywords::In}, {"lambda", Keywords::Lambda},
     {"debug", Keywords::Debug}, {"public", Keywords::Public}, {"protected", Keywords::Protected}, {"private", Keywords::Private},
+    {"override", Keywords::Override},
 };
 
 const EOperator operatorMap[] {
@@ -31,7 +32,7 @@ const EOperator operatorMap[] {
 };
 
 const EDecorator decoratorMap[] {
-    {"float", Decorators::Float}, {"entry", Decorators::Entry}, {"unsafe", Decorators::Unsafe}, {"comptime", Decorators::Comptime}, {"override", Decorators::Override},
+    {"float", Decorators::Float}, {"entry", Decorators::Entry}, {"unsafe", Decorators::Unsafe}, {"comptime", Decorators::Comptime},
 };
 
 const EPreprocessor preprocessorMap[] {
