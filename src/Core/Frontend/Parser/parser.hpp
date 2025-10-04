@@ -7,13 +7,18 @@
 
 // to make math order
 int getOperatorPrecedence(const std::string& op){
-    if (op == "^") return 5;
-    else if (op == "*" || op == "/" || op == "%") return 4;
-    else if (op == "+" || op == "-") return 3;
-    else if (op == "==" || op == "!=" || op == "<" || op == ">" || op == "<=" || op == ">=") return 2;
-    else if (op == "&&") return 1;
-    else if (op == "||") return 0;
-    return -1;
+    auto on = getOperatorNames();
+    if (op == on[Operators::Power]) return 7;
+    else if (op == on[Operators::Multiply] || op == on[Operators::Divide] || op == on[Operators::Modulo]) return 6;
+    else if (op == on[Operators::Add] || op == on[Operators::Subtract]) return 5;
+    else if (op == on[Operators::BitwiseLeftShift] || op == on[Operators::BitwiseRightShift]) return 4;
+    else if (op == on[Operators::BitwiseAnd]) return 3;
+    else if (op == on[Operators::BitwiseXOr]) return 2;
+    else if (op == on[Operators::BitwiseOr]) return 1;
+    else if (op == on[Operators::Equal] || op == on[Operators::NotEqual] || op == on[Operators::LessThan] || op == on[Operators::GreaterThan] || op == on[Operators::LessThanOrEqual] || op == on[Operators::GreaterThanOrEqual]) return 0;
+    else if (op == on[Operators::LogicalAnd]) return -1;
+    else if (op == on[Operators::LogicalOr]) return -2;
+    return -3;
 }
 
 //Parser
@@ -68,19 +73,19 @@ private:
     MemoryPtr<WhileLoopNode> parseWhile();
 
     // Declarations
-    MemoryPtr<FunctionNode> parseFunction(std::vector<MemoryPtr<ModifierNode>> modifiers);
-    MemoryPtr<ClassNode> parseClass(std::vector<MemoryPtr<ModifierNode>> modifiers);
+    MemoryPtr<FunctionNode> parseFunction(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers);
+    MemoryPtr<ClassNode> parseClass(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers);
     MemoryPtr<BlockNode> parseBlock();
 
-    MemoryPtr<EnumNode> parseEnum(std::vector<MemoryPtr<ModifierNode>> modifiers);
-    MemoryPtr<InterfaceNode> parseInterface(std::vector<MemoryPtr<ModifierNode>> modifiers);
+    MemoryPtr<EnumNode> parseEnum(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers);
+    MemoryPtr<InterfaceNode> parseInterface(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers);
 
     // Imports, decorators, modifiers, preprocessor
     MemoryPtr<ImportNode> parseImport();
-    MemoryPtr<ASTNode> parseDecorator(std::vector<MemoryPtr<ModifierNode>> modifiers = {}, bool isCall=false);
+    MemoryPtr<ASTNode> parseDecorator(std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}, bool isCall=false);
     std::vector<MemoryPtr<CallExpressionNode>> parseDecoratorCalls();
     std::vector<MemoryPtr<ModifierNode>> parseModifiers();
-    MemoryPtr<PreprocessorDirectiveNode> parsePreprocessor();
+    MemoryPtr<ASTNode> parsePreprocessor();
 
     // Helper functions
     MemoryPtr<ASTNode> parseBlockorStatement();

@@ -5,26 +5,7 @@
 #include <iostream>
 #include <unordered_set>
 #include <print>
-
-/*
-
-    ⚠️TRIGGER WARNING!⚠️
-    This code may annoy you so much you'll combust,
-    because it was made by a high school graduate that doesn't know C++ well yet.
-
-    Please proceed with caution.
-
-*/
-
-/* ==== Current TODO list: ====
-    - Make sure parseStatement() supports everything (add enum, interface, parse Modifiers, static/yield/const/etc. and other features)
-    - Add arrays, sets, dicts, and other data types + lambas into parsePrimary() ✅
-    - Make a function that detects data types ❌ -> will be moved to semantic analyser
-    - Create Nodes appropriate to them ✅
-    - Add binary operations for logical purposes (a&b, a|b, and etc)
-    - Remake Preprocessor functions, including imports and other subkeywords
-    - Add with as, lambda, other stuff your stupid dreamer brain thought of. Can you stop for once, Tsuki?!
-*/
+#include <typeinfo>
 
 // ==== Main parsing ====
 MemoryPtr<ModuleNode> Parser::parseModule() {
@@ -44,19 +25,20 @@ MemoryPtr<ModuleNode> Parser::parseModule() {
 }
 
 // ==== Statement parsing ====
-// TODO: make sure it supports everything
 MemoryPtr<ASTNode> Parser::parseStatement() {
     Token token = curToken();
     auto km = getKeywordMap();
     auto dm = getDelimeterNames();
 
-    auto modifiers = parseModifiers();
+    std::vector<MemoryPtr<CallExpressionNode>> decorators = {};
     
     if (token.value == "#") return parsePreprocessor();
-    else if (token.value == "@") auto decorators = parseDecoratorCalls();
+    if (token.value == "@") decorators = parseDecoratorCalls();
+    
+    auto modifiers = parseModifiers();
 
     // === Control Flow Keywords ===
-    else if (token.type == TokenType::Keyword) {
+    if (token.type == TokenType::Keyword) {
         switch (km[token.value]) {
             case Keywords::If: return parseIf();
             case Keywords::Switch: return parseSwitch();
@@ -87,11 +69,11 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
 
         // for modifier affected structures
         switch (km[token.value]) {
-            case Keywords::Function: return parseFunction(modifiers);
-            case Keywords::Class: return parseClass(modifiers);
-            case Keywords::Enum: return parseEnum(modifiers);
-            case Keywords::Interface: return parseInterface(modifiers);
-            case Keywords::Decorator: return parseDecorator(modifiers);
+            case Keywords::Function: return parseFunction(decorators, modifiers);
+            case Keywords::Class: return parseClass(decorators, modifiers);
+            case Keywords::Enum: return parseEnum(decorators, modifiers);
+            case Keywords::Interface: return parseInterface(decorators, modifiers);
+            case Keywords::Decorator: return parseDecorator(decorators, modifiers);
             default:
                 if (!modifiers.empty()) std::println(std::cerr, "[Neoluma/Parser] Unexpected modifier before {}", token.value);
                 break;
@@ -99,7 +81,6 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
     }
 
     // === Block ===
-    // why is it there though???????
     if (match(TokenType::Delimeter, dm[Delimeters::LeftBraces])) {
         return parseBlock();
     }
@@ -109,7 +90,6 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
 }
 
 // ==== Expression parsing ====
-// TODO: Arrays, sets, dicts, and other datatypes + lambdas
 MemoryPtr<ASTNode> Parser::parsePrimary(){
     Token token = curToken();
     auto dn = getDelimeterNames();
@@ -527,8 +507,7 @@ MemoryPtr<WhileLoopNode> Parser::parseWhile() {
 }
 
 // ==== Declarations ====
-// TODO: detect type later
-MemoryPtr<FunctionNode> Parser::parseFunction(std::vector<MemoryPtr<ModifierNode>> modifiers) {
+MemoryPtr<FunctionNode> Parser::parseFunction(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers) {
     next();
     auto dm = getDelimeterNames();
 
@@ -555,7 +534,7 @@ MemoryPtr<FunctionNode> Parser::parseFunction(std::vector<MemoryPtr<ModifierNode
         }
         next();
 
-        ASTVariableType type = ASTVariableType::Void; // TODO: detect type later
+        ASTVariableType type = ASTVariableType::Undefined; // TODO: detect type later
         params.push_back(makeMemoryPtr<ParameterNode>(paramName.value, type));
 
         if (match(TokenType::Delimeter, dm[Delimeters::Comma])) next();
@@ -571,10 +550,10 @@ MemoryPtr<FunctionNode> Parser::parseFunction(std::vector<MemoryPtr<ModifierNode
     MemoryPtr<BlockNode> body = parseBlock();
     if (!body) return nullptr;
 
-    return makeMemoryPtr<FunctionNode>(funcName, modifiers, params, body);
+    return makeMemoryPtr<FunctionNode>(funcName, params, body, decorators, modifiers);
 }
 
-MemoryPtr<ClassNode> Parser::parseClass(std::vector<MemoryPtr<ModifierNode>> modifiers) {
+MemoryPtr<ClassNode> Parser::parseClass(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers) {
     next();
     auto dm = getDelimeterNames();
     auto km = getKeywordNames();
@@ -599,14 +578,18 @@ MemoryPtr<ClassNode> Parser::parseClass(std::vector<MemoryPtr<ModifierNode>> mod
     while (!match(TokenType::Delimeter, dm[Delimeters::RightBraces])) {
         Token t = curToken();
 
+        std::vector<MemoryPtr<CallExpressionNode>> funcdec = {};
+        if (t.value == "@") funcdec = parseDecoratorCalls();
+        auto modifs = parseModifiers();
+
         if (match(TokenType::Keyword, km[Keywords::Function])) {
-            auto method = parseFunction();
+            auto method = parseFunction(funcdec, modifs);
             if (method) methods.push_back(std::move(method));
         }
         else if (t.type == TokenType::Identifier) {
             std::string fieldName = t.value;
             next();
-            ASTVariableType varType = ASTVariableType::Void;
+            ASTVariableType varType = ASTVariableType::Undefined;
             fields.push_back(makeMemoryPtr<VariableNode>(fieldName, varType));
             if (curToken().type == TokenType::Delimeter && isNextLine()) next();
         }
@@ -645,8 +628,7 @@ MemoryPtr<BlockNode> Parser::parseBlock() {
     return block;
 }
 
-// Finish it
-MemoryPtr<ASTNode> Parser::parseDecorator(std::vector<MemoryPtr<ModifierNode>> modifiers, bool isCall) {
+MemoryPtr<ASTNode> Parser::parseDecorator(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers, bool isCall) {
     next();
     auto dm = getDelimeterNames();
 
@@ -686,7 +668,7 @@ MemoryPtr<ASTNode> Parser::parseDecorator(std::vector<MemoryPtr<ModifierNode>> m
 std::vector<MemoryPtr<CallExpressionNode>> Parser::parseDecoratorCalls() {
     std::vector<MemoryPtr<CallExpressionNode>> calls;
     while (!match(TokenType::Keyword)) {
-        auto p = as<CallExpressionNode>(parseDecorator({}, true));
+        auto p = as<CallExpressionNode>(parseDecorator({}, {}, true));
         calls.push_back(std::move(p));
         next();
     }
@@ -722,20 +704,170 @@ std::vector<MemoryPtr<ModifierNode>> Parser::parseModifiers() {
 }
 
 // Finish that
-MemoryPtr<PreprocessorDirectiveNode> Parser::parsePreprocessor() {
+MemoryPtr<ASTNode> Parser::parsePreprocessor() {
     next();
-    Token token = curToken();
-    auto pm = getPreprocessorMap();
+    auto pn = getPreprocessorNames();
 
-    if (token.type != TokenType::Identifier) {
+    if (curToken().type != TokenType::Preprocessor) {
         std::println(std::cerr, "[Neoluma/Parser] Expected preprocessor directive");
         return nullptr;
     }
 
-    //if (pm[token.value] == Preprocessors::Import) return parseImport();
+    if (match(TokenType::Preprocessor, pn[Preprocessors::Import])) {
+        next();
+        if (!match(TokenType::String)) {
+            std::println(std::cerr, "[Neoluma/Parser] Couldn't find what to import after #import");
+            return nullptr;
+        }
+        auto moduleName = curToken().value;
+        ASTImportType importType = ASTImportType::Native;
+        if ((moduleName.contains("/") || moduleName.contains(".")) && moduleName.contains(":")) importType = ASTImportType::ForeignRelative;
+        else if (moduleName.contains("/") || moduleName.contains(".")) importType = ASTImportType::Relative;
+        else if (moduleName.contains(":")) importType = ASTImportType::Foreign;
 
-    ASTPreprocessorDirectiveType type = ASTPreprocessorDirectiveType::Import; // TODO: Map properly
-    return makeMemoryPtr<PreprocessorDirectiveNode>(type, token.value);
+        std::string alias = "";
+        next();
+        if (match(TokenType::Preprocessor, pn[Preprocessors::As])) {
+            next();
+            alias = curToken().value;
+        }
+        return makeMemoryPtr<ImportNode>(moduleName, alias, importType);
+    }
+    else if (match(TokenType::Preprocessor, pn[Preprocessors::Macro])) {
+        next();
+        if (!match(TokenType::Identifier)) {
+            std::println(std::cerr, "[Neoluma/Parser] Couldn't find identifier after #macro");
+            return nullptr;
+        }
+        next();
+        std::string value = "";
+        while (!isNextLine()) {
+            value = value + curToken().value;
+            next();
+        }
+        return makeMemoryPtr<PreprocessorDirectiveNode>(ASTPreprocessorDirectiveType::Macro, value);
+    }
+    else if (match(TokenType::Preprocessor, pn[Preprocessors::Baremetal])) {
+        next();
+        return makeMemoryPtr<PreprocessorDirectiveNode>(ASTPreprocessorDirectiveType::Baremetal);
+    }
+    else if (match(TokenType::Preprocessor, pn[Preprocessors::Unsafe])) {
+        next();
+        return makeMemoryPtr<PreprocessorDirectiveNode>(ASTPreprocessorDirectiveType::Unsafe);
+    }
+    else if (match(TokenType::Preprocessor, pn[Preprocessors::Float])) {
+        next();
+        return makeMemoryPtr<PreprocessorDirectiveNode>(ASTPreprocessorDirectiveType::Float);
+    }
+
+    ASTPreprocessorDirectiveType type = ASTPreprocessorDirectiveType::None; // Fallback to none, if this somehow got out of hand.
+    return makeMemoryPtr<PreprocessorDirectiveNode>(type);
+}
+
+MemoryPtr<EnumNode> Parser::parseEnum(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers) {
+    next();
+    auto dn = getDelimeterNames();
+    auto on = getOperatorNames();
+
+    if (!match(TokenType::Identifier)) {
+        std::println(std::cerr, "[Neoluma/Parser] Enum does not have a name");
+        return nullptr;
+    }
+    next();
+    if (!match(TokenType::Delimeter, dn[Delimeters::LeftBraces])) {
+        std::println(std::cerr, "[Neoluma/Parser] Missing '{' after enum name");
+        return nullptr;
+    } 
+    next();
+
+    std::vector<MemoryPtr<EnumMemberNode>> elements;
+    
+    while (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
+        if (curToken().type != TokenType::Identifier) {
+            std::println(std::cerr, "[Neoluma/Parser] A non-identifier found in enum");
+            return nullptr;
+        } 
+        auto name = curToken().value;
+        MemoryPtr<LiteralNode> value = nullptr;
+    
+        next();
+        if (match(TokenType::Operator, on[Operators::Assign])) {
+            auto tmp = parsePrimary();
+            if (typeid(tmp) != typeid(MemoryPtr<LiteralNode>)) {
+                std::println(std::cerr, "[Neoluma/Parser] Non-literal value detected in enum after identifier '{}'", name);
+                return nullptr;
+            }
+            value = as<LiteralNode>(std::move(tmp));
+        }
+        elements.push_back(makeMemoryPtr<EnumMemberNode>(name, value));
+        next();
+
+        if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
+        else if (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
+            std::println(std::cerr, "[Neoluma/Parser] Delimeter at enum found that is not either comma or right braces.");
+            return nullptr;
+        }
+        else break;
+    }
+
+    return makeMemoryPtr<EnumNode>(elements, decorators, modifiers);
+}
+
+MemoryPtr<InterfaceNode> Parser::parseInterface(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers) {
+    next();
+    auto dn = getDelimeterNames();
+    auto on = getOperatorNames();
+
+    if (!match(TokenType::Identifier)) {
+        std::println(std::cerr, "[Neoluma/Parser] Interface does not have a name");
+        return nullptr;
+    }
+    next();
+    if (!match(TokenType::Delimeter, dn[Delimeters::LeftBraces])) {
+        std::println(std::cerr, "[Neoluma/Parser] Missing '{' after interface name");
+        return nullptr;
+    } 
+    next();
+
+    std::vector<MemoryPtr<InterfaceFieldNode>> elements;
+    
+    while (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
+        if (curToken().type != TokenType::Identifier) {
+            std::println(std::cerr, "[Neoluma/Parser] A non-identifier found in interface");
+            return nullptr;
+        } 
+        auto name = curToken().value;
+        bool isNullable = false;
+        next();
+        if (match(TokenType::Operator, on[Operators::Nullable])) isNullable = true;
+
+        if (!match(TokenType::Delimeter, dn[Delimeters::Colon])) {
+            std::println(std::cerr, "[Neoluma/Parser] No colon after identifier in an interface");
+            return nullptr;
+        }
+
+        MemoryPtr<VariableNode> vartype = nullptr;
+
+        // this is a very bad setup imo but it must be fixed later
+        if (match(TokenType::Identifier)) {
+            auto tmp = parsePrimary();
+            if (typeid(tmp) != typeid(MemoryPtr<VariableNode>)) {
+                std::println(std::cerr, "[Neoluma/Parser] Non-variable value detected in interface after identifier '{}'", name);
+                return nullptr;
+            }
+            vartype = as<VariableNode>(std::move(tmp));
+        }
+        elements.push_back(makeMemoryPtr<InterfaceFieldNode>(name, vartype, isNullable));
+        next();
+        if (isNextLine()) next();
+        else if (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
+            std::println(std::cerr, "[Neoluma/Parser] Delimeter at enum found that is not either '\\n', ';', or right braces.");
+            return nullptr;
+        }
+        else break;
+    }
+
+    return makeMemoryPtr<InterfaceNode>(elements, decorators, modifiers);
 }
 
 // ==== Helper functions ====

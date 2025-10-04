@@ -17,42 +17,9 @@ enum struct ASTNodeType {
     Module, Program, 
     Import, Decorator, Preprocessor, 
     BreakStatement, ContinueStatement, ThrowStatement,
-    Array, Set, Dict, Void, Result, Enum, Interface, Lambda
+    Array, Set, Dict, Void, Result, Enum, Interface, Lambda,
+    EnumMember, InterfaceField
 };
-/* ASTNodes checklist!!!
-    * - LiteralNode ✅
-    * - VariableNode ✅
-    * - AssignmentNode ✅
-    * - BinaryOperationNode ✅
-    * - UnaryOperationNode ✅
-    * - CallExpressionNode ✅
-    * - BlockNode ✅
-    * - IfNode ✅
-    * - ForLoopNode ✅
-    * - WhileLoopNode ✅
-    * - TryCatchNode ✅
-    * - ReturnStatementNode ✅
-    * - FunctionNode ✅
-    * - structNode ✅
-    * - DecoratorNode ✅
-    * - ParameterNode ✅
-    * - ModifierNode ✅
-    * - SwitchNode ✅
-    * - CaseNode ✅
-    * - SCDefaultNode ✅
-    * - ImportNode ✅
-    * - PreprocessorDirectiveNode ✅
-    * - ModuleNode ✅
-    * - ProgramNode ✅
-    * - ArrayNode ✅
-    * - SetNode ✅
-    * - DictNode ✅
-    * - VoidNode ✅
-    * - ResultNode ✅
-    * - EnumNode ✅
-    * - InterfaceNode ✅
-    * - LambdaNode ✅
-*/
 
 enum struct ASTVariableType {
     Integer, Float, Number, Boolean, String,
@@ -65,7 +32,7 @@ enum struct ASTModifierType {
 };
 
 enum struct ASTPreprocessorDirectiveType {
-    Import, Unsafe, Baremetal, Float, Macro
+    Import, Unsafe, Baremetal, Float, Macro, None
 };
 
 enum struct ASTImportType {
@@ -73,8 +40,9 @@ enum struct ASTImportType {
     Native - from dependencies
     Relative - relative to path
     Foreign - imported from other language via langpacks.
+    ForeignRelative - imported from other language via langpacks, but with relative path.
     */
-    Native, Relative, Foreign
+    Native, Relative, Foreign, ForeignRelative,
 };
 
 struct ASTNode {
@@ -136,23 +104,47 @@ struct ResultNode : ASTNode {
     }
 };
 
-struct EnumNode : ASTNode {
-    // im not sure if this is how you do all of this shit
-    std::vector<MemoryPtr<VariableNode>> elements;
+struct EnumMemberNode : ASTNode {
+    std::string name;
+    MemoryPtr<LiteralNode> value;
+    EnumMemberNode(const std::string& name, MemoryPtr<LiteralNode> value = nullptr) : name(name), value(std::move(value)) {
+        this->type = ASTNodeType::EnumMember;
+    }
+};
 
-    EnumNode(std::vector<MemoryPtr<VariableNode>> elements) {
+struct EnumNode : ASTNode {
+    std::vector<MemoryPtr<CallExpressionNode>> decorators; // the decorators applied to the decorator
+    std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the decorator (e.g. async, static, etc.)
+    std::vector<MemoryPtr<EnumMemberNode>> elements;
+
+    EnumNode(std::vector<MemoryPtr<EnumMemberNode>> elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
         this->type = ASTNodeType::Enum;
         this->elements = std::move(elements);
+        this->decorators = std::move(decorators);
+        this->modifiers = std::move(modifiers);
+    }
+};
+
+struct InterfaceFieldNode : ASTNode {
+    std::string name;
+    MemoryPtr<VariableNode> vartype;
+    bool isNullable;
+    InterfaceFieldNode(const std::string& name, MemoryPtr<VariableNode> type, bool isNullable) : name(name), vartype(std::move(vartype)), isNullable(isNullable) {
+        this->type = ASTNodeType::InterfaceField;
     }
 };
 
 // just an enum but for classes lol
 struct InterfaceNode : ASTNode {
-    std::vector<VariableNode> elements;
+    std::vector<MemoryPtr<CallExpressionNode>> decorators; // the decorators applied to the decorator
+    std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the decorator (e.g. async, static, etc.)
+    std::vector<InterfaceFieldNode> elements;
 
-    InterfaceNode(const std::vector<VariableNode>& elements) {
+    InterfaceNode(const std::vector<InterfaceFieldNode>& elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
         this->type = ASTNodeType::Enum;
         this->elements = elements;
+        this->decorators = std::move(decorators);
+        this->modifiers = std::move(modifiers);
     }
 };
 
@@ -320,13 +312,13 @@ public:
 struct DecoratorNode : ASTNode {
 public:
     std::string name; // the name of the decorator
-    std::vector<MemoryPtr<DecoratorNode>> decorators; // the decorators applied to the decorator
+    std::vector<MemoryPtr<CallExpressionNode>> decorators; // the decorators applied to the decorator
     std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the decorator (e.g. async, static, etc.)
     std::vector<MemoryPtr<ParameterNode>> parameters; // the parameters of the decorator
     MemoryPtr<BlockNode> body; // the body of the decorator
 
     DecoratorNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<BlockNode> body,
-                 std::vector<MemoryPtr<DecoratorNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
+                 std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
         : name(name), parameters(std::move(parameters)), body(std::move(body)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
         type = ASTNodeType::Decorator;
     }
@@ -335,13 +327,13 @@ public:
 struct FunctionNode : ASTNode {
 public:
     std::string name; // the name of the function
-    std::vector<MemoryPtr<DecoratorNode>> decorators; // the decorators applied to the function
+    std::vector<MemoryPtr<CallExpressionNode>> decorators; // the decorators applied to the function
     std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the function (e.g. async, static, etc.)
     std::vector<MemoryPtr<ParameterNode>> parameters; // the parameters of the function
     MemoryPtr<BlockNode> body; // the body of the function
 
     FunctionNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<BlockNode> body,
-                 std::vector<MemoryPtr<DecoratorNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
+                 std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
         : name(name), parameters(std::move(parameters)), body(std::move(body)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
         type = ASTNodeType::Function;
     }
@@ -350,13 +342,13 @@ public:
 struct ClassNode : ASTNode {
 public:
     std::string name; // the name of the class
-    std::vector<MemoryPtr<DecoratorNode>> decorators; // the decorators applied to the class
+    std::vector<MemoryPtr<CallExpressionNode>> decorators; // the decorators applied to the class
     std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the class (e.g. public, private, etc.)
     std::vector<MemoryPtr<VariableNode>> fields; // the fields of the class
     std::vector<MemoryPtr<FunctionNode>> methods; // the methods of the class
 
     ClassNode(const std::string& name, std::vector<MemoryPtr<VariableNode>> fields, std::vector<MemoryPtr<FunctionNode>> methods,
-              std::vector<MemoryPtr<DecoratorNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
+              std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
         : name(name), fields(std::move(fields)), methods(std::move(methods)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
         type = ASTNodeType::Class;
     }
@@ -422,19 +414,19 @@ public:
 // These nodes are unfinished for now, don't take them as final implementations.
 struct ImportNode : ASTNode {
 public:
-    std::string moduleName; // the name of the module being imported
-    std::vector<std::string> importNames; // the names of the items being imported from the module
+    std::string moduleName; // the name of the module being imported, like "math" or "cpp:opengl"
+    std::string alias; // import 'as'
     ASTImportType importType;
 
-    ImportNode(const std::string& moduleName, const std::vector<std::string>& importNames = {}, ASTImportType importType)
-        : moduleName(moduleName), importNames(importNames), importType(importType) {
+    ImportNode(const std::string& moduleName, const std::string& alias, ASTImportType importType)
+        : moduleName(moduleName), alias(alias), importType(importType) {
         type = ASTNodeType::Import;
     }
 };
 
 struct PreprocessorDirectiveNode : ASTNode {
 public:
-    ASTPreprocessorDirectiveType directive; // the preprocessor directive (e.g. #include, #define, etc.)
+    ASTPreprocessorDirectiveType directive; // the preprocessor directive (e.g. #baremetal, #macro, etc.)
 
     PreprocessorDirectiveNode(ASTPreprocessorDirectiveType& directive, const std::string& value = "")
         : directive(directive) {

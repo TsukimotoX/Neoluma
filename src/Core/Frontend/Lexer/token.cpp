@@ -28,7 +28,8 @@ const EOperator operatorMap[] {
     {"&&", Operators::LogicalAnd}, {"||", Operators::LogicalOr}, {"!", Operators::LogicalNot},
     {"and", Operators::LogicalAnd}, {"or", Operators::LogicalOr}, {"not", Operators::LogicalNot},
     {"=", Operators::Assign}, {"?", Operators::Nullable}, {"=>", Operators::AssignmentArrow},
-    {"+=", Operators::AddAssign}, {"-=", Operators::SubAssign}, {"*=", Operators::MulAssign}, {"/=", Operators::DivAssign}, {"%=", Operators::ModAssign}, {"^=", Operators::PowerAssign}
+    {"+=", Operators::AddAssign}, {"-=", Operators::SubAssign}, {"*=", Operators::MulAssign}, {"/=", Operators::DivAssign}, {"%=", Operators::ModAssign}, {"^=", Operators::PowerAssign},
+    {"~", Operators::BitwiseNot}, {"&", Operators::BitwiseAnd}, {"|", Operators::BitwiseOr}, {"^^", Operators::BitwiseXOr}, {"<<", Operators::BitwiseLeftShift}, {">>", Operators::BitwiseRightShift}, 
 };
 
 const EDecorator decoratorMap[] {
@@ -36,7 +37,7 @@ const EDecorator decoratorMap[] {
 };
 
 const EPreprocessor preprocessorMap[] {
-    {"import", Preprocessors::Import}, {"from", Preprocessors::From}, {"as", Preprocessors::As}, {"unsafe", Preprocessors::Unsafe}, {"baremetal", Preprocessors::Baremetal}, {"float", Preprocessors::Float}, {"macro", Preprocessors::Macro},
+    {"import", Preprocessors::Import}, {"as", Preprocessors::As}, {"unsafe", Preprocessors::Unsafe}, {"baremetal", Preprocessors::Baremetal}, {"float", Preprocessors::Float}, {"macro", Preprocessors::Macro},
 };
 
 const EDelimeter delimeterMap[] {

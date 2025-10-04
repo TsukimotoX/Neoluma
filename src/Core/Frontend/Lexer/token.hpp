@@ -34,13 +34,15 @@ enum class Operators {
     LogicalAnd, LogicalOr, LogicalNot,
     Assign, Nullable,
     AddAssign, SubAssign, MulAssign, DivAssign, ModAssign, PowerAssign,
-    AssignmentArrow 
+    AssignmentArrow,
+    BitwiseAnd, BitwiseOr, BitwiseXOr, BitwiseNot, BitwiseLeftShift, BitwiseRightShift,
+    //BitwiseUnsignedRightShift (from JS, not included for now because argued about)
 };
 enum class Decorators {
     Float, Entry, Unsafe, Comptime
 };
 enum class Preprocessors {
-    Import, From, As, Unsafe, Baremetal, Float, Macro
+    Import, As, Unsafe, Baremetal, Float, Macro
 };
 enum class Delimeters {
     LeftParen, RightParen, LeftBracket, RightBracket, Semicolon, Comma, Dot, LeftBraces, RightBraces, Colon
