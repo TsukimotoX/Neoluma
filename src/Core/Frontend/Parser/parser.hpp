@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../Lexer/lexer.hpp"
-#include "nodes.hpp"
-#include "../Lexer/token.hpp"
+#include "../nodes.hpp"
+#include "../token.hpp"
 #include <iostream>
 
 // to make math order

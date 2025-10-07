@@ -1,5 +1,5 @@
 #include "lexer.hpp"
-#include "token.hpp"
+#include "../token.hpp"
 
 #include <iostream>
 #include <unordered_map>
@@ -38,7 +38,16 @@ std::vector<Token> Lexer::tokenize(const std::string& source) {
 // ==== Helpers ====
 
 char Lexer::curChar() const { return isAtEnd() ? '\0' : source[pos]; }
-char Lexer::move() { return isAtEnd() ? '\0' : source[pos++]; }
+char Lexer::move() { 
+    char c = source[pos++];
+
+    if (c=='\n') {
+        line++;
+        column = 1;
+    } else column++;
+
+    return isAtEnd() ? '\0' : c; 
+}
 bool Lexer::match(char expected) {
     if (isAtEnd() || source[pos] != expected) return false;
     pos++;
@@ -48,6 +57,7 @@ bool Lexer::isAtEnd() const { return pos >= source.size(); }
 
 // ==== Parsing functions ====
 void Lexer::parseIK() {
+    int sl = line; int sc = column;
     std::string word;
     
     while (!isAtEnd() && (isalnum(curChar()) || curChar() == '_')) word += move();
@@ -58,9 +68,10 @@ void Lexer::parseIK() {
     if (km.find(word) != km.end()) tokens.push_back(Token{TokenType::Keyword, word});
     else if (word == "null") tokens.push_back(Token{TokenType::Null, word});
     else if (om.find(word) != om.end()) tokens.push_back(Token{TokenType::Operator, word});
-    else tokens.push_back(Token{TokenType::Identifier, word});
+    else tokens.push_back(Token{TokenType::Identifier, word, sl, sc});
 }
 void Lexer::parseNumber() {
+    int sl = line; int sc = column;
     std::string number;
 
     while (!isAtEnd() && isdigit(curChar())) number += move();
@@ -70,9 +81,10 @@ void Lexer::parseNumber() {
         while (!isAtEnd() && (isdigit(curChar()) || curChar() == 'e')) number += move();
     }
 
-    tokens.push_back(Token{TokenType::Number, number});
+    tokens.push_back(Token{TokenType::Number, number, sl, sc});
 }
 void Lexer::parseString() {
+    int sl = line; int sc = column;
     /* hardest thing to make. strings in neoluma can be multiline,
        have f-strings (variables inside ${}) inside them and support \n \t or anything i forgor.
     */
@@ -104,9 +116,10 @@ void Lexer::parseString() {
     }
 
     move();
-    tokens.push_back(Token{TokenType::String, value});
+    tokens.push_back(Token{TokenType::String, value, sl, sc});
 }
 void Lexer::parseOperator() {
+    int sl = line; int sc = column;
     std::string op;
     op += move();
 
@@ -116,10 +129,11 @@ void Lexer::parseOperator() {
         std::string twoChar = op + curChar();
         if (om.find(twoChar) != om.end()) op += move();
 
-        tokens.push_back(Token{TokenType::Operator, op});
+        tokens.push_back(Token{TokenType::Operator, op, sl, sc});
     }
 }
 void Lexer::parseDelimeter() {
+    int sl = line; int sc = column;
     std::string delimeter;
     delimeter += move();
 
@@ -128,10 +142,11 @@ void Lexer::parseDelimeter() {
     if (dm.find(delimeter) != dm.end()) tokens.push_back(Token{TokenType::Delimeter, delimeter});
     else {
         std::println(std::cerr, "[Lexer] Unknown delimeter: '{}'", delimeter);
-        tokens.push_back(Token{TokenType::Unknown, delimeter});
+        tokens.push_back(Token{TokenType::Unknown, delimeter, sl, sc});
     }
 }
 void Lexer::parsePreprocessor() {
+    int sl = line; int sc = column;
     move();
     std::string word;
 
@@ -142,10 +157,11 @@ void Lexer::parsePreprocessor() {
     if (pm.find(word) != pm.end()) tokens.push_back(Token{TokenType::Preprocessor, word});
     else {
         std::println(std::cerr, "[Lexer] Unknown preprocessor: #{}", word);
-        tokens.push_back(Token{TokenType::Unknown, "#" + word});
+        tokens.push_back(Token{TokenType::Unknown, "#" + word, sl, sc});
     }
 }
 void Lexer::parseDecorator() {
+    int sl = line; int sc = column;
     move();
     std::string word;
 
@@ -156,10 +172,11 @@ void Lexer::parseDecorator() {
     if (dm.find(word) != dm.end()) tokens.push_back(Token{TokenType::Decorator, word});
     else {
         std::println(std::cerr, "[Lexer] Unknown decorator: @{}", word);
-        tokens.push_back(Token{TokenType::Unknown, "@" + word});
+        tokens.push_back(Token{TokenType::Unknown, "@" + word, sl, sc});
     }
 }
 void Lexer::skipComment() {
+    int sl = line; int sc = column;
     // yes i can actually read this monstrocity
     if (match('/')) while (!isAtEnd() && curChar() != '\n') move();
     else if (match('*')) {
@@ -174,10 +191,10 @@ void Lexer::skipComment() {
             move();
         }
         // todo: give position.
-        if (isAtEnd()) std::println(std::cerr, "[Lexer] Unterminated comment.");
+        if (isAtEnd()) std::println(std::cerr, "[Lexer] Unterminated comment at {}:{}", line, column);
     }
     // not comment
-    else tokens.push_back(Token{TokenType::Operator, "/"});
+    else tokens.push_back(Token{TokenType::Operator, "/", sl, sc});
 }
 
 void Lexer::printTokens(const std::string& filename) const {

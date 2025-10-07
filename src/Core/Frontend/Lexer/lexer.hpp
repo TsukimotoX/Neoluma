@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "token.hpp"
+#include "../token.hpp"
 
 class Lexer {
 public: 
@@ -11,6 +11,8 @@ public:
 private:
     std::string source;
     size_t pos = 0;
+    int line = 1;
+    int column = 1;
 
     // Helpers
     char curChar() const;

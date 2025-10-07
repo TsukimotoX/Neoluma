@@ -43,7 +43,7 @@ person: dict = {
 }
 
 // Function with strict typing in arguments (types are optional)
-func printAge(p: dict) -> void {
+fn printAge(p: dict) -> void {
     print("Age: ${p['age']}")
 }
 

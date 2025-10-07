@@ -1,6 +1,6 @@
-#include "nodes.hpp"
+#include "../nodes.hpp"
 #include "parser.hpp"
-#include "../Lexer/token.hpp"
+#include "../token.hpp"
 #include "../../../HelperFunctions.hpp"
 #include <iostream>
 #include <unordered_set>

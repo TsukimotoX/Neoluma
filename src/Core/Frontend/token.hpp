@@ -12,6 +12,8 @@ struct Token {
     TokenType type;
     std::string value;
     std::string toStr() const;
+    int line;
+    int column;
 };
 
 // Enums
