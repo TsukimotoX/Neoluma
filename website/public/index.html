@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neoluma</title>
+    <meta description="High-level, all-purpose programming language designed for scalability, from small scripts to operating systems. Bridge low-level control with high-level productivity.">
     <link rel="icon" type="image/png" href="./neoluma.png"/>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.28.0/themes/prism-tomorrow.min.css" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
@@ -90,7 +91,7 @@
                     <pre><code class="language-neoluma">@entry
 fn main() {
     name = "Neoluma";
-    print("Hello, {name}!") // Hello, Neoluma!
+    print("Hello, ${name}!") // Hello, Neoluma!
 }</code></pre>
                 </div>
             </div>
@@ -230,11 +231,11 @@ myarray = [1, 2, 3]
 mydict = {"x": 1, "y": 2}
 myset = {true, "apple", 1.5}
 mybool = false
-nullable: int = null
+nullable?: int = null
 
 // Descriptive keywords like 'function' are available via `verbose=true` option in project's compiler settings.
 // Default is 'fn'
-public function main(args: string[], number) {
+public function main(args: string[], num) {
     print("Hello, ${args[0]}!")
 
     result = add(10, 5)
