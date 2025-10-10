@@ -12,6 +12,7 @@ struct Token {
     TokenType type;
     std::string value;
     std::string toStr() const;
+    std::string filePath;
     int line;
     int column;
 };

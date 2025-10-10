@@ -7,9 +7,10 @@
 #include <print>
 
 // ==== Main ====
-std::vector<Token> Lexer::tokenize(const std::string& source) {
+std::vector<Token> Lexer::tokenize(const std::string& filePath, const std::string& source) {
     tokens.clear();
     this->source = source;
+    this->filePath = filePath;
     pos = 0;
 
     while (!isAtEnd()) {
@@ -68,7 +69,7 @@ void Lexer::parseIK() {
     if (km.find(word) != km.end()) tokens.push_back(Token{TokenType::Keyword, word});
     else if (word == "null") tokens.push_back(Token{TokenType::Null, word});
     else if (om.find(word) != om.end()) tokens.push_back(Token{TokenType::Operator, word});
-    else tokens.push_back(Token{TokenType::Identifier, word, sl, sc});
+    else tokens.push_back(Token{TokenType::Identifier, word, filePath, sl, sc});
 }
 void Lexer::parseNumber() {
     int sl = line; int sc = column;
@@ -81,7 +82,7 @@ void Lexer::parseNumber() {
         while (!isAtEnd() && (isdigit(curChar()) || curChar() == 'e')) number += move();
     }
 
-    tokens.push_back(Token{TokenType::Number, number, sl, sc});
+    tokens.push_back(Token{TokenType::Number, number, filePath, sl, sc});
 }
 void Lexer::parseString() {
     int sl = line; int sc = column;
@@ -116,7 +117,7 @@ void Lexer::parseString() {
     }
 
     move();
-    tokens.push_back(Token{TokenType::String, value, sl, sc});
+    tokens.push_back(Token{TokenType::String, value, filePath, sl, sc});
 }
 void Lexer::parseOperator() {
     int sl = line; int sc = column;
@@ -129,7 +130,7 @@ void Lexer::parseOperator() {
         std::string twoChar = op + curChar();
         if (om.find(twoChar) != om.end()) op += move();
 
-        tokens.push_back(Token{TokenType::Operator, op, sl, sc});
+        tokens.push_back(Token{TokenType::Operator, op, filePath, sl, sc});
     }
 }
 void Lexer::parseDelimeter() {
@@ -142,7 +143,7 @@ void Lexer::parseDelimeter() {
     if (dm.find(delimeter) != dm.end()) tokens.push_back(Token{TokenType::Delimeter, delimeter});
     else {
         std::println(std::cerr, "[Lexer] Unknown delimeter: '{}'", delimeter);
-        tokens.push_back(Token{TokenType::Unknown, delimeter, sl, sc});
+        tokens.push_back(Token{TokenType::Unknown, delimeter, filePath, sl, sc});
     }
 }
 void Lexer::parsePreprocessor() {
@@ -157,7 +158,7 @@ void Lexer::parsePreprocessor() {
     if (pm.find(word) != pm.end()) tokens.push_back(Token{TokenType::Preprocessor, word});
     else {
         std::println(std::cerr, "[Lexer] Unknown preprocessor: #{}", word);
-        tokens.push_back(Token{TokenType::Unknown, "#" + word, sl, sc});
+        tokens.push_back(Token{TokenType::Unknown, "#" + word, filePath, sl, sc});
     }
 }
 void Lexer::parseDecorator() {
@@ -172,7 +173,7 @@ void Lexer::parseDecorator() {
     if (dm.find(word) != dm.end()) tokens.push_back(Token{TokenType::Decorator, word});
     else {
         std::println(std::cerr, "[Lexer] Unknown decorator: @{}", word);
-        tokens.push_back(Token{TokenType::Unknown, "@" + word, sl, sc});
+        tokens.push_back(Token{TokenType::Unknown, "@" + word, filePath, sl, sc});
     }
 }
 void Lexer::skipComment() {
@@ -194,7 +195,7 @@ void Lexer::skipComment() {
         if (isAtEnd()) std::println(std::cerr, "[Lexer] Unterminated comment at {}:{}", line, column);
     }
     // not comment
-    else tokens.push_back(Token{TokenType::Operator, "/", sl, sc});
+    else tokens.push_back(Token{TokenType::Operator, "/", filePath, sl, sc});
 }
 
 void Lexer::printTokens(const std::string& filename) const {

@@ -6,11 +6,12 @@
 
 class Lexer {
 public: 
-    std::vector<Token> tokenize(const std::string& source);
+    std::vector<Token> tokenize(const std::string& filePath, const std::string& source);
     void printTokens(const std::string& filename) const; // Debug command to check tokens correctness
 private:
     std::string source;
     size_t pos = 0;
+    std::string filePath;
     int line = 1;
     int column = 1;
 
