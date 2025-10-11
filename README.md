@@ -65,8 +65,8 @@ neoluma run main.nm #interpreted way
 ## Roadmap
 
 - [x] Lexer
-- [x] Parser (~70%)
-- [ ] Semantic Analyzer
+- [x] Parser
+- [x] Semantic Analyzer (~10%)
 - [ ] LLVM IR Compiler
 - [ ] CLI Toolchain
 - [ ] Cross-platform support (Linux / Windows / macOS / Android / iOS / etc.)
@@ -96,6 +96,6 @@ Neoluma is in early development. Contributions and feedback are welcome!
 **Created by [Tsukimoto](https://github.com/TsukimotoX) in collaboration with [PYROLYSIS](https://github.com/pyr0lysis) under  [Apache License](./LICENSE)** — more documentation and compiler features coming soon!
 
 **Discord server for Support and Questions**
-[Click here to join!](https://discord.gg/z2yB9ApZbh)
+[Coming soon!]
 
 This project uses [LLVM](https://llvm.org/) under the Apache License v2.0 with LLVM Exceptions.
