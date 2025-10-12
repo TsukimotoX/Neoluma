@@ -21,7 +21,7 @@ Whether you're crafting a quick script on your knee or developing a large operat
 - **Cross-platform compilation with LLVM backend** for native performance
 - **IDE support (planned)** — syntax highlighting, debugging, and project tools
 
-## File Formats
+## 📃 File Formats
 
 - `.nm` — **Neoluma Module**: source code
 - `.nlp` — **Neoluma Project**: project structure/configuration
@@ -33,7 +33,7 @@ project_name/
 └── project.nlp
 ```
 
-## Example
+## 🧩 Example
 
 ```neoluma
 @entry
@@ -44,7 +44,7 @@ fn main() {
 ```
 > If the function doesn't have a return type, it is `void` by default — no `return` required.
 
-## Usage (planned CLI)
+## ⌨️ Usage (planned CLI)
 
 ```bash
 neoluma build project.nlp #compiled way
@@ -52,7 +52,7 @@ neoluma run main.nm #interpreted way
 ```
 
 
-## Roadmap
+## 🗺️ Roadmap
 
 - [x] Lexer
 - [x] Parser
@@ -63,7 +63,7 @@ neoluma run main.nm #interpreted way
 - [ ] Plugin system and editor integration
 - [ ] Transpilation support (C++, JS, etc.)
 
-## Vision
+## 🕶️ Vision
 
 Neoluma aims to be a unified language that bridges low-level control and high-level productivity. It is designed for:
 
@@ -73,11 +73,11 @@ Neoluma aims to be a unified language that bridges low-level control and high-le
 - Scripting with performance
 - Future self-hosting development
 
-## Status
+## 🚦 Status
 
 Neoluma is in early development. Contributions and feedback are welcome!
 
-## Credits
+## 📖 Credits
 
 **Created by [Tsukimoto](https://github.com/TsukimotoX) in collaboration with [PYROLYSIS](https://github.com/pyr0lysis) and other contributors under [Apache License](./LICENSE)**. 
 
