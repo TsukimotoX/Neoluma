@@ -11,9 +11,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-include_directories(${LLVM_INCLUDE_DIRS})
+target_include_directories(Neoluma PRIVATE ${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
-link_directories(${LLVM_LIBRARY_DIRS})
+llvm_map_components_to_libnames(LLVM_LIB
+    Core
+    Support
+    IRReader
+)
 
 # Includes everything in src/
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -35,4 +39,4 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.build/.libs)
 add_executable(Neoluma ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/HelperFunctions.hpp ${CMAKE_CURRENT_SOURCE_DIR}/src/HelperFunctions.cpp)
 
 # Link all libraries
-target_link_libraries(Neoluma PRIVATE LLVMCore LLVMSupport LLVMIRReader NeolumaCore NeolumaCLI NeolumaLibs)
+target_link_libraries(Neoluma PRIVATE {LLVM_LIB} NeolumaCore NeolumaCLI NeolumaLibs)
