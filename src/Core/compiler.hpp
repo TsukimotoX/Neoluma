@@ -1,6 +1,6 @@
 #pragma once
 #include "Frontend/Lexer/lexer.hpp"
-//#include "Frontend/Parser/parser.hpp"
+#include "Frontend/Parser/parser.hpp"
 #include "Extras/ProjectManager/projectmanager.hpp"
 
 struct Compiler {
@@ -9,7 +9,7 @@ struct Compiler {
 
     // All parts of compiler
     Lexer lexer;
-    //Parser parser;
+    Parser parser;
 
     // Constructor
     Compiler(ProjectConfig config);

@@ -1,30 +1,25 @@
-<img src="neoluma.png" alt="this logo looks like from a nursery rhymes channel" width="360px"/>
+# <img src="neoluma.png" alt="Neoluma" width="32px"/> Neoluma
 
-# Neoluma
+**Neoluma** is a high-level, general-purpose programming language designed to be *a language for everything*. 
+Whether you're crafting a quick script on your knee or developing a large operating system, Neoluma is made with developer experience in mind. Featuring a clean, Python-JS-like syntax with the structure and power of C++ & C# - it's expressive, efficient, and built for modern development.
 
-**Neoluma** is a high-level, all-purpose programming language designed to be a language for everything. Whether you're writing a small script or building an entire operating system, Neoluma is made to scale with you. With a Python-like syntax and C#/C++-inspired architecture, it's both expressive and powerful.
+| [Website](https://neoluma.dev) | [License](./LICENSE) |
 
----
-
-## Features
-
-- **Modern, readable syntax** inspired by Python and C#
-- **Statically typed** with optional type inference
-- **Custom fixed-point `number` type**, plus `int`, `float`, `bool`, `string`, `set`, `dict`, `array`, `result`, `void`
-- **Annotations and decorators**: `@entry`, `@comptime`, `@unsafe`, `@override`, etc.
-- **Preprocessor directives**:
-  - `#unsafe` — for making pointers work in a file
-  - `#import` — for local `.nm` Neoluma modules and for external libraries(e.g., C++ bindings)
-  - `#baremetal` - for working with bare-metal and etc.
-  - `#macro` - for giving a definition of something to something
-- **Async/await** built into the language
-- **Compile-time evaluation**, lambdas, and macro system (WIP)
-- **Automatic and manual memory management**
-- **Cross-platform design** with potential for OS development
-- **LLVM backend** to compile into fast, native machine code
-- **Planned IDE integration** with syntax highlighting and debugging
-
----
+## ✨ Features
+- **Clean, modern syntax** inspired by Python, JavaScript, and C#
+- **Static typing** with **type inference** for simplicity and safety
+- Rich type system, including a custom fixed-point `number` type, plus `int`, `float`, `bool`, `string`, `set`, `dict`, `array`, `result`, and more
+- Powerful decorators like `@entry`, `@comptime`, `@unsafe`, `@override`, and others
+- Flexible preprocessor directives for low-level and modular control:
+  - `#import` — import local or external modules (e.g., C++ bindings)
+  - `#unsafe` — enable pointer operations
+  - `#baremetal` — target hardware directly
+  - `#macro` — define macros for compile-time logic
+- **Built-in async/await** for concurrency
+- **Compile-time evaluation** and an evolving **macro system (WIP)**
+- **Configurable memory management** — *automatic* or *manual*, your choice
+- **Cross-platform compilation with LLVM backend** for native performance
+- **IDE support (planned)** — syntax highlighting, debugging, and project tools
 
 ## File Formats
 
@@ -38,20 +33,16 @@ project_name/
 └── project.nlp
 ```
 
----
-
 ## Example
 
 ```neoluma
 @entry
 fn main() {
     name = "Neoluma";
-    print("Hello, {name}!")
+    print("Hello, ${name}!")
 }
 ```
 > If the function doesn't have a return type, it is `void` by default — no `return` required.
-
----
 
 ## Usage (planned CLI)
 
@@ -60,7 +51,6 @@ neoluma build project.nlp #compiled way
 neoluma run main.nm #interpreted way
 ```
 
----
 
 ## Roadmap
 
@@ -73,8 +63,6 @@ neoluma run main.nm #interpreted way
 - [ ] Plugin system and editor integration
 - [ ] Transpilation support (C++, JS, etc.)
 
----
-
 ## Vision
 
 Neoluma aims to be a unified language that bridges low-level control and high-level productivity. It is designed for:
@@ -85,17 +73,15 @@ Neoluma aims to be a unified language that bridges low-level control and high-le
 - Scripting with performance
 - Future self-hosting development
 
----
-
 ## Status
 
 Neoluma is in early development. Contributions and feedback are welcome!
 
----
+## Credits
 
-**Created by [Tsukimoto](https://github.com/TsukimotoX) in collaboration with [PYROLYSIS](https://github.com/pyr0lysis) under  [Apache License](./LICENSE)** — more documentation and compiler features coming soon!
+**Created by [Tsukimoto](https://github.com/TsukimotoX) in collaboration with [PYROLYSIS](https://github.com/pyr0lysis) and other contributors under [Apache License](./LICENSE)**. 
 
-**Discord server for Support and Questions**
-[Coming soon!]
+More documentation and compiler features coming soon!
+**Discord server will be available soon.**
 
 This project uses [LLVM](https://llvm.org/) under the Apache License v2.0 with LLVM Exceptions.
