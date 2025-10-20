@@ -79,7 +79,7 @@ Neoluma is in early development. Contributions and feedback are welcome!
 
 ## 📖 Credits
 
-**Created by [Tsukimoto](https://github.com/TsukimotoX) in collaboration with [PYROLYSIS](https://github.com/pyr0lysis) and other contributors under [Apache License](./LICENSE)**. 
+**Created by [Tsukimoto](https://github.com/TsukimotoX) under [Apache License](./LICENSE)**. 
 
 More documentation and compiler features coming soon!
 **Discord server will be available soon.**
