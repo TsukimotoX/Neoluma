@@ -5,7 +5,7 @@
 #include <optional>
 #include <array>
 #include <variant>
-#include "../../../HelperFunctions.hpp"
+#include "../../HelperFunctions.hpp"
 //#include "llvm/IR/Value.h"
 
 enum struct ASTNodeType {
@@ -54,16 +54,206 @@ struct ASTNode {
     //virtual LLVM::Value generateCode(); // for the compiler to generate code from this AST node
 };
 
-// All node types inherited from ASTNode, for the parser and compiler to determine.
+// Forward declarations for all ASTNode structs because header files suck
+struct LiteralNode;
+struct VariableNode;
+struct AssignmentNode;
+struct BinaryOperationNode;
+struct UnaryOperationNode;
+struct BlockNode;
+struct IfNode;
+struct SCDefaultNode;
+struct CaseNode;
+struct SwitchNode;
+struct ForLoopNode;
+struct WhileLoopNode;
+struct ArrayNode;
+struct SetNode;
+struct DictNode;
+struct VoidNode;
+struct ResultNode;
+struct EnumMemberNode;
+struct EnumNode;
+struct InterfaceFieldNode;
+struct InterfaceNode;
+struct LambdaNode;
+struct ParameterNode;
+struct ModifierNode;
+struct DecoratorNode;
+struct FunctionNode;
+struct ClassNode;
+struct ReturnStatementNode;
+struct CallExpressionNode;
+struct ThrowStatementNode;
+struct BreakStatementNode;
+struct ContinueStatementNode;
+struct TryCatchNode;
+struct ImportNode;
+struct PreprocessorDirectiveNode;
+struct ModuleNode;
+struct ProgramNode;
 
+// All nodes available in Neoluma
+
+struct LiteralNode : ASTNode {
+    ASTVariableType varType;
+    LiteralNode(const ASTVariableType& varType = ASTVariableType::Undefined, const std::string& val = "") {
+        this->type = ASTNodeType::Literal;
+        this->varType = varType;
+        value = val;
+    }
+};
+
+struct VariableNode : ASTNode {
+    std::string varName;
+    bool isNullable = false;
+
+    VariableNode(const std::string& varName, bool isNullable = false) : varName(varName), isNullable(isNullable) {
+        this->type = ASTNodeType::Variable;
+    }
+};
+
+struct AssignmentNode : ASTNode {
+    VariableNode* variable;
+    MemoryPtr<ASTNode> variableValue;
+    bool isInitialized = false;
+
+    AssignmentNode(VariableNode* variable, const std::string& op, MemoryPtr<ASTNode>&& varValue)
+        : variable(variable), variableValue(std::move(varValue)) {
+        this->value = op;
+        this->type = ASTNodeType::Assignment;
+    }
+};
+
+struct BinaryOperationNode : ASTNode {
+    MemoryPtr<ASTNode> leftOperand;
+    MemoryPtr<ASTNode> rightOperand;
+
+    BinaryOperationNode(MemoryPtr<ASTNode>&& leftOp, const std::string& op, MemoryPtr<ASTNode>&& rightOp)
+        : leftOperand(std::move(leftOp)), rightOperand(std::move(rightOp)) {
+        this->type = ASTNodeType::BinaryOperation;
+        value = op;
+    }
+};
+
+struct UnaryOperationNode : ASTNode {
+    MemoryPtr<ASTNode> operand;
+
+    UnaryOperationNode(const std::string& op, MemoryPtr<ASTNode>&& operand)
+        : operand(std::move(operand)) {
+        this->type = ASTNodeType::UnaryOperation;
+        value = op;
+    }
+};
+
+// statements
+struct BlockNode : ASTNode {
+    std::vector<MemoryPtr<ASTNode>> statements;
+    BlockNode() { this->type = ASTNodeType::Block; }
+};
+
+struct IfNode : ASTNode {
+    MemoryPtr<ASTNode> condition;
+    MemoryPtr<BlockNode> thenBlock;
+    MemoryPtr<BlockNode> elseBlock;
+
+    IfNode(MemoryPtr<ASTNode>&& condition, MemoryPtr<BlockNode>&& thenBlock, MemoryPtr<BlockNode>&& elseBlock = nullptr)
+        : condition(std::move(condition)), thenBlock(std::move(thenBlock)), elseBlock(std::move(elseBlock)) {
+        this->type = ASTNodeType::IfStatement;
+    }
+};
+
+struct SCDefaultNode : ASTNode {
+    MemoryPtr<BlockNode> body;
+    SCDefaultNode(MemoryPtr<BlockNode>&& body) : body(std::move(body)) {
+        this->type = ASTNodeType::SCDefault;
+    }
+};
+
+struct CaseNode : ASTNode {
+    MemoryPtr<ASTNode> condition;
+    MemoryPtr<BlockNode> body;
+    CaseNode(MemoryPtr<ASTNode>&& condition, MemoryPtr<BlockNode>&& body)
+        : condition(std::move(condition)), body(std::move(body)) {
+        this->type = ASTNodeType::Case;
+    }
+};
+
+struct SwitchNode : ASTNode {
+    MemoryPtr<ASTNode> expression;
+    std::vector<MemoryPtr<CaseNode>> cases;
+    MemoryPtr<SCDefaultNode> defaultCase;
+
+    SwitchNode(MemoryPtr<ASTNode>&& expression, std::vector<MemoryPtr<CaseNode>>&& cases, MemoryPtr<SCDefaultNode>&& defaultCase = nullptr)
+        : expression(std::move(expression)), cases(std::move(cases)), defaultCase(std::move(defaultCase)) {
+        this->type = ASTNodeType::Switch;
+    }
+};
+
+struct ForLoopNode : ASTNode {
+    MemoryPtr<VariableNode> variable;
+    MemoryPtr<ASTNode> iterable;
+    MemoryPtr<BlockNode> body;
+
+    ForLoopNode(MemoryPtr<VariableNode>&& variable, MemoryPtr<ASTNode>&& iterable, MemoryPtr<BlockNode>&& body)
+        : variable(std::move(variable)), iterable(std::move(iterable)), body(std::move(body)) {
+        this->type = ASTNodeType::ForLoop;
+    }
+};
+
+struct WhileLoopNode : ASTNode {
+    MemoryPtr<ASTNode> condition;
+    MemoryPtr<BlockNode> body;
+
+    WhileLoopNode(MemoryPtr<ASTNode>&& condition, MemoryPtr<BlockNode>&& body)
+        : condition(std::move(condition)), body(std::move(body)) {
+        this->type = ASTNodeType::WhileLoop;
+    }
+};
+
+struct BreakStatementNode : ASTNode {
+    BreakStatementNode() { this->type = ASTNodeType::BreakStatement; }
+};
+
+struct ContinueStatementNode : ASTNode {
+    ContinueStatementNode() { this->type = ASTNodeType::ContinueStatement; }
+};
+
+struct ReturnStatementNode : ASTNode {
+    MemoryPtr<ASTNode> expression;
+    ReturnStatementNode(MemoryPtr<ASTNode>&& expression)
+        : expression(std::move(expression)) {
+        this->type = ASTNodeType::ReturnStatement;
+    }
+};
+
+struct ThrowStatementNode : ASTNode {
+    MemoryPtr<ASTNode> expression;
+    ThrowStatementNode(MemoryPtr<ASTNode>&& expression)
+        : expression(std::move(expression)) {
+        this->type = ASTNodeType::ThrowStatement;
+    }
+};
+
+struct TryCatchNode : ASTNode {
+    MemoryPtr<BlockNode> tryBlock;
+    MemoryPtr<BlockNode> catchBlock;
+    MemoryPtr<LiteralNode> exception;
+
+    TryCatchNode(MemoryPtr<BlockNode>&& tryBlock, MemoryPtr<BlockNode>&& catchBlock)
+        : tryBlock(std::move(tryBlock)), catchBlock(std::move(catchBlock)) {
+        this->type = ASTNodeType::TryCatch;
+    }
+};
+
+// composite data
 struct ArrayNode : ASTNode {
     std::vector<MemoryPtr<ASTNode>> elements;
     MemoryPtr<ASTNode> typeHint;
 
-    ArrayNode(std::vector<MemoryPtr<ASTNode>> elements, MemoryPtr<ASTNode> typeHint) {
+    ArrayNode(std::vector<MemoryPtr<ASTNode>> elements, MemoryPtr<ASTNode> typeHint=nullptr)
+        : elements(std::move(elements)), typeHint(std::move(typeHint)) {
         this->type = ASTNodeType::Array;
-        this->elements = std::move(elements);
-        this->typeHint = std::move(typeHint);
     }
 };
 
@@ -71,10 +261,9 @@ struct SetNode : ASTNode {
     std::vector<MemoryPtr<ASTNode>> elements;
     MemoryPtr<ASTNode> typeHint;
 
-    SetNode(std::vector<MemoryPtr<ASTNode>> elements, MemoryPtr<ASTNode> typeHint) {
+    SetNode(std::vector<MemoryPtr<ASTNode>> elements, MemoryPtr<ASTNode> typeHint=nullptr)
+        : elements(std::move(elements)), typeHint(std::move(typeHint)) {
         this->type = ASTNodeType::Set;
-        this->elements = std::move(elements);
-        this->typeHint = std::move(typeHint);
     }
 };
 
@@ -82,10 +271,9 @@ struct DictNode : ASTNode {
     std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>> elements;
     std::array<ASTVariableType, 2> types;
 
-    DictNode(const std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>>& elements, const std::array<ASTVariableType, 2>& types) {
+    DictNode(std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>>&& elements, std::array<ASTVariableType, 2>&& types={ASTVariableType::Undefined, ASTVariableType::Undefined})
+        : elements(std::move(elements)), types(std::move(types)) {
         this->type = ASTNodeType::Dict;
-        this->elements = elements;
-        this->types = types;
     }
 };
 
@@ -95,29 +283,59 @@ struct VoidNode : ASTNode {
 
 struct ResultNode : ASTNode {
     MemoryPtr<ASTNode> t;
-    MemoryPtr<ASTNode> e = nullptr;
+    MemoryPtr<ASTNode> e;
     bool isError;
 
-    ResultNode(MemoryPtr<ASTNode> t, MemoryPtr<ASTNode> e = nullptr, bool isError = false) 
-    : t(std::move(t)), e(std::move(e)) {
+    ResultNode(MemoryPtr<ASTNode>&& t, MemoryPtr<ASTNode>&& e = nullptr, bool isError = false)
+        : t(std::move(t)), e(std::move(e)), isError(isError) {
         this->type = ASTNodeType::Result;
+    }
+};
+
+// higher structures
+struct ParameterNode : ASTNode {
+    std::string parameterName;
+    ASTVariableType parameterType;
+    std::optional<std::string> defaultValue;
+
+    ParameterNode(const std::string& parameterName, ASTVariableType&& parameterType, const std::string& defaultValue = "")
+        : parameterName(parameterName), parameterType(parameterType) {
+        this->type = ASTNodeType::Parameter;
+        if (!defaultValue.empty()) this->defaultValue = defaultValue;
+    }
+};
+
+struct ModifierNode : ASTNode {
+    ASTModifierType modifier;
+    ModifierNode(ASTModifierType& modifier) : modifier(modifier) {
+        this->type = ASTNodeType::Modifier;
+    }
+};
+
+struct CallExpressionNode : ASTNode {
+    MemoryPtr<ASTNode> callee;
+    std::vector<MemoryPtr<ParameterNode>> arguments;
+
+    CallExpressionNode(MemoryPtr<ASTNode>&& callee, std::vector<MemoryPtr<ParameterNode>>&& arguments)
+        : callee(std::move(callee)), arguments(std::move(arguments)) {
+        this->type = ASTNodeType::CallExpression;
     }
 };
 
 struct EnumMemberNode : ASTNode {
     std::string name;
     MemoryPtr<LiteralNode> value;
-    EnumMemberNode(const std::string& name, MemoryPtr<LiteralNode> value = nullptr) : name(name), value(std::move(value)) {
+    EnumMemberNode(const std::string& name, MemoryPtr<LiteralNode>&& value = nullptr) : name(name), value(std::move(value)) {
         this->type = ASTNodeType::EnumMember;
     }
 };
 
 struct EnumNode : ASTNode {
-    std::vector<MemoryPtr<CallExpressionNode>> decorators; // the decorators applied to the decorator
-    std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the decorator (e.g. async, static, etc.)
+    std::vector<MemoryPtr<CallExpressionNode>> decorators;
+    std::vector<MemoryPtr<ModifierNode>> modifiers;
     std::vector<MemoryPtr<EnumMemberNode>> elements;
 
-    EnumNode(std::vector<MemoryPtr<EnumMemberNode>> elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
+    EnumNode(std::vector<MemoryPtr<EnumMemberNode>>&& elements, std::vector<MemoryPtr<CallExpressionNode>>&& decorators = {}, std::vector<MemoryPtr<ModifierNode>>&& modifiers = {}) {
         this->type = ASTNodeType::Enum;
         this->elements = std::move(elements);
         this->decorators = std::move(decorators);
@@ -129,20 +347,20 @@ struct InterfaceFieldNode : ASTNode {
     std::string name;
     MemoryPtr<VariableNode> vartype;
     bool isNullable;
-    InterfaceFieldNode(const std::string& name, MemoryPtr<VariableNode> type, bool isNullable) : name(name), vartype(std::move(vartype)), isNullable(isNullable) {
+    InterfaceFieldNode(const std::string& name, MemoryPtr<VariableNode>&& type, bool isNullable)
+        : name(name), vartype(std::move(type)), isNullable(isNullable) {
         this->type = ASTNodeType::InterfaceField;
     }
 };
 
-// just an enum but for classes lol
 struct InterfaceNode : ASTNode {
-    std::vector<MemoryPtr<CallExpressionNode>> decorators; // the decorators applied to the decorator
-    std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the decorator (e.g. async, static, etc.)
+    std::vector<MemoryPtr<CallExpressionNode>> decorators;
+    std::vector<MemoryPtr<ModifierNode>> modifiers;
     std::vector<InterfaceFieldNode> elements;
 
-    InterfaceNode(const std::vector<InterfaceFieldNode>& elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
-        this->type = ASTNodeType::Enum;
-        this->elements = elements;
+    InterfaceNode(std::vector<InterfaceFieldNode>&& elements, std::vector<MemoryPtr<CallExpressionNode>>&& decorators = {}, std::vector<MemoryPtr<ModifierNode>>&& modifiers = {}) {
+        this->type = ASTNodeType::Interface;
+        this->elements = std::move(elements);
         this->decorators = std::move(decorators);
         this->modifiers = std::move(modifiers);
     }
@@ -152,304 +370,84 @@ struct LambdaNode : ASTNode {
     std::vector<MemoryPtr<ASTNode>> params;
     MemoryPtr<ASTNode> body;
 
-    LambdaNode(const std::vector<MemoryPtr<ASTNode>>& params, MemoryPtr<ASTNode>& body) {
+    LambdaNode(std::vector<MemoryPtr<ASTNode>>&& params, MemoryPtr<ASTNode>&& body)
+        : params(std::move(params)), body(std::move(body)) {
         this->type = ASTNodeType::Lambda;
-        this->params = params;
-        this->body = std::move(body);
-    }
-};
-
-struct LiteralNode : ASTNode {
-    ASTVariableType varType; // type of the variable, e.g. Integer, Float, etc.
-    LiteralNode(const ASTVariableType& varType = ASTVariableType::Undefined, const std::string& val) {
-        type = ASTNodeType::Literal;
-        this->varType = varType;
-        value = val;
-    }
-};
-
-struct VariableNode : ASTNode {
-public:
-    std::string varName; // name of the variable
-    bool isNullable = false; // can the variable be nothing or not?
-
-    VariableNode(const std::string& varName, bool isNullable = false): varName(varName), isNullable(isNullable) {
-        type = ASTNodeType::Variable;
-    }
-};
-
-struct AssignmentNode : ASTNode {
-    VariableNode* variable; // the variable being assigned to
-    MemoryPtr<ASTNode> variableValue; // the value being assigned
-    bool isInitialized = false; // does this assignment create a new variable or not?
-
-    AssignmentNode(VariableNode* variable, const std::string& op, MemoryPtr<ASTNode> varValue): variable(variable), variableValue(std::move(varValue)) {
-        this->value = op;
-        type = ASTNodeType::Assignment;
-    }
-};
-
-struct BinaryOperationNode : ASTNode {
-    MemoryPtr<ASTNode> leftOperand;
-    MemoryPtr<ASTNode> rightOperand;
-
-    BinaryOperationNode(MemoryPtr<ASTNode>& leftOp, const std::string& op, MemoryPtr<ASTNode>& rightOp)
-        : leftOperand(std::move(leftOp)), rightOperand(std::move(rightOp)) {
-        type = ASTNodeType::BinaryOperation;
-        value = op;
-    }
-};
-
-struct UnaryOperationNode : ASTNode {
-    MemoryPtr<ASTNode> operand; // because i'm terrible at english: it's the value after the operator, e.g. -x, !x, etc.
-
-    UnaryOperationNode(const std::string& op, MemoryPtr<ASTNode>& operand)
-        : operand(std::move(operand)) {
-        type = ASTNodeType::UnaryOperation;
-        value = op;
-    }
-};
-
-struct BlockNode : ASTNode {
-public:
-    std::vector<MemoryPtr<ASTNode>> statements;
-
-    BlockNode() {
-        type = ASTNodeType::Block;
-    }
-};
-
-struct IfNode : ASTNode {
-public:
-    MemoryPtr<ASTNode> condition; // the condition of the if statement
-    MemoryPtr<BlockNode> thenBlock; // the block of code to execute if the condition is true
-    MemoryPtr<BlockNode> elseBlock; // the block of code to execute if the condition is false
-
-    IfNode(MemoryPtr<ASTNode> condition, MemoryPtr<BlockNode> thenBlock, MemoryPtr<BlockNode> elseBlock = nullptr)
-        : condition(std::move(condition)), thenBlock(std::move(thenBlock)), elseBlock(std::move(elseBlock)) {
-        type = ASTNodeType::IfStatement;
-    }
-};
-
-struct SCDefaultNode : ASTNode {
-public:
-    MemoryPtr<BlockNode> body; // the body of the default case
-
-    SCDefaultNode(MemoryPtr<BlockNode> body)
-        : body(std::move(body)) {
-        type = ASTNodeType::SCDefault;
-    }
-};
-
-struct CaseNode : ASTNode {
-public:
-    MemoryPtr<ASTNode> condition; // the condition of the case
-    MemoryPtr<BlockNode> body; // the body of the case
-
-    CaseNode(MemoryPtr<ASTNode> condition, MemoryPtr<BlockNode> body)
-        : condition(std::move(condition)), body(std::move(body)) {
-        type = ASTNodeType::Case;
-    }
-};
-
-struct SwitchNode : ASTNode {
-public:
-    MemoryPtr<ASTNode> expression; // the expression to switch on
-    std::vector<MemoryPtr<CaseNode>> cases; // the cases of the switch statement
-    MemoryPtr<SCDefaultNode> defaultCase; // the default case of the switch statement
-
-    SwitchNode(MemoryPtr<ASTNode> expression, std::vector<MemoryPtr<CaseNode>> cases, MemoryPtr<SCDefaultNode> defaultCase = nullptr)
-        : expression(std::move(expression)), cases(std::move(cases)), defaultCase(std::move(defaultCase)) {
-        type = ASTNodeType::Switch;
-    }
-};
-
-struct ForLoopNode : ASTNode {
-public:
-    MemoryPtr<VariableNode> variable; // the loop variable
-    MemoryPtr<ASTNode> iterable; // the iterable to loop over
-    MemoryPtr<BlockNode> body; // the body of the loop
-
-    ForLoopNode(MemoryPtr<VariableNode> variable, MemoryPtr<ASTNode> iterable, MemoryPtr<BlockNode> body)
-        : variable(std::move(variable)), iterable(std::move(iterable)), body(std::move(body)) {
-        type = ASTNodeType::ForLoop;
-    }
-};
-
-struct WhileLoopNode : ASTNode {
-public:
-    MemoryPtr<ASTNode> condition; // the condition of the while loop
-    MemoryPtr<BlockNode> body; // the body of the loop
-
-    WhileLoopNode(MemoryPtr<ASTNode> condition, MemoryPtr<BlockNode> body)
-        : condition(std::move(condition)), body(std::move(body)) {
-        type = ASTNodeType::WhileLoop;
-    }
-};
-
-struct ParameterNode : ASTNode {
-public:
-    std::string parameterName; // the name of the parameter
-    ASTVariableType parameterType; // the type of the parameter
-    std::optional<std::string> defaultValue; // the default value of the parameter (optional)
-
-    ParameterNode(const std::string& parameterName, ASTVariableType& parameterType, const std::string& defaultValue = "")
-        : parameterName(parameterName), parameterType(parameterType) {
-        this->type = ASTNodeType::Parameter;
-        if (!defaultValue.empty()) this->defaultValue = defaultValue;
-    }
-};
-
-struct ModifierNode : ASTNode {
-public:
-    ASTModifierType modifier;
-
-    ModifierNode(ASTModifierType& modifier) : modifier(modifier) {
-        this->type = ASTNodeType::Modifier;
-    }
-};
-
-struct DecoratorNode : ASTNode {
-public:
-    std::string name; // the name of the decorator
-    std::vector<MemoryPtr<CallExpressionNode>> decorators; // the decorators applied to the decorator
-    std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the decorator (e.g. async, static, etc.)
-    std::vector<MemoryPtr<ParameterNode>> parameters; // the parameters of the decorator
-    MemoryPtr<BlockNode> body; // the body of the decorator
-
-    DecoratorNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<BlockNode> body,
-                 std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
-        : name(name), parameters(std::move(parameters)), body(std::move(body)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
-        type = ASTNodeType::Decorator;
     }
 };
 
 struct FunctionNode : ASTNode {
-public:
-    std::string name; // the name of the function
-    std::vector<MemoryPtr<CallExpressionNode>> decorators; // the decorators applied to the function
-    std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the function (e.g. async, static, etc.)
-    std::vector<MemoryPtr<ParameterNode>> parameters; // the parameters of the function
-    MemoryPtr<BlockNode> body; // the body of the function
+    std::string name;
+    std::vector<MemoryPtr<CallExpressionNode>> decorators;
+    std::vector<MemoryPtr<ModifierNode>> modifiers;
+    std::vector<MemoryPtr<ParameterNode>> parameters;
+    MemoryPtr<BlockNode> body;
 
-    FunctionNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<BlockNode> body,
-                 std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
+    FunctionNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>>&& parameters, MemoryPtr<BlockNode>&& body,
+                 std::vector<MemoryPtr<CallExpressionNode>>&& decorators = {}, std::vector<MemoryPtr<ModifierNode>>&& modifiers = {})
         : name(name), parameters(std::move(parameters)), body(std::move(body)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
-        type = ASTNodeType::Function;
+        this->type = ASTNodeType::Function;
     }
 };
 
 struct ClassNode : ASTNode {
-public:
-    std::string name; // the name of the class
-    std::vector<MemoryPtr<CallExpressionNode>> decorators; // the decorators applied to the class
-    std::vector<MemoryPtr<ModifierNode>> modifiers; // the modifiers applied to the class (e.g. public, private, etc.)
-    std::vector<MemoryPtr<VariableNode>> fields; // the fields of the class
-    std::vector<MemoryPtr<FunctionNode>> methods; // the methods of the class
+    std::string name;
+    std::vector<MemoryPtr<CallExpressionNode>> decorators;
+    std::vector<MemoryPtr<ModifierNode>> modifiers;
+    std::vector<MemoryPtr<VariableNode>> fields;
+    std::vector<MemoryPtr<FunctionNode>> methods;
 
-    ClassNode(const std::string& name, std::vector<MemoryPtr<VariableNode>> fields, std::vector<MemoryPtr<FunctionNode>> methods,
-              std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
+    ClassNode(const std::string& name, std::vector<MemoryPtr<VariableNode>>&& fields, std::vector<MemoryPtr<FunctionNode>>&& methods,
+              std::vector<MemoryPtr<CallExpressionNode>>&& decorators = {}, std::vector<MemoryPtr<ModifierNode>>&& modifiers = {})
         : name(name), fields(std::move(fields)), methods(std::move(methods)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
-        type = ASTNodeType::Class;
+        this->type = ASTNodeType::Class;
     }
 };
 
-struct ReturnStatementNode : ASTNode {
-public:
-    MemoryPtr<ASTNode> expression; // the expression to return
+struct DecoratorNode : ASTNode {
+    std::string name;
+    std::vector<MemoryPtr<CallExpressionNode>> decorators;
+    std::vector<MemoryPtr<ModifierNode>> modifiers;
+    std::vector<MemoryPtr<ParameterNode>> parameters;
+    MemoryPtr<BlockNode> body;
 
-    ReturnStatementNode(MemoryPtr<ASTNode>& expression)
-        : expression(std::move(expression)) {
-        type = ASTNodeType::ReturnStatement;
+    DecoratorNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<BlockNode> body,
+                 std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
+        : name(name), parameters(std::move(parameters)), body(std::move(body)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
+        this->type = ASTNodeType::Decorator;
     }
 };
 
-struct CallExpressionNode : ASTNode {
-public:
-    MemoryPtr<ASTNode> callee; // the function or method being called
-    std::vector<MemoryPtr<ParameterNode>> arguments; // the arguments passed to the function or method
-
-    CallExpressionNode(MemoryPtr<ASTNode>& callee, std::vector<MemoryPtr<ParameterNode>>& arguments)
-        : callee(std::move(callee)), arguments(std::move(arguments)) {
-        type = ASTNodeType::CallExpression;
-    }
-};
-
-struct ThrowStatementNode : ASTNode {
-public:
-    MemoryPtr<ASTNode> expression; // the expression to throw
-
-    ThrowStatementNode(MemoryPtr<ASTNode>& expression)
-        : expression(std::move(expression)) {
-        type = ASTNodeType::ThrowStatement;
-    }
-};
-
-struct BreakStatementNode : ASTNode {
-public:
-    BreakStatementNode() {
-        type = ASTNodeType::BreakStatement;
-    }
-};
-
-struct ContinueStatementNode : ASTNode {
-public:
-    ContinueStatementNode() {
-        type = ASTNodeType::ContinueStatement;
-    }
-};
-
-struct TryCatchNode : ASTNode {
-public:
-    MemoryPtr<BlockNode> tryBlock; // the block of code to try
-    MemoryPtr<BlockNode> catchBlock; // the block of code to execute if an exception is thrown
-    MemoryPtr<LiteralNode> exception; // the variable to store the exception in (optional)
-
-    TryCatchNode(MemoryPtr<BlockNode>& tryBlock, MemoryPtr<BlockNode>& catchBlock)
-        : tryBlock(std::move(tryBlock)), catchBlock(std::move(catchBlock)) {
-        type = ASTNodeType::TryCatch;
-    }
-};
-
-// These nodes are unfinished for now, don't take them as final implementations.
+// imports and program structure
 struct ImportNode : ASTNode {
-public:
-    std::string moduleName; // the name of the module being imported, like "math" or "cpp:opengl"
-    std::string alias; // import 'as'
+    std::string moduleName;
+    std::string alias;
     ASTImportType importType;
 
     ImportNode(const std::string& moduleName, const std::string& alias, ASTImportType importType)
         : moduleName(moduleName), alias(alias), importType(importType) {
-        type = ASTNodeType::Import;
+        this->type = ASTNodeType::Import;
     }
 };
 
 struct PreprocessorDirectiveNode : ASTNode {
-public:
-    ASTPreprocessorDirectiveType directive; // the preprocessor directive (e.g. #baremetal, #macro, etc.)
-
+    ASTPreprocessorDirectiveType directive;
     PreprocessorDirectiveNode(ASTPreprocessorDirectiveType& directive, const std::string& value = "")
         : directive(directive) {
-        type = ASTNodeType::Preprocessor;
+        this->type = ASTNodeType::Preprocessor;
+        this->value = value;
     }
 };
 
-// core nodes
 struct ModuleNode : ASTNode {
-public:
     std::string moduleName;
     std::vector<MemoryPtr<ASTNode>> body;
-
     ModuleNode(const std::string& name) : moduleName(name) {
-        type = ASTNodeType::Module;
+        this->type = ASTNodeType::Module;
     }
 };
 
 struct ProgramNode : ASTNode {
-public:
     std::vector<ModuleNode> body;
-
-    ProgramNode() {
-        type = ASTNodeType::Program;
-    }
+    ProgramNode() { this->type = ASTNodeType::Program; }
 };

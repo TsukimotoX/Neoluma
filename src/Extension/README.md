@@ -1,3 +1,5 @@
-# Neoluma programming language
+# Neoluma
 
-i edited this so i could build this extension. do not bother checking, it only has partial syntax highlighting.
+idk i need this filled out.
+
+shoutout to [niceEli](https://github.com/niceEli) for contributing on fixing the syntax for this extension on version 0.0.2.

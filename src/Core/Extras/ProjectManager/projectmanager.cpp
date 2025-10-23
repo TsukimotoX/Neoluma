@@ -1,6 +1,6 @@
 #include "projectmanager.hpp"
 #include "../../Frontend/Lexer/lexer.hpp"
-#include "../../../../unused_tab/Parser/parser.hpp"
+#include "../../Frontend/Parser/parser.hpp"
 #include "../../../HelperFunctions.hpp"
 #include <fstream>
 #include <sstream>
@@ -18,7 +18,7 @@ void ProjectManager::check() {
     for (const auto& file : listFiles()) {
         std::string source = readFile(file);
         Lexer lexer;
-        lexer.tokenize(source);
+        lexer.tokenize(file, source);
         lexer.printTokens(file);
         
     }

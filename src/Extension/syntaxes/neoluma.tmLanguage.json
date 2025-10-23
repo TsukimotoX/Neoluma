@@ -1,293 +1,117 @@
 {
-  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-  "scopeName": "source.neoluma",
   "name": "Neoluma",
+  "scopeName": "source.nm",
+  "fileTypes": ["neo"],
   "patterns": [
     { "include": "#comments" },
-    { "include": "#docstrings" },
-    { "include": "#preprocessors" },
     { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#preprocessor" },
+    { "include": "#decorators" },
     { "include": "#keywords" },
     { "include": "#types" },
-    { "include": "#booleans" },
     { "include": "#modifiers" },
-    { "include": "#declarations" },
-    { "include": "#inheritance" },
-    { "include": "#operators" },
-    { "include": "#pointer_ops" },
-    { "include": "#delimiters" },
-    { "include": "#variables_with_type" },
-    { "include": "#variables" },
-    { "include": "#numbers" },
-    { "include": "#function_names" },
-    { "include": "#function_calls" },
-    { "include": "#decorators" },
-    { "include": "#generic_types" },
-    { "include": "#support_libraries" },
-    { "include": "#imports" },
-    { "include": "#namespace_scope" },
-    { "include": "#enum_elements" }
+    { "include": "#functions" },
+    { "include": "#classes" },
+    { "include": "#operators" }
   ],
   "repository": {
     "comments": {
       "patterns": [
-        {
-          "name": "comment.line.double-slash.neoluma",
-          "match": "//.*$"
-        },
-        {
-          "name": "comment.block.neoluma",
-          "begin": "/\\*",
-          "end": "\\*/"
-        }
+        { "name": "comment.line.doc.neo", "match": "///.*$" },
+        { "name": "comment.line.double-slash.neo", "match": "//.*$" },
+        { "name": "comment.block.neo", "begin": "/\\*", "end": "\\*/" },
+        { "name": "comment.block.documentation.neo", "begin": "'''", "end": "'''" }
       ]
     },
-    "docstrings": {
+    "strings": {
       "patterns": [
         {
-          "name": "string.quoted.triple.neoluma",
-          "begin": "'''",
-          "end": "'''",
+          "name": "string.quoted.double.neo",
+          "begin": "\"",
+          "end": "\"",
           "patterns": [
-            {
-              "name": "constant.character.escape.neoluma",
-              "match": "\\\\."
-            }
+            { "name": "constant.character.escape.neo", "match": "\\\\." },
+            { "name": "variable.interpolation.neo", "match": "\\$\\{[^}]+\\}" }
           ]
         }
       ]
     },
-    "preprocessors": {
+    "numbers": {
+      "patterns": [
+        { "name": "constant.numeric.neo", "match": "\\b\\d+(?:\\.\\d+)?(?:e[+-]?\\d+)?\\b" }
+      ]
+    },
+    "preprocessor": {
       "patterns": [
         {
-          "name": "keyword.control.preprocessor.neoluma",
-          "match": "#\\b(import|define|if|else|endif|unsafe|baremetal|macro|comptime|float|use)\\b"
+          "name": "meta.preprocessor.neo",
+          "match": "^\\s*#(unsafe|baremetal|import|macro)\\b.*$"
         }
       ]
     },
-    "strings": {
-      "name": "string.quoted.double.neoluma",
-      "begin": "\"",
-      "end": "\"",
+    "decorators": {
       "patterns": [
-        {
-          "name": "constant.character.escape.neoluma",
-          "match": "\\\\."
-        }
+        { "name": "meta.annotation.neo", "match": "@[A-Za-z_][A-Za-z0-9_]*" }
       ]
     },
     "keywords": {
       "patterns": [
         {
-          "name": "keyword.control.neoluma",
-          "match": "\\b(if|else|for|while|break|continue|switch|case|default|try|catch|throw|async|await|yield|return|as|with|in|lambda|debug)\\b"
-        }
-      ]
-    },
-    "modifiers": {
-      "patterns": [
+          "name": "keyword.control.neo",
+          "match": "\\b(if|else|switch|case|default|for|while|break|continue|try|catch|throw|yield|return)\\b"
+        },
         {
-          "name": "storage.modifier.neoluma",
-          "match": "\\b(public|private|protected|static|const|decorator|override|unsafe)\\b"
-        }
-      ]
-    },
-    "declarations": {
-      "patterns": [
+          "name": "keyword.declaration.neo",
+          "match": "\\b(fn|function|class|interface|enum|namespace|decorator)\\b"
+        },
         {
-          "name": "keyword.declaration.neoluma",
-          "match": "\\b(class|enum|interface|namespace|function|fn)\\b"
-        }
-      ]
-    },
-    "inheritance": {
-      "patterns": [
-        {
-          "name": "keyword.operator.inheritance.neoluma",
-          "match": "<-"
+          "name": "keyword.operator.neo",
+          "match": "\\b(in|as|of|new)\\b"
         }
       ]
     },
     "types": {
       "patterns": [
         {
-          "name": "storage.type.neoluma",
-          "match": "\\b(int|float|number|bool|string|array|set|dict|void|result)\\b"
+          "name": "storage.type.neo",
+          "match": "\\b(int|float|number|string|bool|array|set|dict|void|result|ModuleNode)\\??\\b"
         }
       ]
     },
-    "booleans": {
+    "modifiers": {
       "patterns": [
         {
-          "name": "constant.language.boolean.neoluma",
-          "match": "\\b(true|false|null)\\b"
+          "name": "storage.modifier.neo",
+          "match": "\\b(public|private|protected|static|override|abstract|const|comptime|unsafe|entry)\\b"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "entity.name.function.neo",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*(?=\\s*\\()"
+        }
+      ]
+    },
+    "classes": {
+      "patterns": [
+        {
+          "name": "entity.name.type.class.neo",
+          "match": "\\b[A-Z][A-Za-z0-9_]*\\b"
         }
       ]
     },
     "operators": {
       "patterns": [
         {
-          "name": "keyword.operator.neoluma",
-          "match": "(&|\\+=|\\-=|\\*=|/=|%=|\\^=|==|!=|<=|>=|&&|\\|\\||\\+|\\-|\\*|/|%|\\^|=|<-|<|>)"
-        }
-      ]
-    },
-    "pointer_ops": {
-      "patterns": [
-        {
-          "name": "keyword.operator.pointer.neoluma",
-          "match": "(&|\\*)"
-        }
-      ]
-    },
-    "delimiters": {
-      "patterns": [
-        {
-          "name": "punctuation.delimiter.neoluma",
-          "match": "[\\(\\)\\{\\}\\[\\];,\\.:]"
-        }
-      ]
-    },
-    "variables_with_type": {
-      "patterns": [
-        {
-          "name": "variable.other.typed.neoluma",
-          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b(?=\\s*:\\s*(int|float|number|bool|string|array|set|dict|void|result))"
-        }
-      ]
-    },
-    "variables": {
-      "patterns": [
-        {
-          "name": "variable.other.assignment.neoluma",
-          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b(?=\\s*=)"
+          "name": "keyword.operator.assignment.neo",
+          "match": "(<-|->|=>|=|\\+|-|\\*|/|%)"
         },
         {
-          "name": "variable.other.importalias.neoluma",
-          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b(?=\\s*\\.)"
-        },
-        {
-          "name": "variable.other.importalias.neoluma",
-          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b(?=\\s*\\))" 
-        }
-      ]
-    },
-    "numbers": {
-      "patterns": [
-        {
-          "name": "constant.numeric.neoluma",
-          "match": "\\b\\d+(\\.\\d+)?\\b"
-        }
-      ]
-    },
-    "function_names": {
-      "patterns": [
-        {
-          "match": "\\b(?:fn|function)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
-          "captures": {
-            "1": {
-              "name": "entity.name.function.neoluma"
-            }
-          }
-        }
-      ]
-    },
-    "function_calls": {
-      "patterns": [
-        {
-          "name": "support.function.call.neoluma",
-          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
-        }
-      ]
-    },
-    "decorators": {
-      "patterns": [
-        {
-			"name": "meta.annotation.neoluma",
-			"match": "@[a-zA-Z_][a-zA-Z0-9_]*"
-		}
-      ]
-    },
-
-    "generic_types": {
-      "patterns": [
-        {
-          "begin": "<",
-          "beginCaptures": {
-            "0": { "name": "punctuation.definition.generic.begin.neoluma" }
-          },
-          "end": ">",
-          "endCaptures": {
-            "0": { "name": "punctuation.definition.generic.end.neoluma" }
-          },
-          "patterns": [
-            {
-              "name": "storage.type.neoluma",
-              "match": "\\b(int|float|number|bool|string|array|set|dict|void|result)\\b"
-            }
-          ]
-        }
-      ]
-    },
-
-   	"support_libraries": {
-      "patterns": [
-        {
-          "name": "support.library.neoluma",
-          "match": "\\b(map|memory|size)\\b"
-        }
-      ]
-    },
-
-    "imports": {
-      "patterns": [
-        {
-          "name": "meta.import.neoluma",
-          "begin": "#(import)\\b",
-          "beginCaptures": {
-            "1": {
-              "name": "keyword.control.import.neoluma"
-            }
-          },
-          "end": "$",
-          "patterns": [
-            {
-              "name": "string.unquoted.importpath.neoluma",
-              "match": "\"[^\"]+\""
-            },
-            {
-              "name": "keyword.control.import.as.neoluma",
-              "match": "\\bas\\b"
-            },
-            {
-              "name": "variable.other.importalias.neoluma",
-              "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
-            },
-            {
-              "name": "support.language.external.neoluma",
-              "match": "\\b[a-z]+:[a-zA-Z0-9_./\\\\]+\\b"
-            }
-          ]
-        }
-      ]
-    },
-    "namespace_scope": {
-      "patterns": [
-        {
-          "name": "entity.name.namespace.neoluma",
-          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)"
-        },
-        {
-          "name": "punctuation.separator.namespace.neoluma",
-          "match": "\\."
-        }
-      ]
-    },
-    "enum_elements": {
-      "patterns": [
-        {
-          "name": "constant.other.enum.neoluma",
-          "match": "\\b([A-Z][a-zA-Z0-9_]*)\\b"
+          "name": "keyword.operator.logical.neo",
+          "match": "(==|!=|>|<|>=|<=|&&|\\|\\|)"
         }
       ]
     }

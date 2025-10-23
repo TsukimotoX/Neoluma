@@ -13,8 +13,12 @@ MemoryPtr<T> makeMemoryPtr(Args&&... args) {
 
 template<typename T, typename U>
 MemoryPtr<T> as(MemoryPtr<U> ptr) {
-    if constexpr (std::is_polymorphic_v<U> && std::is_base_of_v<T, U>) return dynamic_cast<MemoryPtr<T>>(ptr);
-    else return static_cast<MemoryPtr<T>>(ptr);
+    if constexpr (std::is_polymorphic_v<U> && std::is_base_of_v<T, U>) {
+        T* casted = dynamic_cast<T*>(ptr.release());
+        return MemoryPtr<T>(casted);
+    } else {
+        return MemoryPtr<T>(static_cast<T*>(ptr.release()));
+    }
 }
 
 // Other

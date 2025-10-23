@@ -1,43 +1,32 @@
 {
-  "name": "neoluma",
-  "main": "./dist/extension.js",
-  "displayName": "Neoluma",
-  "description": "A language support plugin with syntax highlighting, IntelliSense, and more.",
+  "name": "neoluma-language-support",
+  "displayName": "Neoluma Language Support",
+  "author": {
+    "name": "TsukimotoX",
+    "url": "https://github.com/TsukimotoX",
+    "email": "tsukitsumoto@gmail.com"
+  },
   "publisher": "TsukimotoX",
-  "version": "0.0.1",
+  "icon": "neoluma.png",
+  "description": "",
+  "version": "0.0.2",
   "engines": {
-    "vscode": "^1.102.0"
+    "vscode": "^1.105.0"
   },
   "categories": [
     "Programming Languages"
   ],
   "contributes": {
-    "languages": [
-      {
-        "id": "neoluma",
-        "aliases": [
-          "Neoluma",
-          "neoluma"
-        ],
-        "extensions": [
-          ".nm",
-          ".nlp"
-        ],
-        "configuration": "./language-configuration.json"
-      }
-    ],
-    "grammars": [
-      {
-        "language": "neoluma",
-        "scopeName": "source.neoluma",
-        "path": "./syntaxes/neoluma.tmLanguage.json"
-      }
-    ]
-  },
-  "devDependencies": {
-    "@types/vscode": "^1.102.0"
-  },
-  "dependencies": {
-    "typescript": "^5.9.2"
+    "languages": [{
+      "id": "neoluma",
+      "aliases": ["Neoluma", "neo"],
+      "extensions": [".nm"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "neoluma",
+      "scopeName": "source.nm",
+      "path": "./syntaxes/neoluma.tmLanguage.json"
+    }]
   }
 }

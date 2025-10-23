@@ -30,9 +30,9 @@ public:
 private:
     std::vector<Token> tokens;
     size_t pos = 0;
-    std::string moduleName;
+    std::string moduleName = "";
 
-    Token& curToken() { 
+    Token curToken() { 
         if (pos >= tokens.size()) { Token token = Token{TokenType::EndOfFile, ""}; return token; }
         return tokens[pos]; 
     };
