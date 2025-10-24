@@ -2,8 +2,5 @@
 // Welcome to Neoluma! Have fun building!
 @entry
 fn main() {
-    a?: int = 5;
-    b: string = "Hello!";
-    c = true;666666
-    print("Hello from Neoluma!");
+    
 }

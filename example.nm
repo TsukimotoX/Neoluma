@@ -1,4 +1,5 @@
-#unsafe // Marks the code as unsafe for low-level operations
+#unsafe
+ // Marks the code as unsafe for low-level operations
 
 // Line comment
 /*

@@ -14,10 +14,10 @@ const EKeyword keywordMap[] = {
     {"for", Keywords::For}, {"while", Keywords::While}, {"break", Keywords::Break}, {"continue", Keywords::Continue},
     {"switch", Keywords::Switch}, {"case", Keywords::Case}, {"default", Keywords::Default},
     {"try", Keywords::Try}, {"catch", Keywords::Catch}, {"throw", Keywords::Throw},
-    {"async", Keywords::Async}, {"await", Keywords::Await},
     {"yield", Keywords::Yield}, {"return", Keywords::Return},
-    {"static", Keywords::Static}, {"decorator", Keywords::Decorator}, {"const", Keywords::Const},
     {"as", Keywords::As}, {"with", Keywords::With}, {"in", Keywords::In}, {":", Keywords::In}, {"lambda", Keywords::Lambda},
+    {"decorator", Keywords::Decorator}, 
+    {"async", Keywords::Async}, {"await", Keywords::Await}, {"const", Keywords::Const}, {"static", Keywords::Static}, 
     {"debug", Keywords::Debug}, {"public", Keywords::Public}, {"protected", Keywords::Protected}, {"private", Keywords::Private},
     {"override", Keywords::Override},
 };
