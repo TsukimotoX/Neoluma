@@ -25,8 +25,10 @@ int getOperatorPrecedence(const std::string& op){
 class Parser {
 public:
     Parser(const std::vector<Token>& tokens, const std::string& moduleName) : tokens(tokens), moduleName(moduleName) {}
-    MemoryPtr<ModuleNode> parseModule(); // main parsing
+    void parseModule(); // main parsing
     void printModule();
+
+    MemoryPtr<ModuleNode> moduleSource = nullptr;
 private:
     std::vector<Token> tokens;
     size_t pos = 0;

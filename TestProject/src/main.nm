@@ -1,6 +1,58 @@
-#import "more/add"
-// Welcome to Neoluma! Have fun building!
+#import "utils"
+#import "models"
+
 @entry
 fn main() {
-    
+    // Create a new user
+    user: User = User("Tsuki", 18)
+
+    // Greet the user
+    greet(user)
+
+    // Perform some calculations
+    res: int = add(10, 20)
+    print("10 + 20 = ${res}")
+
+    // Demonstrate control flow
+    if (user.age >= 18) {
+        print("${user.name} is an adult.")
+    } else {
+        print("${user.name} is a minor.")
+    }
+
+    // Use a switch statement
+    switch (user.age) {
+        case 18:
+            print("Just turned adult!")
+        case 21:
+            print("Legal drinking age!")
+        default:
+            print("Age is just a number.")
+    }
+
+    // Use both for and while loops
+    for (i : range(5)) {
+        print("For loop count: ${i}")
+    }
+
+    count: int = 0
+    while (count < 3) {
+        print("While loop count: ${count}")
+        count += 1
+    }
+
+    // Demonstrate error handling
+    try {
+        riskyOperation()
+    } catch (e) {
+        print("Caught an error: ${e}")
+    }
+
+    // Compile-time function
+    @comptime
+    fn compileTimeCheck() {
+        print("This runs at compile time!")
+    }
+
+    compileTimeCheck()
 }
