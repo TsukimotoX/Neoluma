@@ -21,11 +21,11 @@ enum struct ASTNodeType {
     EnumMember, InterfaceField
 };
 
-enum struct ASTVariableType {
-    Integer, Float, Number, Boolean, String,
-    Array, Set, Dictionary, Void, Result,
-    Undefined
-};
+// enum struct ASTVariableType {
+//     Integer, Float, Number, Boolean, String,
+//     Array, Set, Dictionary, Void, Result,
+//     Undefined
+// };
 
 enum struct ASTModifierType {
     Public, Private, Protected, Static, Const, Override, Async, Debug
@@ -54,52 +54,11 @@ struct ASTNode {
     //virtual LLVM::Value generateCode(); // for the compiler to generate code from this AST node
 };
 
-// Forward declarations for all ASTNode structs because header files suck
-struct LiteralNode;
-struct VariableNode;
-struct AssignmentNode;
-struct BinaryOperationNode;
-struct UnaryOperationNode;
-struct BlockNode;
-struct IfNode;
-struct SCDefaultNode;
-struct CaseNode;
-struct SwitchNode;
-struct ForLoopNode;
-struct WhileLoopNode;
-struct ArrayNode;
-struct SetNode;
-struct DictNode;
-struct VoidNode;
-struct ResultNode;
-struct EnumMemberNode;
-struct EnumNode;
-struct InterfaceFieldNode;
-struct InterfaceNode;
-struct LambdaNode;
-struct ParameterNode;
-struct ModifierNode;
-struct DecoratorNode;
-struct FunctionNode;
-struct ClassNode;
-struct ReturnStatementNode;
-struct CallExpressionNode;
-struct ThrowStatementNode;
-struct BreakStatementNode;
-struct ContinueStatementNode;
-struct TryCatchNode;
-struct ImportNode;
-struct PreprocessorDirectiveNode;
-struct ModuleNode;
-struct ProgramNode;
-
 // All nodes available in Neoluma
 
 struct LiteralNode : ASTNode {
-    ASTVariableType varType;
-    LiteralNode(const ASTVariableType& varType = ASTVariableType::Undefined, const std::string& val = "") {
+    LiteralNode(const std::string& val = "") {
         this->type = ASTNodeType::Literal;
-        this->varType = varType;
         value = val;
     }
 };
@@ -107,9 +66,11 @@ struct LiteralNode : ASTNode {
 struct VariableNode : ASTNode {
     std::string varName;
     bool isNullable = false;
+    std::string rawType;
 
-    VariableNode(const std::string& varName, bool isNullable = false) : varName(varName), isNullable(isNullable) {
+    VariableNode(const std::string& varName, const std::string& type, bool isNullable = false) : varName(varName), isNullable(isNullable) {
         this->type = ASTNodeType::Variable;
+        this->rawType = type;
     }
 };
 
@@ -118,7 +79,7 @@ struct AssignmentNode : ASTNode {
     MemoryPtr<ASTNode> variableValue;
     bool isInitialized = false;
 
-    AssignmentNode(VariableNode* variable, const std::string& op, MemoryPtr<ASTNode>&& varValue)
+    AssignmentNode(VariableNode* variable, const std::string& op, MemoryPtr<ASTNode> varValue)
         : variable(variable), variableValue(std::move(varValue)) {
         this->value = op;
         this->type = ASTNodeType::Assignment;
@@ -129,7 +90,7 @@ struct BinaryOperationNode : ASTNode {
     MemoryPtr<ASTNode> leftOperand;
     MemoryPtr<ASTNode> rightOperand;
 
-    BinaryOperationNode(MemoryPtr<ASTNode>&& leftOp, const std::string& op, MemoryPtr<ASTNode>&& rightOp)
+    BinaryOperationNode(MemoryPtr<ASTNode> leftOp, const std::string& op, MemoryPtr<ASTNode> rightOp)
         : leftOperand(std::move(leftOp)), rightOperand(std::move(rightOp)) {
         this->type = ASTNodeType::BinaryOperation;
         value = op;
@@ -139,7 +100,7 @@ struct BinaryOperationNode : ASTNode {
 struct UnaryOperationNode : ASTNode {
     MemoryPtr<ASTNode> operand;
 
-    UnaryOperationNode(const std::string& op, MemoryPtr<ASTNode>&& operand)
+    UnaryOperationNode(const std::string& op, MemoryPtr<ASTNode> operand)
         : operand(std::move(operand)) {
         this->type = ASTNodeType::UnaryOperation;
         value = op;
@@ -154,10 +115,10 @@ struct BlockNode : ASTNode {
 
 struct IfNode : ASTNode {
     MemoryPtr<ASTNode> condition;
-    MemoryPtr<BlockNode> thenBlock;
-    MemoryPtr<BlockNode> elseBlock;
+    MemoryPtr<ASTNode> thenBlock;
+    MemoryPtr<ASTNode> elseBlock;
 
-    IfNode(MemoryPtr<ASTNode>&& condition, MemoryPtr<BlockNode>&& thenBlock, MemoryPtr<BlockNode>&& elseBlock = nullptr)
+    IfNode(MemoryPtr<ASTNode> condition, MemoryPtr<ASTNode> thenBlock, MemoryPtr<ASTNode> elseBlock = nullptr)
         : condition(std::move(condition)), thenBlock(std::move(thenBlock)), elseBlock(std::move(elseBlock)) {
         this->type = ASTNodeType::IfStatement;
     }
@@ -165,7 +126,7 @@ struct IfNode : ASTNode {
 
 struct SCDefaultNode : ASTNode {
     MemoryPtr<BlockNode> body;
-    SCDefaultNode(MemoryPtr<BlockNode>&& body) : body(std::move(body)) {
+    SCDefaultNode(MemoryPtr<BlockNode> body) : body(std::move(body)) {
         this->type = ASTNodeType::SCDefault;
     }
 };
@@ -173,7 +134,7 @@ struct SCDefaultNode : ASTNode {
 struct CaseNode : ASTNode {
     MemoryPtr<ASTNode> condition;
     MemoryPtr<BlockNode> body;
-    CaseNode(MemoryPtr<ASTNode>&& condition, MemoryPtr<BlockNode>&& body)
+    CaseNode(MemoryPtr<ASTNode> condition, MemoryPtr<BlockNode> body)
         : condition(std::move(condition)), body(std::move(body)) {
         this->type = ASTNodeType::Case;
     }
@@ -184,7 +145,7 @@ struct SwitchNode : ASTNode {
     std::vector<MemoryPtr<CaseNode>> cases;
     MemoryPtr<SCDefaultNode> defaultCase;
 
-    SwitchNode(MemoryPtr<ASTNode>&& expression, std::vector<MemoryPtr<CaseNode>>&& cases, MemoryPtr<SCDefaultNode>&& defaultCase = nullptr)
+    SwitchNode(MemoryPtr<ASTNode> expression, std::vector<MemoryPtr<CaseNode>> cases, MemoryPtr<SCDefaultNode> defaultCase = nullptr)
         : expression(std::move(expression)), cases(std::move(cases)), defaultCase(std::move(defaultCase)) {
         this->type = ASTNodeType::Switch;
     }
@@ -195,7 +156,7 @@ struct ForLoopNode : ASTNode {
     MemoryPtr<ASTNode> iterable;
     MemoryPtr<BlockNode> body;
 
-    ForLoopNode(MemoryPtr<VariableNode>&& variable, MemoryPtr<ASTNode>&& iterable, MemoryPtr<BlockNode>&& body)
+    ForLoopNode(MemoryPtr<VariableNode> variable, MemoryPtr<ASTNode> iterable, MemoryPtr<BlockNode> body)
         : variable(std::move(variable)), iterable(std::move(iterable)), body(std::move(body)) {
         this->type = ASTNodeType::ForLoop;
     }
@@ -205,7 +166,7 @@ struct WhileLoopNode : ASTNode {
     MemoryPtr<ASTNode> condition;
     MemoryPtr<BlockNode> body;
 
-    WhileLoopNode(MemoryPtr<ASTNode>&& condition, MemoryPtr<BlockNode>&& body)
+    WhileLoopNode(MemoryPtr<ASTNode> condition, MemoryPtr<BlockNode> body)
         : condition(std::move(condition)), body(std::move(body)) {
         this->type = ASTNodeType::WhileLoop;
     }
@@ -221,7 +182,7 @@ struct ContinueStatementNode : ASTNode {
 
 struct ReturnStatementNode : ASTNode {
     MemoryPtr<ASTNode> expression;
-    ReturnStatementNode(MemoryPtr<ASTNode>&& expression)
+    ReturnStatementNode(MemoryPtr<ASTNode> expression)
         : expression(std::move(expression)) {
         this->type = ASTNodeType::ReturnStatement;
     }
@@ -229,7 +190,7 @@ struct ReturnStatementNode : ASTNode {
 
 struct ThrowStatementNode : ASTNode {
     MemoryPtr<ASTNode> expression;
-    ThrowStatementNode(MemoryPtr<ASTNode>&& expression)
+    ThrowStatementNode(MemoryPtr<ASTNode> expression)
         : expression(std::move(expression)) {
         this->type = ASTNodeType::ThrowStatement;
     }
@@ -240,7 +201,7 @@ struct TryCatchNode : ASTNode {
     MemoryPtr<BlockNode> catchBlock;
     MemoryPtr<LiteralNode> exception;
 
-    TryCatchNode(MemoryPtr<BlockNode>&& tryBlock, MemoryPtr<BlockNode>&& catchBlock)
+    TryCatchNode(MemoryPtr<BlockNode> tryBlock, MemoryPtr<BlockNode> catchBlock)
         : tryBlock(std::move(tryBlock)), catchBlock(std::move(catchBlock)) {
         this->type = ASTNodeType::TryCatch;
     }
@@ -269,9 +230,9 @@ struct SetNode : ASTNode {
 
 struct DictNode : ASTNode {
     std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>> elements;
-    std::array<ASTVariableType, 2> types;
+    std::array<std::string, 2> types;
 
-    DictNode(std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>>&& elements, std::array<ASTVariableType, 2>&& types={ASTVariableType::Undefined, ASTVariableType::Undefined})
+    DictNode(std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>> elements, std::array<std::string, 2> types)
         : elements(std::move(elements)), types(std::move(types)) {
         this->type = ASTNodeType::Dict;
     }
@@ -286,7 +247,7 @@ struct ResultNode : ASTNode {
     MemoryPtr<ASTNode> e;
     bool isError;
 
-    ResultNode(MemoryPtr<ASTNode>&& t, MemoryPtr<ASTNode>&& e = nullptr, bool isError = false)
+    ResultNode(MemoryPtr<ASTNode> t, MemoryPtr<ASTNode> e = nullptr, bool isError = false)
         : t(std::move(t)), e(std::move(e)), isError(isError) {
         this->type = ASTNodeType::Result;
     }
@@ -295,11 +256,11 @@ struct ResultNode : ASTNode {
 // higher structures
 struct ParameterNode : ASTNode {
     std::string parameterName;
-    ASTVariableType parameterType;
+    std::string parameterRawType;
     std::optional<std::string> defaultValue;
 
-    ParameterNode(const std::string& parameterName, ASTVariableType&& parameterType, const std::string& defaultValue = "")
-        : parameterName(parameterName), parameterType(parameterType) {
+    ParameterNode(const std::string& parameterName, const std::string& parameterRawType, const std::string& defaultValue = "")
+        : parameterName(parameterName), parameterRawType(parameterRawType) {
         this->type = ASTNodeType::Parameter;
         if (!defaultValue.empty()) this->defaultValue = defaultValue;
     }
@@ -314,9 +275,9 @@ struct ModifierNode : ASTNode {
 
 struct CallExpressionNode : ASTNode {
     MemoryPtr<ASTNode> callee;
-    std::vector<MemoryPtr<ParameterNode>> arguments;
+    std::vector<MemoryPtr<ASTNode>> arguments;
 
-    CallExpressionNode(MemoryPtr<ASTNode>&& callee, std::vector<MemoryPtr<ParameterNode>>&& arguments)
+    CallExpressionNode(MemoryPtr<ASTNode> callee, std::vector<MemoryPtr<ASTNode>> arguments)
         : callee(std::move(callee)), arguments(std::move(arguments)) {
         this->type = ASTNodeType::CallExpression;
     }
@@ -325,7 +286,7 @@ struct CallExpressionNode : ASTNode {
 struct EnumMemberNode : ASTNode {
     std::string name;
     MemoryPtr<LiteralNode> value;
-    EnumMemberNode(const std::string& name, MemoryPtr<LiteralNode>&& value = nullptr) : name(name), value(std::move(value)) {
+    EnumMemberNode(const std::string& name, MemoryPtr<LiteralNode> value = nullptr) : name(name), value(std::move(value)) {
         this->type = ASTNodeType::EnumMember;
     }
 };
@@ -335,7 +296,7 @@ struct EnumNode : ASTNode {
     std::vector<MemoryPtr<ModifierNode>> modifiers;
     std::vector<MemoryPtr<EnumMemberNode>> elements;
 
-    EnumNode(std::vector<MemoryPtr<EnumMemberNode>>&& elements, std::vector<MemoryPtr<CallExpressionNode>>&& decorators = {}, std::vector<MemoryPtr<ModifierNode>>&& modifiers = {}) {
+    EnumNode(std::vector<MemoryPtr<EnumMemberNode>> elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = std::vector<MemoryPtr<CallExpressionNode>>{}, std::vector<MemoryPtr<ModifierNode>> modifiers = std::vector<MemoryPtr<ModifierNode>>{}) {
         this->type = ASTNodeType::Enum;
         this->elements = std::move(elements);
         this->decorators = std::move(decorators);
@@ -345,10 +306,10 @@ struct EnumNode : ASTNode {
 
 struct InterfaceFieldNode : ASTNode {
     std::string name;
-    MemoryPtr<VariableNode> vartype;
+    std::string vartype;
     bool isNullable;
-    InterfaceFieldNode(const std::string& name, MemoryPtr<VariableNode>&& type, bool isNullable)
-        : name(name), vartype(std::move(type)), isNullable(isNullable) {
+    InterfaceFieldNode(const std::string& name, const std::string& type, bool isNullable = false)
+        : name(name), vartype(type), isNullable(isNullable) {
         this->type = ASTNodeType::InterfaceField;
     }
 };
@@ -356,9 +317,9 @@ struct InterfaceFieldNode : ASTNode {
 struct InterfaceNode : ASTNode {
     std::vector<MemoryPtr<CallExpressionNode>> decorators;
     std::vector<MemoryPtr<ModifierNode>> modifiers;
-    std::vector<InterfaceFieldNode> elements;
+    std::vector<MemoryPtr<InterfaceFieldNode>> elements;
 
-    InterfaceNode(std::vector<InterfaceFieldNode>&& elements, std::vector<MemoryPtr<CallExpressionNode>>&& decorators = {}, std::vector<MemoryPtr<ModifierNode>>&& modifiers = {}) {
+    InterfaceNode(std::vector<MemoryPtr<InterfaceFieldNode>> elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = std::vector<MemoryPtr<CallExpressionNode>>{}, std::vector<MemoryPtr<ModifierNode>> modifiers = std::vector<MemoryPtr<ModifierNode>>{}) {
         this->type = ASTNodeType::Interface;
         this->elements = std::move(elements);
         this->decorators = std::move(decorators);
@@ -370,7 +331,7 @@ struct LambdaNode : ASTNode {
     std::vector<MemoryPtr<ASTNode>> params;
     MemoryPtr<ASTNode> body;
 
-    LambdaNode(std::vector<MemoryPtr<ASTNode>>&& params, MemoryPtr<ASTNode>&& body)
+    LambdaNode(std::vector<MemoryPtr<ASTNode>> params, MemoryPtr<ASTNode> body)
         : params(std::move(params)), body(std::move(body)) {
         this->type = ASTNodeType::Lambda;
     }
@@ -383,8 +344,8 @@ struct FunctionNode : ASTNode {
     std::vector<MemoryPtr<ParameterNode>> parameters;
     MemoryPtr<BlockNode> body;
 
-    FunctionNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>>&& parameters, MemoryPtr<BlockNode>&& body,
-                 std::vector<MemoryPtr<CallExpressionNode>>&& decorators = {}, std::vector<MemoryPtr<ModifierNode>>&& modifiers = {})
+    FunctionNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<BlockNode> body,
+                 std::vector<MemoryPtr<CallExpressionNode>> decorators = std::vector<MemoryPtr<CallExpressionNode>>{}, std::vector<MemoryPtr<ModifierNode>> modifiers = std::vector<MemoryPtr<ModifierNode>>{})
         : name(name), parameters(std::move(parameters)), body(std::move(body)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
         this->type = ASTNodeType::Function;
     }
@@ -397,8 +358,8 @@ struct ClassNode : ASTNode {
     std::vector<MemoryPtr<VariableNode>> fields;
     std::vector<MemoryPtr<FunctionNode>> methods;
 
-    ClassNode(const std::string& name, std::vector<MemoryPtr<VariableNode>>&& fields, std::vector<MemoryPtr<FunctionNode>>&& methods,
-              std::vector<MemoryPtr<CallExpressionNode>>&& decorators = {}, std::vector<MemoryPtr<ModifierNode>>&& modifiers = {})
+    ClassNode(const std::string& name, std::vector<MemoryPtr<VariableNode>> fields, std::vector<MemoryPtr<FunctionNode>> methods,
+              std::vector<MemoryPtr<CallExpressionNode>> decorators = std::vector<MemoryPtr<CallExpressionNode>>{}, std::vector<MemoryPtr<ModifierNode>> modifiers = std::vector<MemoryPtr<ModifierNode>>{})
         : name(name), fields(std::move(fields)), methods(std::move(methods)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
         this->type = ASTNodeType::Class;
     }
@@ -412,7 +373,7 @@ struct DecoratorNode : ASTNode {
     MemoryPtr<BlockNode> body;
 
     DecoratorNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<BlockNode> body,
-                 std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
+                 std::vector<MemoryPtr<CallExpressionNode>> decorators = std::vector<MemoryPtr<CallExpressionNode>>{}, std::vector<MemoryPtr<ModifierNode>> modifiers = std::vector<MemoryPtr<ModifierNode>>{})
         : name(name), parameters(std::move(parameters)), body(std::move(body)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
         this->type = ASTNodeType::Decorator;
     }

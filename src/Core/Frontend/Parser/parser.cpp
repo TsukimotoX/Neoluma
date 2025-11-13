@@ -2,14 +2,48 @@
 #include "parser.hpp"
 #include "../token.hpp"
 #include "../../../HelperFunctions.hpp"
+#include "ASTBuilder.hpp"
 #include <iostream>
 #include <unordered_set>
 #include <print>
 #include <typeinfo>
 
+// ==== Print the parser output ====
+void Parser::printModule() {
+    auto module = parseModule();
+    if (!module) {
+        std::cerr << "[Neoluma/Parser] No module to print.";
+        return;
+    }
+
+    auto printNode = [](const MemoryPtr<ASTNode>& node, int indent) {
+        if (!node) return;
+        std::string indentation(indent, ' ');
+
+        if (auto module = dynamic_cast<ModuleNode*>(node.get())) {
+            std::cout << indentation << "ModuleNode {\n";
+            for (const auto& child : module->body) {
+                printNode(child, indent + 2);
+            }
+            std::cout << indentation << "}\n";
+        } else {
+            std::cout << indentation << "ASTNode {\n";
+            std::cout << indentation << "  type: " << static_cast<int>(node->type) << "\n";
+            if (!node->value.empty()) {
+                std::cout << indentation << "  value: " << node->value << "\n";
+            }
+            std::cout << indentation << "}\n";
+        }
+    };
+
+    std::cout << "ModuleNode {\n";
+    printNode(module, 2);
+    std::cout << "}\n";
+}
+
 // ==== Main parsing ====
-MemoryPtr<ModuleNode> Parser::parseModule() {
-    auto moduleNode = makeMemoryPtr<ModuleNode>(moduleName);
+void Parser::parseModule() {
+    auto moduleNode = ASTBuilder::createModule(moduleName);
 
     while (!isAtEnd()) {
         MemoryPtr<ASTNode> stmt = parseStatement();
@@ -21,7 +55,7 @@ MemoryPtr<ModuleNode> Parser::parseModule() {
         moduleNode->body.push_back(std::move(stmt));
     }
 
-    return moduleNode;
+    moduleSource = std::move(moduleNode);
 }
 
 // ==== Statement parsing ====
@@ -31,10 +65,10 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
     auto dm = getDelimeterNames();
 
     std::vector<MemoryPtr<CallExpressionNode>> decorators = {};
-    
+
     if (token.value == "#") return parsePreprocessor();
     if (token.value == "@") decorators = parseDecoratorCalls();
-    
+
     auto modifiers = parseModifiers();
 
     // === Control Flow Keywords ===
@@ -51,7 +85,7 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
                 std::cerr << "[Neoluma/Parser] Expected expression after 'return'";
                 return nullptr;
             }
-            return makeMemoryPtr<ReturnStatementNode>(expr);
+            return ASTBuilder::createReturnStatement(std::move(expr));
         }
         else if (km[token.value] == Keywords::Throw) {
             next();
@@ -60,10 +94,10 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
                 std::cerr << "[Neoluma/Parser] Expected expression after 'throw'";
                 return nullptr;
             }
-            return makeMemoryPtr<ThrowStatementNode>(expr);
+            return ASTBuilder::createThrowStatement(std::move(expr));
         }
-        else if (km[token.value] == Keywords::Break) return makeMemoryPtr<BreakStatementNode>();
-        else if (km[token.value] == Keywords::Continue) return makeMemoryPtr<ContinueStatementNode>();
+        else if (km[token.value] == Keywords::Break) return ASTBuilder::createBreakStatement();
+        else if (km[token.value] == Keywords::Continue) return ASTBuilder::createContinueStatement();
 
         // for modifier affected structures
         if (km[token.value] == Keywords::Function) return parseFunction(std::move(decorators), std::move(modifiers));
@@ -84,7 +118,7 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
 }
 
 // ==== Expression parsing ====
-MemoryPtr<ASTNode> Parser::parsePrimary(){
+MemoryPtr<ASTNode> Parser::parsePrimary() {
     Token token = curToken();
     auto dn = getDelimeterNames();
     auto on = getOperatorNames();
@@ -115,7 +149,7 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
                     //std::println(std::cerr, "[Neoluma/Parser] Could not find a block of code after assignment arrow. {}", "");
                     return nullptr;
                 }
-                return makeMemoryPtr<LambdaNode>(std::move(exprs), block);
+                return ASTBuilder::createLambda(std::move(exprs), std::move(block));
             }
             return std::move(exprs[0]);
         }
@@ -130,7 +164,7 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
                 if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
             }
             next();
-            return makeMemoryPtr<ArrayNode>(e/*, typeHint miss*/);
+            return ASTBuilder::createArray(std::move(e)/*, typeHint miss*/);
         }
         // Sets / dicts
         else if (token.value == dn[Delimeters::LeftBraces]) {
@@ -152,7 +186,7 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
                     if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
                     else break;
                 }
-                return makeMemoryPtr<DictNode>(e/*, typeHint miss*/);
+                return ASTBuilder::createDict(std::move(e)/*, typeHint miss*/);
             } else {
                 std::vector<MemoryPtr<ASTNode>> e;
                 while (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
@@ -162,7 +196,7 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
                     else break;
                 }
                 next();
-                return makeMemoryPtr<SetNode>(e/*, typeHint miss*/);
+                return ASTBuilder::createSet(std::move(e)/*, typeHint miss*/);
             }
         }
     } 
@@ -170,12 +204,12 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
     else if ((token.type == TokenType::Number || token.type == TokenType::String) 
     || (token.type == TokenType::Identifier && (token.value == "true" || token.value == "false"))) {
         next();
-        return makeMemoryPtr<LiteralNode>(ASTVariableType::Undefined, token.value);
+        return ASTBuilder::createLiteral(token.value);
     } 
     // Null
     else if (token.type == TokenType::Null) {
         next();
-        return makeMemoryPtr<LiteralNode>(ASTVariableType::Undefined, "null");
+        return ASTBuilder::createLiteral("null");
     }
 
     // Identifier/variable or function call
@@ -189,7 +223,7 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
 
             while (!match(TokenType::Delimeter, dn[Delimeters::RightParen])) {
                 auto arg = parseExpression();
-                if (arg) args.push_back(makeMemoryPtr<ASTNode>(std::move(arg)));
+                if (arg) args.push_back(std::move(arg));
                 
                 if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
                 else break;
@@ -199,12 +233,12 @@ MemoryPtr<ASTNode> Parser::parsePrimary(){
                 return nullptr;
             }
 
-            auto callee = makeMemoryPtr<VariableNode>(id.value);
-            return makeMemoryPtr<CallExpressionNode>(std::move(callee), args);
+            auto callee = ASTBuilder::createVariable(id.value);
+            return ASTBuilder::createCallExpression(std::move(callee), std::move(args));
         }
 
         // else identifier
-        return makeMemoryPtr<VariableNode>(id.value);
+        return ASTBuilder::createVariable(id.value);
     }
 
     std::println(std::cerr, "[Neoluma/Parser] Unexpected token in primary expression: {}", token.value);
@@ -246,8 +280,7 @@ MemoryPtr<ASTNode> Parser::parseBinary(int prevPredecence) {
         MemoryPtr<ASTNode> right = parseBinary(predecence+1);
         if (!right) return nullptr;
 
-        MemoryPtr<BinaryOperationNode> binaryOpNode = makeMemoryPtr<BinaryOperationNode>(std::move(left), op, std::move(right));
-        left = std::move(binaryOpNode);
+        left = ASTBuilder::createBinaryOperation(std::move(left), op, std::move(right));
     }
     return left;
 }
@@ -258,7 +291,7 @@ MemoryPtr<UnaryOperationNode> Parser::parseUnary(const std::string& op) {
         std::println(std::cerr, "[Neoluma/Parser] Missing operand after unary operator: {}", op);
         return nullptr;
     }
-    return makeMemoryPtr<UnaryOperationNode>(op, std::move(operand));
+    return ASTBuilder::createUnaryOperation(op, std::move(operand));
 }
 
 MemoryPtr<AssignmentNode> Parser::parseAssignment(){
@@ -287,29 +320,27 @@ MemoryPtr<AssignmentNode> Parser::parseAssignment(){
         return nullptr;
     }
 
-    return makeMemoryPtr<AssignmentNode>(variableName, op, std::move(value));
+    return ASTBuilder::createAssignment(ASTBuilder::createVariable(variableName), op, std::move(value));
 }
 
 MemoryPtr<ReturnStatementNode> Parser::parseReturn(){
     next();
 
     if (curToken().type == TokenType::Delimeter && isNextLine()) {
-        return makeMemoryPtr<ReturnStatementNode>(nullptr);
+        return ASTBuilder::createReturnStatement(nullptr);
     }
 
     MemoryPtr<ASTNode> expr = parseExpression();
     if (!expr) {
-        //std::println(std::cerr, "[Neoluma/Parser] Invalid expression in return statement{}", "");
         return nullptr;
     }
 
     if (curToken().type != TokenType::Delimeter || !isNextLine()) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected ';' after return expression{}", "");
         return nullptr;
     }
     next();
 
-    return makeMemoryPtr<ReturnStatementNode>(std::move(expr));
+    return ASTBuilder::createReturnStatement(std::move(expr));
 }
 
 // ==== Control flow ====
@@ -318,17 +349,14 @@ MemoryPtr<IfNode> Parser::parseIf() {
 
     auto dm = getDelimeterNames();
     if (!match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected '(' after 'if'{}", "");
         return nullptr;
     }
     next();
     MemoryPtr<ASTNode> condition = parseExpression();
     if (!condition) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected condition expression after 'if'{}", "");
         return nullptr;
     }
     if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected ')' after condition in 'if'{}", "");
         return nullptr;
     }
 
@@ -341,7 +369,7 @@ MemoryPtr<IfNode> Parser::parseIf() {
         elseBlock = parseBlockorStatement();
     }
 
-    return makeMemoryPtr<IfNode>(condition, ifBlock, elseBlock);
+    return ASTBuilder::createIf(std::move(condition), std::move(ifBlock), std::move(elseBlock));
 }
 
 MemoryPtr<SwitchNode> Parser::parseSwitch() {
@@ -350,25 +378,21 @@ MemoryPtr<SwitchNode> Parser::parseSwitch() {
     auto km = getKeywordNames();
 
     if (!match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected '(' after 'switch'{}", "");
         return nullptr;
     }
     next();
 
     MemoryPtr<ASTNode> expr = parseExpression();
     if (!expr) {
-        //std::println(std::cerr, "[Neoluma/Parser] Invalid expression in switch{}", "");
         return nullptr;
     }
 
     if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected ')' after switch expression{}", "");
         return nullptr;
     }
     next();
 
     if (!match(TokenType::Delimeter, dm[Delimeters::LeftBraces])) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected '{' after switch{}", "");
         return nullptr;
     }
     next();
@@ -383,55 +407,49 @@ MemoryPtr<SwitchNode> Parser::parseSwitch() {
             next();
             MemoryPtr<ASTNode> condition = parseExpression();
             if (!match(TokenType::Delimeter, dm[Delimeters::Colon])) {
-                //std::println(std::cerr, "[Neoluma/Parser] Expected ':' after case condition{}", "");
                 return nullptr;
             }
             next();
-            auto body = as<BlockNode>(parseBlockorStatement());
-            cases.push_back(makeMemoryPtr<CaseNode>(condition, body));
+            auto body = parseBlock();
+            cases.push_back(ASTBuilder::createCase(std::move(condition), std::move(body)));
         }
         else if (match(TokenType::Keyword, km[Keywords::Default])) {
             next();
             if (!match(TokenType::Delimeter, dm[Delimeters::Colon])) {
-                //std::println(std::cerr, "[Neoluma/Parser] Expected ':' after default{}", "");
                 return nullptr;
             }
             next();
-            auto body = as<BlockNode>(parseBlockorStatement());
-            defaultCase = makeMemoryPtr<SCDefaultNode>(body);
+            auto body = parseBlock();
+            defaultCase = ASTBuilder::createDefaultCase(std::move(body));
         }
         else {
-            //std::println(std::cerr, "[Neoluma/Parser] Unexpected token in switch{}", "");
             return nullptr;
         }
     }
 
-    return makeMemoryPtr<SwitchNode>(expr, cases, defaultCase);
+    return ASTBuilder::createSwitch(std::move(expr), std::move(cases), std::move(defaultCase));
 }
 
 MemoryPtr<TryCatchNode> Parser::parseTryCatch() {
     next();
     auto km = getKeywordNames();
 
-    auto tryBlock = as<BlockNode>(parseBlockorStatement());
+    auto tryBlock = parseBlock();
     if (!tryBlock) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected try block{}", "");
         return nullptr;
     }
 
     if (!match(TokenType::Keyword, km[Keywords::Catch])) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected 'catch' after 'try'{}", "");
         return nullptr;
     }
     next();
 
-    auto catchBlock = as<BlockNode>(parseBlockorStatement());
+    auto catchBlock = parseBlock();
     if (!catchBlock) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected catch block{}", "");
         return nullptr;
     }
 
-    return makeMemoryPtr<TryCatchNode>(tryBlock, catchBlock);
+    return ASTBuilder::createTryCatch(std::move(tryBlock), std::move(catchBlock));
 }
 
 MemoryPtr<ForLoopNode> Parser::parseFor() {
@@ -439,44 +457,38 @@ MemoryPtr<ForLoopNode> Parser::parseFor() {
     auto dm = getDelimeterNames();
 
     if (!match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected '(' after 'for'{}", "");
         return nullptr;
     }
     next();
 
     if (curToken().type != TokenType::Identifier) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected identifier in for loop{}", "");
         return nullptr;
     }
 
     std::string varName = curToken().value;
-    auto varNode = makeMemoryPtr<VariableNode>(varName, ASTVariableType::Void);
+    auto varNode = ASTBuilder::createVariable(varName);
     next();
 
     if (!match(TokenType::Operator, dm[Delimeters::Colon])) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected ':' after loop variable in for{}", "");
         return nullptr;
     }
     next();
 
     MemoryPtr<ASTNode> iterable = parseExpression();
     if (!iterable) {
-        //std::println(std::cerr, "[Neoluma/Parser] Invalid iterable in for loop{}", "");
         return nullptr;
     }
 
     if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected ')' after for condition{}", "");
         return nullptr;
     }
 
-    auto body = as<BlockNode>(parseBlockorStatement());
+    auto body = parseBlock();
     if (!body) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected block or statement after for{}", "");
         return nullptr;
     }
 
-    return makeMemoryPtr<ForLoopNode>(std::move(varNode), std::move(iterable), std::move(body));
+    return ASTBuilder::createForLoop(std::move(varNode), std::move(iterable), std::move(body));
 }
 
 MemoryPtr<WhileLoopNode> Parser::parseWhile() {
@@ -484,27 +496,23 @@ MemoryPtr<WhileLoopNode> Parser::parseWhile() {
     auto dm = getDelimeterNames();
 
     if (!match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected '(' after 'while'{}", "");
         return nullptr;
     }
     next();
     MemoryPtr<ASTNode> condition = parseExpression();
     if (!condition) {
-        std::println(std::cerr, "[Neoluma/Parser] Invalid condition in while loop{}", "");
         return nullptr;
     }
     if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected ')' after while condition{}", "");
         return nullptr;
     }
 
     auto body = as<BlockNode>(parseBlockorStatement());
     if (!body) {
-        //std::println(std::cerr, "[Neoluma/Parser] Expected block or statement after while{}", "");
         return nullptr;
     }
 
-    return makeMemoryPtr<WhileLoopNode>(std::move(condition), std::move(body));
+    return ASTBuilder::createWhileLoop(std::move(condition), std::move(body));
 }
 
 // ==== Declarations ====
@@ -535,8 +543,8 @@ MemoryPtr<FunctionNode> Parser::parseFunction(std::vector<MemoryPtr<CallExpressi
         }
         next();
 
-        ASTVariableType type = ASTVariableType::Undefined; // TODO: detect type later
-        params.push_back(makeMemoryPtr<ParameterNode>(paramName.value, type));
+        auto type = parsePrimary(); // TODO: detect type PROPERLY later I need this to compile at least
+        params.push_back(makeMemoryPtr<ParameterNode>(paramName.value, type->value)); // TODO: Add default value parsing
 
         if (match(TokenType::Delimeter, dm[Delimeters::Comma])) next();
         else break;
@@ -551,7 +559,7 @@ MemoryPtr<FunctionNode> Parser::parseFunction(std::vector<MemoryPtr<CallExpressi
     MemoryPtr<BlockNode> body = parseBlock();
     if (!body) return nullptr;
 
-    return makeMemoryPtr<FunctionNode>(funcName, params, body, std::move(decorators), std::move(modifiers));
+    return ASTBuilder::createFunction(funcName, std::move(params), std::move(body), std::move(decorators), std::move(modifiers));
 }
 
 MemoryPtr<ClassNode> Parser::parseClass(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers) {
@@ -591,7 +599,7 @@ MemoryPtr<ClassNode> Parser::parseClass(std::vector<MemoryPtr<CallExpressionNode
             std::string fieldName = t.value;
             next();
             //ASTVariableType varType = ASTVariableType::Undefined;
-            fields.push_back(makeMemoryPtr<VariableNode>(fieldName));
+            fields.push_back(ASTBuilder::createVariable(fieldName));
             if (curToken().type == TokenType::Delimeter && isNextLine()) next();
         }
         else {
@@ -601,7 +609,7 @@ MemoryPtr<ClassNode> Parser::parseClass(std::vector<MemoryPtr<CallExpressionNode
     }
 
     next();
-    return makeMemoryPtr<ClassNode>(className, methods, fields, methods, modifiers);
+    return ASTBuilder::createClass(className, std::move(fields), std::move(methods), std::move(decorators), std::move(modifiers));
 }
 
 MemoryPtr<BlockNode> Parser::parseBlock() {
@@ -641,14 +649,35 @@ MemoryPtr<ASTNode> Parser::parseDecorator(std::vector<MemoryPtr<CallExpressionNo
     std::string name = nameToken.value;
     next();
 
-    std::vector<MemoryPtr<ParameterNode>> params;
+    if (!isCall) {
+        std::vector<MemoryPtr<ParameterNode>> params;
+        if (match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
+            next();
+            while (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
+                Token tok = curToken();
+                if (!match(TokenType::Identifier)) break;
+                params.push_back(ASTBuilder::createParameter(tok.value));
+                next();
+                if (match(TokenType::Delimeter, dm[Delimeters::Comma])) next();
+                else break;
+            }
+            if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
+                //std::println(std::cerr, "[Neoluma/Parser] Unterminated decorator params{}", "");
+                return nullptr;
+            }
+            next();
+        }
+        auto block = parseBlock();
+        return ASTBuilder::createDecorator(name, std::move(params), std::move(block), std::move(decorators), std::move(modifiers));
+    }
+
+    std::vector<MemoryPtr<ASTNode>> args;
     if (match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
         next();
         while (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
-            Token tok = curToken();
-            if (!match(TokenType::Identifier)) break;
-            params.push_back(makeMemoryPtr<ParameterNode>(tok.value, ASTVariableType::Undefined));
-            next();
+            auto arg = parseExpression();
+            if (arg) args.push_back(std::move(arg));
+
             if (match(TokenType::Delimeter, dm[Delimeters::Comma])) next();
             else break;
         }
@@ -658,12 +687,7 @@ MemoryPtr<ASTNode> Parser::parseDecorator(std::vector<MemoryPtr<CallExpressionNo
         }
         next();
     }
-
-    if (isCall) return makeMemoryPtr<CallExpressionNode>(makeMemoryPtr<VariableNode>(name), params);
-
-    auto block = parseBlock();
-
-    return makeMemoryPtr<DecoratorNode>(name, params, block, modifiers);
+    return ASTBuilder::createCallExpression(ASTBuilder::createVariable(name), std::move(args));
 }
 
 std::vector<MemoryPtr<CallExpressionNode>> Parser::parseDecoratorCalls() {
@@ -682,21 +706,21 @@ std::vector<MemoryPtr<ModifierNode>> Parser::parseModifiers() {
     
     while (curToken().type == TokenType::Keyword) {
         if (match(TokenType::Keyword, kn[Keywords::Static])) 
-            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Static));
+            modifiers.push_back(ASTBuilder::createModifier(ASTModifierType::Static));
         else if (match(TokenType::Keyword, kn[Keywords::Const])) 
-            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Const));
+            modifiers.push_back(ASTBuilder::createModifier(ASTModifierType::Const));
         else if (match(TokenType::Keyword, kn[Keywords::Public])) 
-            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Public));
+            modifiers.push_back(ASTBuilder::createModifier(ASTModifierType::Public));
         else if (match(TokenType::Keyword, kn[Keywords::Protected])) 
-            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Protected));
+            modifiers.push_back(ASTBuilder::createModifier(ASTModifierType::Protected));
         else if (match(TokenType::Keyword, kn[Keywords::Private])) 
-            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Private));
+            modifiers.push_back(ASTBuilder::createModifier(ASTModifierType::Private));
         else if (match(TokenType::Keyword, kn[Keywords::Override])) 
-            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Override));
+            modifiers.push_back(ASTBuilder::createModifier(ASTModifierType::Override));
         else if (match(TokenType::Keyword, kn[Keywords::Async])) 
-            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Async));
+            modifiers.push_back(ASTBuilder::createModifier(ASTModifierType::Async));
         else if (match(TokenType::Keyword, kn[Keywords::Debug])) 
-            modifiers.push_back(makeMemoryPtr<ModifierNode>(ASTModifierType::Debug));
+            modifiers.push_back(ASTBuilder::createModifier(ASTModifierType::Debug));
         else break;
         next();
     }
@@ -745,19 +769,19 @@ MemoryPtr<ASTNode> Parser::parsePreprocessor() {
             value = value + curToken().value;
             next();
         }
-        return makeMemoryPtr<PreprocessorDirectiveNode>(ASTPreprocessorDirectiveType::Macro, value);
+        return ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Macro, value);
     }
     else if (match(TokenType::Preprocessor, pn[Preprocessors::Baremetal])) {
         next();
-        return makeMemoryPtr<PreprocessorDirectiveNode>(ASTPreprocessorDirectiveType::Baremetal);
+        return ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Baremetal);
     }
     else if (match(TokenType::Preprocessor, pn[Preprocessors::Unsafe])) {
         next();
-        return makeMemoryPtr<PreprocessorDirectiveNode>(ASTPreprocessorDirectiveType::Unsafe);
+        return ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Unsafe);
     }
     else if (match(TokenType::Preprocessor, pn[Preprocessors::Float])) {
         next();
-        return makeMemoryPtr<PreprocessorDirectiveNode>(ASTPreprocessorDirectiveType::Float);
+        return ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Float);
     }
 
     ASTPreprocessorDirectiveType type = ASTPreprocessorDirectiveType::None; // Fallback to none, if this somehow got out of hand.
@@ -799,7 +823,7 @@ MemoryPtr<EnumNode> Parser::parseEnum(std::vector<MemoryPtr<CallExpressionNode>>
             }
             value = as<LiteralNode>(std::move(tmp));
         }
-        elements.push_back(makeMemoryPtr<EnumMemberNode>(name, value));
+        elements.push_back(ASTBuilder::createEnumMember(name, std::move(value)));
         next();
 
         if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
@@ -810,7 +834,7 @@ MemoryPtr<EnumNode> Parser::parseEnum(std::vector<MemoryPtr<CallExpressionNode>>
         else break;
     }
 
-    return makeMemoryPtr<EnumNode>(elements, std::move(decorators), std::move(modifiers));
+    return ASTBuilder::createEnum(std::move(elements), std::move(decorators), std::move(modifiers));
 }
 
 MemoryPtr<InterfaceNode> Parser::parseInterface(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers) {
@@ -846,18 +870,19 @@ MemoryPtr<InterfaceNode> Parser::parseInterface(std::vector<MemoryPtr<CallExpres
             return nullptr;
         }
 
-        MemoryPtr<VariableNode> vartype = nullptr;
-
-        // this is a very bad setup imo but it must be fixed later
+        MemoryPtr<LiteralNode> vartype = nullptr;
+        // this is a very bad setup imo. it must be fixed later
+        next();
         if (match(TokenType::Identifier)) {
             auto tmp = parsePrimary();
-            if (typeid(tmp) != typeid(MemoryPtr<VariableNode>)) {
+            if (typeid(tmp) != typeid(MemoryPtr<LiteralNode>)) {
                 std::println(std::cerr, "[Neoluma/Parser] Non-variable value detected in interface after identifier '{}'", name);
                 return nullptr;
             }
-            vartype = as<VariableNode>(std::move(tmp));
+            vartype = as<LiteralNode>(std::move(tmp));
         }
-        elements.push_back(makeMemoryPtr<InterfaceFieldNode>(name, vartype, isNullable));
+
+        elements.push_back(ASTBuilder::createInterfaceField(name, vartype->value, isNullable));
         next();
         if (isNextLine()) next();
         else if (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
@@ -867,7 +892,7 @@ MemoryPtr<InterfaceNode> Parser::parseInterface(std::vector<MemoryPtr<CallExpres
         else break;
     }
 
-    return makeMemoryPtr<InterfaceNode>(elements, std::move(decorators), std::move(modifiers));
+    return ASTBuilder::createInterface(std::move(elements), std::move(decorators), std::move(modifiers));
 }
 
 // ==== Helper functions ====
@@ -883,8 +908,7 @@ MemoryPtr<ASTNode> Parser::parseBlockorStatement() {
             return nullptr;
         }
         return std::move(block);
-    }
-    else {
+    } else {
         MemoryPtr<ASTNode> block = parseStatement();
         if(!block) {
             //std::println("[Neoluma/Parser] Expected statement after 'if/elif/else' condition{}", "");

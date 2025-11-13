@@ -30,6 +30,8 @@ Sizes of variables can be defined with `[<number>]`, like `x: int[8] = 255;`. By
 
 ### Examples
 ```neoluma
+// Neoluma does NOT have let/var. Ever. It's declared without it.
+
 // Numeric types
 a: int = 10
 b: float = 3.14
