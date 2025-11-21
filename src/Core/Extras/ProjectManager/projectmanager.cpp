@@ -22,7 +22,6 @@ void ProjectManager::check() {
         lexer.printTokens(file);
 
         Parser parser = Parser { lexer.tokens, getFileName(file) };
-        parser.parseModule();
         parser.printModule();
     }
 }

@@ -39,6 +39,4 @@ std::vector<std::string> split(std::string str, char delimiter);
 std::string readFile(const std::string& filePath);
 
 // Extracts the file name from a given file path
-std::string getFileName(const std::string& filePath) {
-    return std::filesystem::path(filePath).filename().string();
-}
+std::string getFileName(const std::string& filePath);

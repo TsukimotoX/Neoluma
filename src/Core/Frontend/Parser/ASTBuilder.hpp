@@ -15,7 +15,7 @@ struct ASTBuilder {
 
     // Creates an AssignmentNode
     static MemoryPtr<AssignmentNode> createAssignment(MemoryPtr<VariableNode> variable, const std::string& op, MemoryPtr<ASTNode> varValue) {
-        return makeMemoryPtr<AssignmentNode>(variable.get(), op, std::move(varValue));
+        return makeMemoryPtr<AssignmentNode>(std::move(variable), op, std::move(varValue));
     }
 
     // Creates a BinaryOperationNode
