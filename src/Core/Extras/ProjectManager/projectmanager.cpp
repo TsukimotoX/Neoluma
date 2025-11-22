@@ -23,5 +23,6 @@ void ProjectManager::check() {
 
         Parser parser = Parser { lexer.tokens, getFileName(file) };
         parser.printModule();
+        break; // for now only parse one file
     }
 }

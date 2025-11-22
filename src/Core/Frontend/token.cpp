@@ -43,7 +43,7 @@ const EPreprocessor preprocessorMap[] {
 const EDelimeter delimeterMap[] {
     {"(", Delimeters::LeftParen}, {")", Delimeters::RightParen},
     {"{", Delimeters::LeftBraces}, {"}", Delimeters::RightBraces},
-    {";", Delimeters::Semicolon}, {":", Delimeters::Colon}, {"\n", Delimeters::Semicolon}, {",", Delimeters::Comma},
+    {";", Delimeters::Semicolon}, {":", Delimeters::Colon}, {"\\n", Delimeters::Semicolon}, {",", Delimeters::Comma},
     {".", Delimeters::Dot}, {"[", Delimeters::LeftBracket},
     {"]", Delimeters::RightBracket},
 };
@@ -66,7 +66,7 @@ std::string Token::toStr() const {
         default:                         typeStr = "<UNK>"; break;
     }
 
-    return std::format("[{}] -> \"{}\"\n", typeStr, value);
+    return std::format("[{}] -> \"{}\", (L{}:{})\n", typeStr, value, line, column);
 }
 
 const std::unordered_map<std::string, Keywords>& getKeywordMap() {
