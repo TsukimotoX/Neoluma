@@ -13,6 +13,11 @@ struct ASTBuilder {
         return makeMemoryPtr<VariableNode>(varName, rawType, isNullable);
     }
 
+    // Creates a MemberAccessNode
+    static MemoryPtr<MemberAccessNode> createMemberAccess(MemoryPtr<ASTNode> parent, MemoryPtr<ASTNode> val) {
+        return makeMemoryPtr<MemberAccessNode>(std::move(parent), std::move(val));
+    }
+
     // Creates an AssignmentNode
     static MemoryPtr<AssignmentNode> createAssignment(MemoryPtr<VariableNode> variable, const std::string& op, MemoryPtr<ASTNode> varValue) {
         return makeMemoryPtr<AssignmentNode>(std::move(variable), op, std::move(varValue));
@@ -41,12 +46,12 @@ struct ASTBuilder {
     }
 
     // Creates a CaseNode
-    static MemoryPtr<CaseNode> createCase(MemoryPtr<ASTNode> condition, MemoryPtr<BlockNode> body) {
+    static MemoryPtr<CaseNode> createCase(MemoryPtr<ASTNode> condition, MemoryPtr<ASTNode> body) {
         return makeMemoryPtr<CaseNode>(std::move(condition), std::move(body));
     }
 
     // Creates an SCDefaultNode
-    static MemoryPtr<SCDefaultNode> createDefaultCase(MemoryPtr<BlockNode> body) {
+    static MemoryPtr<SCDefaultNode> createDefaultCase(MemoryPtr<ASTNode> body) {
         return makeMemoryPtr<SCDefaultNode>(std::move(body));
     }
 

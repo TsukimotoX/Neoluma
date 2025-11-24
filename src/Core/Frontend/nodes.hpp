@@ -9,7 +9,7 @@
 //#include "llvm/IR/Value.h"
 
 enum struct ASTNodeType {
-    Literal, Variable, Assignment, BinaryOperation, UnaryOperation, CallExpression,
+    Literal, Variable, MemberAccess, Assignment, BinaryOperation, UnaryOperation, CallExpression,
     Block, IfStatement, ForLoop, WhileLoop, TryCatch, ReturnStatement, 
     Function, Class, 
     Parameter, Modifier,
@@ -77,6 +77,18 @@ struct VariableNode : ASTNode {
     std::string toString(int indent = 0) const override;
 };
 
+struct MemberAccessNode : ASTNode {
+    MemoryPtr<ASTNode> parent;
+    MemoryPtr<ASTNode> val;
+
+    MemberAccessNode(MemoryPtr<ASTNode> parent, MemoryPtr<ASTNode> val)
+        : parent(std::move(parent)), val(std::move(val)) {
+        this->type = ASTNodeType::MemberAccess;
+    }
+
+    std::string toString(int indent = 0) const override;
+};
+
 struct AssignmentNode : ASTNode {
     MemoryPtr<VariableNode> variable;
     MemoryPtr<ASTNode> variableValue;
@@ -137,8 +149,8 @@ struct IfNode : ASTNode {
 };
 
 struct SCDefaultNode : ASTNode {
-    MemoryPtr<BlockNode> body;
-    SCDefaultNode(MemoryPtr<BlockNode> body) : body(std::move(body)) {
+    MemoryPtr<ASTNode> body;
+    SCDefaultNode(MemoryPtr<ASTNode> body) : body(std::move(body)) {
         this->type = ASTNodeType::SCDefault;
     }
 
@@ -148,8 +160,8 @@ struct SCDefaultNode : ASTNode {
 
 struct CaseNode : ASTNode {
     MemoryPtr<ASTNode> condition;
-    MemoryPtr<BlockNode> body;
-    CaseNode(MemoryPtr<ASTNode> condition, MemoryPtr<BlockNode> body)
+    MemoryPtr<ASTNode> body;
+    CaseNode(MemoryPtr<ASTNode> condition, MemoryPtr<ASTNode> body)
         : condition(std::move(condition)), body(std::move(body)) {
         this->type = ASTNodeType::Case;
     }

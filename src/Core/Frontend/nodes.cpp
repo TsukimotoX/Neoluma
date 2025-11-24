@@ -17,6 +17,14 @@ std::string VariableNode::toString(int indent) const {
     return std::format("{}Variable(varName={}, rawType={}, isNullable={})", std::string(indent, ' '), varName, rawType, isNullable ? "true" : "false");
 }
 
+std::string MemberAccessNode::toString(int indent) const {
+    return std::format("{}MemberAccess {{\n{}parent: {}\n{}val: {}\n{}}}",
+        std::string(indent, ' '),
+        std::string(indent+2, ' '), parent ? parent->toString(indent+2) : "null",
+        std::string(indent+2, ' '), val ? val->toString(indent+2) : "null",
+        std::string(indent, ' '));
+}
+
 std::string AssignmentNode::toString(int indent) const {
     return std::format("{}Assignment(variable={}, value={})", std::string(indent, ' '), variable->varName, variableValue->toString());
 }

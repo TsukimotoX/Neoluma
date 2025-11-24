@@ -1,5 +1,5 @@
-#import "utils"
-#import "models"
+#import "utils" // Utility functions
+#import "models" // Data models
 
 @entry
 fn main() {
