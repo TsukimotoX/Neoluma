@@ -14,7 +14,26 @@ std::string LiteralNode::toString(int indent) const {
 }
 
 std::string VariableNode::toString(int indent) const {
-    return std::format("{}Variable(varName={}, rawType={}, isNullable={})", std::string(indent, ' '), varName, rawType, isNullable ? "true" : "false");
+    return std::format("{}Variable(varName={})", std::string(indent, ' '), varName);
+}
+
+std::string DeclarationNode::toString(int indent) const {
+    return std::format("{}Declaration {{\n{}variable: {}\n{}rawType: {}\n{}value: {}\n{}isNullable: {}\n{}}}",
+        std::string(indent, ' '),
+        std::string(indent+2, ' '), variable ? variable->toString(indent+2) : "null",
+        std::string(indent+2, ' '), rawType,
+        std::string(indent+2, ' '), value ? value->toString(indent+2) : "null",
+        std::string(indent+2, ' '), isNullable ? "true" : "false",
+        std::string(indent, ' '));
+}
+
+std::string AssignmentNode::toString(int indent) const {
+    return std::format("{}Assignment {{\n{}variable: {}\n{}op: {}\n{}value: {}\n{}}}",
+        std::string(indent, ' '),
+        std::string(indent+2, ' '), variable ? variable->toString(indent+2) : "null",
+        std::string(indent+2, ' '), op,
+        std::string(indent+2, ' '), value ? value->toString(indent+2) : "null",
+        std::string(indent, ' '));
 }
 
 std::string MemberAccessNode::toString(int indent) const {
@@ -23,10 +42,6 @@ std::string MemberAccessNode::toString(int indent) const {
         std::string(indent+2, ' '), parent ? parent->toString(indent+2) : "null",
         std::string(indent+2, ' '), val ? val->toString(indent+2) : "null",
         std::string(indent, ' '));
-}
-
-std::string AssignmentNode::toString(int indent) const {
-    return std::format("{}Assignment(variable={}, value={})", std::string(indent, ' '), variable->varName, variableValue->toString());
 }
 
 std::string BinaryOperationNode::toString(int indent) const {

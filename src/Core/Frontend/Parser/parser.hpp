@@ -51,6 +51,7 @@ private:
 
     // Statement parsing
     MemoryPtr<ASTNode> parseStatement();
+    MemoryPtr<DeclarationNode> parseDeclaration();
     MemoryPtr<AssignmentNode> parseAssignment();
     MemoryPtr<ReturnStatementNode> parseReturn();
 

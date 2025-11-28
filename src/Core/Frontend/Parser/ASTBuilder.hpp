@@ -9,18 +9,23 @@ struct ASTBuilder {
     }
 
     // Creates a VariableNode
-    static MemoryPtr<VariableNode> createVariable(const std::string& varName, const std::string& rawType = "none", bool isNullable = false) {
-        return makeMemoryPtr<VariableNode>(varName, rawType, isNullable);
+    static MemoryPtr<VariableNode> createVariable(const std::string& varName) {
+        return makeMemoryPtr<VariableNode>(varName);
+    }
+
+    // Creates a DeclarationNode
+    static MemoryPtr<DeclarationNode> createDeclaration(MemoryPtr<VariableNode> variable, const std::string& rawType = "None", MemoryPtr<ASTNode> value = nullptr, bool isNullable = false) {
+        return makeMemoryPtr<DeclarationNode>(std::move(variable), rawType, std::move(value), isNullable);
+    }
+
+    // Creates an AssignmentNode
+    static MemoryPtr<AssignmentNode> createAssignment(MemoryPtr<VariableNode> variable, const std::string& op, MemoryPtr<ASTNode> value) {
+        return makeMemoryPtr<AssignmentNode>(std::move(variable), op, std::move(value));
     }
 
     // Creates a MemberAccessNode
     static MemoryPtr<MemberAccessNode> createMemberAccess(MemoryPtr<ASTNode> parent, MemoryPtr<ASTNode> val) {
         return makeMemoryPtr<MemberAccessNode>(std::move(parent), std::move(val));
-    }
-
-    // Creates an AssignmentNode
-    static MemoryPtr<AssignmentNode> createAssignment(MemoryPtr<VariableNode> variable, const std::string& op, MemoryPtr<ASTNode> varValue) {
-        return makeMemoryPtr<AssignmentNode>(std::move(variable), op, std::move(varValue));
     }
 
     // Creates a BinaryOperationNode
@@ -91,8 +96,8 @@ struct ASTBuilder {
     }
 
     // Creates a TryCatchNode
-    static MemoryPtr<TryCatchNode> createTryCatch(MemoryPtr<BlockNode> tryBlock, MemoryPtr<BlockNode> catchBlock) {
-        return makeMemoryPtr<TryCatchNode>(std::move(tryBlock), std::move(catchBlock));
+    static MemoryPtr<TryCatchNode> createTryCatch(MemoryPtr<BlockNode> tryBlock, MemoryPtr<VariableNode> exception, MemoryPtr<BlockNode> catchBlock) {
+        return makeMemoryPtr<TryCatchNode>(std::move(tryBlock), std::move(exception), std::move(catchBlock));
     }
 
     // Creates an ArrayNode
@@ -166,7 +171,7 @@ struct ASTBuilder {
     }
 
     // Creates a ClassNode
-    static MemoryPtr<ClassNode> createClass(const std::string& name, std::vector<MemoryPtr<VariableNode>> fields, std::vector<MemoryPtr<FunctionNode>> methods, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
+    static MemoryPtr<ClassNode> createClass(const std::string& name, std::vector<MemoryPtr<DeclarationNode>> fields, std::vector<MemoryPtr<FunctionNode>> methods, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
         return makeMemoryPtr<ClassNode>(name, std::move(fields), std::move(methods), std::move(decorators), std::move(modifiers));
     }
 

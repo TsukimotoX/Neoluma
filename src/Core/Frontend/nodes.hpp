@@ -9,7 +9,7 @@
 //#include "llvm/IR/Value.h"
 
 enum struct ASTNodeType {
-    Literal, Variable, MemberAccess, Assignment, BinaryOperation, UnaryOperation, CallExpression,
+    Literal, Variable, MemberAccess, Declaration, Assignment, BinaryOperation, UnaryOperation, CallExpression,
     Block, IfStatement, ForLoop, WhileLoop, TryCatch, ReturnStatement, 
     Function, Class, 
     Parameter, Modifier,
@@ -64,14 +64,41 @@ struct LiteralNode : ASTNode {
     std::string toString(int indent = 0) const override;
 };
 
+// This node only represents the existence of a variable (its name). Type info and initialized value are in DeclarationNode.
 struct VariableNode : ASTNode {
     std::string varName;
-    bool isNullable = false;
-    std::string rawType;
 
-    VariableNode(const std::string& varName, const std::string& type, bool isNullable = false) : varName(varName), isNullable(isNullable) {
+    VariableNode(const std::string& varName): varName(varName) {
         this->type = ASTNodeType::Variable;
-        this->rawType = type;
+    }
+
+    std::string toString(int indent = 0) const override;
+};
+
+// Declaration node holds type info, initialization value, and other metadata about a variable.
+struct DeclarationNode : ASTNode {
+    MemoryPtr<VariableNode> variable;
+    bool isNullable = false;
+    std::string rawType; // TODO: Add multitypes like in Typescript later
+    MemoryPtr<ASTNode> value = nullptr;
+
+    DeclarationNode(MemoryPtr<VariableNode> variable, const std::string& rawType = "None", MemoryPtr<ASTNode> value = nullptr, bool isNullable = false)
+    : variable(std::move(variable)), rawType(rawType), value(std::move(value)), isNullable(isNullable) {
+        this->type = ASTNodeType::Declaration;
+    }
+
+    std::string toString(int indent = 0) const override;
+};
+
+// Assignment node assigns a value to an existing variable.
+struct AssignmentNode : ASTNode {
+    MemoryPtr<VariableNode> variable;
+    std::string op; // Assignment operator
+    MemoryPtr<ASTNode> value;
+
+    AssignmentNode(MemoryPtr<VariableNode> variable, const std::string& op, MemoryPtr<ASTNode> value)
+        : variable(std::move(variable)), op(op), value(std::move(value)) {
+        this->type = ASTNodeType::Assignment;
     }
 
     std::string toString(int indent = 0) const override;
@@ -84,19 +111,6 @@ struct MemberAccessNode : ASTNode {
     MemberAccessNode(MemoryPtr<ASTNode> parent, MemoryPtr<ASTNode> val)
         : parent(std::move(parent)), val(std::move(val)) {
         this->type = ASTNodeType::MemberAccess;
-    }
-
-    std::string toString(int indent = 0) const override;
-};
-
-struct AssignmentNode : ASTNode {
-    MemoryPtr<VariableNode> variable;
-    MemoryPtr<ASTNode> variableValue;
-    bool isInitialized = false;
-    AssignmentNode(MemoryPtr<VariableNode> variable, const std::string& op, MemoryPtr<ASTNode> varValue)
-        : variable(std::move(variable)), variableValue(std::move(varValue)) {
-        this->value = op;
-        this->type = ASTNodeType::Assignment;
     }
 
     std::string toString(int indent = 0) const override;
@@ -250,10 +264,10 @@ struct ThrowStatementNode : ASTNode {
 struct TryCatchNode : ASTNode {
     MemoryPtr<BlockNode> tryBlock;
     MemoryPtr<BlockNode> catchBlock;
-    MemoryPtr<LiteralNode> exception;
+    MemoryPtr<VariableNode> exception;
 
-    TryCatchNode(MemoryPtr<BlockNode> tryBlock, MemoryPtr<BlockNode> catchBlock)
-        : tryBlock(std::move(tryBlock)), catchBlock(std::move(catchBlock)) {
+    TryCatchNode(MemoryPtr<BlockNode> tryBlock, MemoryPtr<VariableNode> exception, MemoryPtr<BlockNode> catchBlock)
+        : tryBlock(std::move(tryBlock)), exception(std::move(exception)), catchBlock(std::move(catchBlock)) {
         this->type = ASTNodeType::TryCatch;
     }
 
@@ -452,10 +466,10 @@ struct ClassNode : ASTNode {
     std::string name;
     std::vector<MemoryPtr<CallExpressionNode>> decorators;
     std::vector<MemoryPtr<ModifierNode>> modifiers;
-    std::vector<MemoryPtr<VariableNode>> fields;
+    std::vector<MemoryPtr<DeclarationNode>> fields;
     std::vector<MemoryPtr<FunctionNode>> methods;
 
-    ClassNode(const std::string& name, std::vector<MemoryPtr<VariableNode>> fields, std::vector<MemoryPtr<FunctionNode>> methods,
+    ClassNode(const std::string& name, std::vector<MemoryPtr<DeclarationNode>> fields, std::vector<MemoryPtr<FunctionNode>> methods,
               std::vector<MemoryPtr<CallExpressionNode>> decorators = std::vector<MemoryPtr<CallExpressionNode>>{}, std::vector<MemoryPtr<ModifierNode>> modifiers = std::vector<MemoryPtr<ModifierNode>>{})
         : name(name), fields(std::move(fields)), methods(std::move(methods)), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
         this->type = ASTNodeType::Class;

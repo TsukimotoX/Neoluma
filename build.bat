@@ -8,10 +8,10 @@ set BUILD_DIR=.build
 set RESULTING_PATH=.executables/Neoluma.exe
 
 echo %\\033%[38;2;232;75;133m[INFO] Cleaning and creating build folder...%\\033%[38;2;117;181;255m
-if exist %BUILD_DIR% (
-    rmdir /s /q %BUILD_DIR%
-)
-mkdir %BUILD_DIR%
+:: if exist %BUILD_DIR% (
+::    rmdir /s /q %BUILD_DIR%
+:: )
+:: mkdir %BUILD_DIR%
 cd %BUILD_DIR%
 
 echo %\\033%[38;2;232;75;133m[INFO] Configuring with CMake for Visual Studio...%\\033%[38;2;117;181;255m
