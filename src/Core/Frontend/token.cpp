@@ -27,7 +27,7 @@ const EOperator operatorMap[] {
     {"==", Operators::Equal}, {"!=", Operators::NotEqual}, {"<", Operators::LessThan}, {">", Operators::GreaterThan}, {"<=", Operators::LessThanOrEqual}, {">=", Operators::GreaterThanOrEqual},
     {"&&", Operators::LogicalAnd}, {"||", Operators::LogicalOr}, {"!", Operators::LogicalNot},
     {"and", Operators::LogicalAnd}, {"or", Operators::LogicalOr}, {"not", Operators::LogicalNot},
-    {"=", Operators::Assign}, {"?", Operators::Nullable}, {"=>", Operators::AssignmentArrow},
+    {"=", Operators::Assign}, {"?", Operators::Nullable}, {"=>", Operators::AssignmentArrow}, {"<-", Operators::InheritanceArrow}, {"->", Operators::TypeArrow},
     {"+=", Operators::AddAssign}, {"-=", Operators::SubAssign}, {"*=", Operators::MulAssign}, {"/=", Operators::DivAssign}, {"%=", Operators::ModAssign}, {"^=", Operators::PowerAssign},
     {"~", Operators::BitwiseNot}, {"&", Operators::BitwiseAnd}, {"|", Operators::BitwiseOr}, {"^^", Operators::BitwiseXOr}, {"<<", Operators::BitwiseLeftShift}, {">>", Operators::BitwiseRightShift}, 
 };

@@ -7,6 +7,7 @@
 
 // to make math order
 int getOperatorPrecedence(const std::string& op);
+bool isAssignmentOperator(const std::string& op);
 
 //Parser
 class Parser {
@@ -80,4 +81,6 @@ private:
     // Helper functions
     MemoryPtr<ASTNode> parseBlockorStatement();
     bool isNextLine();
+    // Lookahead helper to check if upcoming tokens form an assignable lvalue followed by an assignment operator
+    bool isAssignableAhead(size_t offset = 0);
 };

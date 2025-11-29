@@ -19,7 +19,7 @@ struct ASTBuilder {
     }
 
     // Creates an AssignmentNode
-    static MemoryPtr<AssignmentNode> createAssignment(MemoryPtr<VariableNode> variable, const std::string& op, MemoryPtr<ASTNode> value) {
+    static MemoryPtr<AssignmentNode> createAssignment(MemoryPtr<ASTNode> variable, const std::string& op, MemoryPtr<ASTNode> value) {
         return makeMemoryPtr<AssignmentNode>(std::move(variable), op, std::move(value));
     }
 
@@ -126,8 +126,8 @@ struct ASTBuilder {
     }
 
     // Creates a ParameterNode
-    static MemoryPtr<ParameterNode> createParameter(const std::string& parameterName, const std::string& parameterRawType = "none", const std::string& defaultValue = "") {
-        return makeMemoryPtr<ParameterNode>(parameterName, parameterRawType, defaultValue);
+    static MemoryPtr<ParameterNode> createParameter(const std::string& parameterName, const std::string& parameterRawType = "none", MemoryPtr<ASTNode> defaultValue = nullptr) {
+        return makeMemoryPtr<ParameterNode>(parameterName, parameterRawType, std::move(defaultValue));
     }
 
     // Creates a ModifierNode
@@ -151,8 +151,8 @@ struct ASTBuilder {
     }
 
     // Creates an InterfaceFieldNode
-    static MemoryPtr<InterfaceFieldNode> createInterfaceField(const std::string& name, const std::string& type, bool isNullable = false) {
-        return makeMemoryPtr<InterfaceFieldNode>(name, type, isNullable);
+    static MemoryPtr<InterfaceFieldNode> createInterfaceField(const std::string& name, const std::string& type, bool isNullable = false, bool isFunction = false, std::vector<MemoryPtr<ParameterNode>> parameters = {}, MemoryPtr<VariableNode> returnType = nullptr) {
+        return makeMemoryPtr<InterfaceFieldNode>(name, type, isNullable, isFunction, std::move(parameters), std::move(returnType));
     }
 
     // Creates an InterfaceNode
@@ -166,13 +166,13 @@ struct ASTBuilder {
     }
 
     // Creates a FunctionNode
-    static MemoryPtr<FunctionNode> createFunction(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<BlockNode> body, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
-        return makeMemoryPtr<FunctionNode>(name, std::move(parameters), std::move(body), std::move(decorators), std::move(modifiers));
+    static MemoryPtr<FunctionNode> createFunction(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<VariableNode> returnType, MemoryPtr<BlockNode> body,std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
+        return makeMemoryPtr<FunctionNode>(name, std::move(parameters), std::move(returnType), std::move(body), std::move(decorators), std::move(modifiers));
     }
 
     // Creates a ClassNode
-    static MemoryPtr<ClassNode> createClass(const std::string& name, std::vector<MemoryPtr<DeclarationNode>> fields, std::vector<MemoryPtr<FunctionNode>> methods, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
-        return makeMemoryPtr<ClassNode>(name, std::move(fields), std::move(methods), std::move(decorators), std::move(modifiers));
+    static MemoryPtr<ClassNode> createClass(const std::string& name, MemoryPtr<FunctionNode> constructor, MemoryPtr<VariableNode> super, std::vector<MemoryPtr<DeclarationNode>> fields, std::vector<MemoryPtr<FunctionNode>> methods, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
+        return makeMemoryPtr<ClassNode>(name, std::move(constructor), std::move(super), std::move(fields), std::move(methods), std::move(decorators), std::move(modifiers));
     }
 
     // Creates a DecoratorNode

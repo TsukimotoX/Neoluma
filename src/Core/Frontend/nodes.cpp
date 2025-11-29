@@ -69,7 +69,11 @@ std::string BlockNode::toString(int indent) const {
 }
 
 std::string IfNode::toString(int indent) const {
-    return std::format("{}If{{\ncondition: {}\nthenBlock: {}\nelseBlock: {}}}", std::string(indent, ' '), condition->toString(), thenBlock->toString(), elseBlock ? elseBlock->toString() : "None");
+    return std::format("{}If{{\ncondition: {}\nthenBlock: {}\nelseBlock: {}}}",
+        std::string(indent, ' '),
+        condition ? condition->toString(indent + 2) : "null",
+        thenBlock ? thenBlock->toString(indent + 2) : "null",
+        elseBlock ? elseBlock->toString(indent + 2) : "None");
 }
 
 std::string SCDefaultNode::toString(int indent) const {
@@ -186,7 +190,7 @@ std::string ResultNode::toString(int indent) const {
 }
 
 std::string ParameterNode::toString(int indent) const {
-    return std::format("{}Parameter(parameterName={}, parameterRawType={}, defaultValue={})", std::string(indent, ' '), parameterName, parameterRawType, defaultValue.has_value() ? defaultValue.value() : "None");
+    return std::format("{}Parameter(parameterName={}, parameterRawType={}, defaultValue={})", std::string(indent, ' '), parameterName, parameterRawType, defaultValue ? defaultValue->toString(indent+2) : "null");
 }
 
 std::string ModifierNode::toString(int indent) const {
@@ -235,7 +239,22 @@ std::string EnumNode::toString(int indent) const {
 }
 
 std::string InterfaceFieldNode::toString(int indent) const {
-    return std::format("{}InterfaceField(name={}, vartype={}, isNullable={})", std::string(indent, ' '), name, vartype, isNullable ? "true" : "false");
+    std::string res = std::format("{}InterfaceField(name={}, rawType={}, isNullable={}){{\n", std::string(indent, ' '), name, rawType, isNullable ? "true" : "false");
+    if (isFunction) {
+        res += std::string(indent+2, ' ') + "isFunction: true\n";
+        res += std::string(indent+2, ' ') + "parameters: [\n";
+        for (const auto& param : parameters) {
+            res += param ? param->toString(indent+4) + "\n" : "null\n";
+        }
+        res += std::string(indent+2, ' ') + "]\n";
+        res += std::format("{}returnType: {}\n{}}}", std::string(indent+2, ' '),
+            returnType ? returnType->toString(indent+2) : "null",
+            std::string(indent, ' '));
+    } else {
+        res += std::string(indent+2, ' ') + "isFunction: false\n";
+        res += std::string(indent, ' ') + "}";
+    }
+    return res;
 }
 
 std::string InterfaceNode::toString(int indent) const {
@@ -277,11 +296,17 @@ std::string FunctionNode::toString(int indent) const {
 
 std::string ClassNode::toString(int indent) const {
     std::string res = std::format("{}Class(name={}){{\n", std::string(indent, ' '), name);
+    res += std::string(indent+2, ' ') + "super (inherited from): " + (super ? super->toString(indent+2) : "null") + "\n";
+
+    res += std::string(indent+2, ' ') + "constructor: {}\n" +
+        (constructor ? constructor->toString(indent+2) : "null") + "\n";
+
     res += std::string(indent+2, ' ') + "fields: [\n";
     for (const auto& field : fields) {
         res += field ? field->toString(indent+4) + "\n" : "null\n";
     }
     res += std::string(indent+2, ' ') + "]\n";
+
     res += std::string(indent+2, ' ') + "methods: [\n";
     for (const auto& method : methods) {
         res += method ? method->toString(indent+4) + "\n" : "null\n";
