@@ -40,4 +40,4 @@ llvm_map_components_to_libnames(LLVM_LIB
 )
 
 # Link all libraries
-target_link_libraries(Neoluma PRIVATE {LLVM_LIB} NeolumaCore NeolumaCLI NeolumaLibs)
+target_link_libraries(Neoluma PRIVATE ${LLVM_LIB} NeolumaCore NeolumaCLI NeolumaLibs)

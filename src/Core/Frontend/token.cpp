@@ -27,7 +27,7 @@ const EOperator operatorMap[] {
     {"==", Operators::Equal}, {"!=", Operators::NotEqual}, {"<", Operators::LessThan}, {">", Operators::GreaterThan}, {"<=", Operators::LessThanOrEqual}, {">=", Operators::GreaterThanOrEqual},
     {"&&", Operators::LogicalAnd}, {"||", Operators::LogicalOr}, {"!", Operators::LogicalNot},
     {"and", Operators::LogicalAnd}, {"or", Operators::LogicalOr}, {"not", Operators::LogicalNot},
-    {"=", Operators::Assign}, {"?", Operators::Nullable}, {"=>", Operators::AssignmentArrow},
+    {"=", Operators::Assign}, {"?", Operators::Nullable}, {"=>", Operators::AssignmentArrow}, {"<-", Operators::InheritanceArrow}, {"->", Operators::TypeArrow},
     {"+=", Operators::AddAssign}, {"-=", Operators::SubAssign}, {"*=", Operators::MulAssign}, {"/=", Operators::DivAssign}, {"%=", Operators::ModAssign}, {"^=", Operators::PowerAssign},
     {"~", Operators::BitwiseNot}, {"&", Operators::BitwiseAnd}, {"|", Operators::BitwiseOr}, {"^^", Operators::BitwiseXOr}, {"<<", Operators::BitwiseLeftShift}, {">>", Operators::BitwiseRightShift}, 
 };
@@ -43,7 +43,7 @@ const EPreprocessor preprocessorMap[] {
 const EDelimeter delimeterMap[] {
     {"(", Delimeters::LeftParen}, {")", Delimeters::RightParen},
     {"{", Delimeters::LeftBraces}, {"}", Delimeters::RightBraces},
-    {";", Delimeters::Semicolon}, {":", Delimeters::Colon}, {"\n", Delimeters::Semicolon}, {",", Delimeters::Comma},
+    {";", Delimeters::Semicolon}, {":", Delimeters::Colon}, {"\\n", Delimeters::Semicolon}, {",", Delimeters::Comma},
     {".", Delimeters::Dot}, {"[", Delimeters::LeftBracket},
     {"]", Delimeters::RightBracket},
 };
@@ -66,7 +66,7 @@ std::string Token::toStr() const {
         default:                         typeStr = "<UNK>"; break;
     }
 
-    return std::format("[{}] -> \"{}\"\n", typeStr, value);
+    return std::format("[{}] -> \"{}\", (L{}:{})\n", typeStr, value, line, column);
 }
 
 const std::unordered_map<std::string, Keywords>& getKeywordMap() {

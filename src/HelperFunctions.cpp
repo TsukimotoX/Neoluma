@@ -37,4 +37,9 @@ std::string readFile(const std::string& filePath) {
     std::stringstream buffer;
     buffer << file.rdbuf();
     return buffer.str();
-} 
+}
+
+// Extracts the file name from a given file path
+std::string getFileName(const std::string& filePath) {
+    return std::filesystem::path(filePath).filename().string();
+}

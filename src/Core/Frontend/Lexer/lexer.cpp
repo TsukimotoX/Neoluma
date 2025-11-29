@@ -16,23 +16,28 @@ std::vector<Token> Lexer::tokenize(const std::string& filePath, const std::strin
     while (!isAtEnd()) {
         char c = curChar();
 
-        if (isspace(c)) move();
+        if (c=='\n') {
+            int sl = line; int sc = column;
+            move();
+            tokens.push_back(Token{TokenType::Delimeter, "\\n", filePath, sl, sc});
+        }
+        else if (isspace(c)) move();
         else if (isalpha(c) || c == '_') parseIK();
         else if (isdigit(c)) parseNumber();
         else if (c == '"') parseString();
-        else if (std::string("+-*/%^=<>!&|:").find(c) != std::string::npos) parseOperator();
-        else if (std::string("(){};,.[\\]").find(c) != std::string::npos) parseDelimeter();
+        else if (c == '/' && pos + 1 < this->source.size() && (this->source[pos+1] == '/' || this->source[pos+1] == '*')) skipComment();
+        else if (std::string("+-*/%^=<>!&|?~").find(c) != std::string::npos) parseOperator();
+        else if (std::string("(){};:,.[]").find(c) != std::string::npos) parseDelimeter();
         else if (c == '#') parsePreprocessor();
         else if (c == '@') parseDecorator();
-        else if (c == '/' && (this->source[pos+1] == '/' || this->source[pos+1] == '*')) skipComment();
         else {
             std::string unknown(1, move());
-            std::println(std::cerr, "[Lexer] Unknown character: '{}'", unknown);
-            tokens.push_back(Token{TokenType::Unknown, unknown});
+            std::println(std::cerr, "[Neoluma/Lexer] Unknown character: '{}'", unknown);
+            tokens.push_back(Token{TokenType::Unknown, unknown, filePath, line, column});
         }
     }
 
-    tokens.push_back(Token{TokenType::EndOfFile, ""});
+    tokens.push_back(Token{TokenType::EndOfFile, "", filePath, line, column});
     return tokens;
 }
 
@@ -47,7 +52,7 @@ char Lexer::move() {
         column = 1;
     } else column++;
 
-    return isAtEnd() ? '\0' : c; 
+    return c;
 }
 bool Lexer::match(char expected) {
     if (isAtEnd() || source[pos] != expected) return false;
@@ -66,9 +71,9 @@ void Lexer::parseIK() {
     auto km = getKeywordMap();
     auto om = getOperatorMap();
     
-    if (km.find(word) != km.end()) tokens.push_back(Token{TokenType::Keyword, word});
-    else if (word == "null") tokens.push_back(Token{TokenType::Null, word});
-    else if (om.find(word) != om.end()) tokens.push_back(Token{TokenType::Operator, word});
+    if (km.find(word) != km.end()) tokens.push_back(Token{TokenType::Keyword, word, filePath, sl, sc});
+    else if (word == "null") tokens.push_back(Token{TokenType::Null, word, filePath, sl, sc});
+    else if (om.find(word) != om.end()) tokens.push_back(Token{TokenType::Operator, word, filePath, sl, sc});
     else tokens.push_back(Token{TokenType::Identifier, word, filePath, sl, sc});
 }
 void Lexer::parseNumber() {
@@ -103,7 +108,7 @@ void Lexer::parseString() {
                 case '\\': value += '\\'; break;
                 case '"': value += '"'; break;
                 default:
-                    std::println(std::cerr, "[Lexer] Warning: unknown escape character '\\{}'", c);
+                    std::println(std::cerr, "[Neoluma/Lexer] Warning: unknown escape character '\\{}'", c);
                     value += c;
                     break;
             }
@@ -140,9 +145,9 @@ void Lexer::parseDelimeter() {
 
     auto dm = getDelimeterMap();
     
-    if (dm.find(delimeter) != dm.end()) tokens.push_back(Token{TokenType::Delimeter, delimeter});
+    if (dm.find(delimeter) != dm.end()) tokens.push_back(Token{TokenType::Delimeter, delimeter, filePath, sl, sc});
     else {
-        std::println(std::cerr, "[Lexer] Unknown delimeter: '{}'", delimeter);
+        std::println(std::cerr, "[Neoluma/Lexer] Unknown delimeter: '{}'", delimeter);
         tokens.push_back(Token{TokenType::Unknown, delimeter, filePath, sl, sc});
     }
 }
@@ -155,9 +160,9 @@ void Lexer::parsePreprocessor() {
 
     auto pm = getPreprocessorMap();
 
-    if (pm.find(word) != pm.end()) tokens.push_back(Token{TokenType::Preprocessor, word});
+    if (pm.find(word) != pm.end()) tokens.push_back(Token{TokenType::Preprocessor, word, filePath, sl, sc});
     else {
-        std::println(std::cerr, "[Lexer] Unknown preprocessor: #{}", word);
+        std::println(std::cerr, "[Neoluma/Lexer] Unknown preprocessor: #{}", word);
         tokens.push_back(Token{TokenType::Unknown, "#" + word, filePath, sl, sc});
     }
 }
@@ -168,39 +173,55 @@ void Lexer::parseDecorator() {
 
     while (!isAtEnd() && isalpha(curChar())) word += move();
 
-    auto dm = getDecoratorMap();
-
-    if (dm.find(word) != dm.end()) tokens.push_back(Token{TokenType::Decorator, word});
-    else {
-        std::println(std::cerr, "[Lexer] Unknown decorator: @{}", word);
-        tokens.push_back(Token{TokenType::Unknown, "@" + word, filePath, sl, sc});
-    }
+    tokens.push_back(Token{TokenType::Decorator, word, filePath, sl, sc});
 }
 void Lexer::skipComment() {
     int sl = line; int sc = column;
-    // yes i can actually read this monstrocity
-    if (match('/')) while (!isAtEnd() && curChar() != '\n') move();
-    else if (match('*')) {
-        // multiline
+
+    // apparently if i don't do this check im gonna regret it
+    if (isAtEnd()) {
+        move();
+        // single '/' at EOF - treat as operator
+        tokens.push_back(Token{TokenType::Operator, "/", filePath, sl, sc});
+        return;
+    }
+
+    // Single-line comment
+    if (source[pos] == '/' && source[pos+1] == '/') {
+        move(); // '/'
+        move(); // '/'
+        while (!isAtEnd() && curChar() != '\n') move();
+        move(); // consume newline
+        return;
+    }
+
+    // Block comment '/* ... */'
+    if (source[pos] == '/' && source[pos+1] == '*') {
+        move(); // '/'
+        move(); // '*'
         while (!isAtEnd()) {
-            if (curChar() == '\n') move();
             if (curChar() == '*' && (pos + 1 < source.size()) && source[pos + 1] == '/') {
                 move(); // '*'
                 move(); // '/'
-                break;
+                return;
             }
-            move();
+            move(); // \n_terminator3000
         }
-        // todo: give position.
-        if (isAtEnd()) std::println(std::cerr, "[Lexer] Unterminated comment at {}:{}", line, column);
+        // Unterminated block comment
+        std::println(std::cerr, "[Neoluma/Lexer] Unterminated comment at {}:{}", line, column);
+        return;
     }
-    // not comment
-    else tokens.push_back(Token{TokenType::Operator, "/", filePath, sl, sc});
+
+    // Not actually a comment sequence; treat as operator
+    move();
+    tokens.push_back(Token{TokenType::Operator, "/", filePath, sl, sc});
 }
 
 void Lexer::printTokens(const std::string& filename) const {
     std::println("=== Lexer Output ({}) ===", filename);
     for (const auto& token : tokens) {
+        //if (token.type == TokenType::Delimeter && token.value == "\\n") std::cout << "";
+        //else
         std::cout << token.toStr();
     }
     std::println("====================");

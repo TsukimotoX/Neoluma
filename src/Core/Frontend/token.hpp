@@ -37,7 +37,7 @@ enum class Operators {
     LogicalAnd, LogicalOr, LogicalNot,
     Assign, Nullable,
     AddAssign, SubAssign, MulAssign, DivAssign, ModAssign, PowerAssign,
-    AssignmentArrow,
+    AssignmentArrow, InheritanceArrow, TypeArrow,
     BitwiseAnd, BitwiseOr, BitwiseXOr, BitwiseNot, BitwiseLeftShift, BitwiseRightShift,
     //BitwiseUnsignedRightShift (from JS, not included for now because argued about)
 };
