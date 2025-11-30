@@ -18,8 +18,10 @@ void ProjectManager::check() {
     for (const auto& file : listFiles()) {
         std::string source = readFile(file);
         Lexer lexer;
-        lexer.tokenize(file, source);
+        lexer.tokenize(file, source); // Shortened file to file's name
         lexer.printTokens(file);
-        
+
+        Parser parser = Parser { lexer.tokens, getFileName(file) };
+        parser.printModule();
     }
 }

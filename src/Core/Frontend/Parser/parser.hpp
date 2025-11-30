@@ -6,27 +6,17 @@
 #include <iostream>
 
 // to make math order
-int getOperatorPrecedence(const std::string& op){
-    auto on = getOperatorNames();
-    if (op == on[Operators::Power]) return 7;
-    else if (op == on[Operators::Multiply] || op == on[Operators::Divide] || op == on[Operators::Modulo]) return 6;
-    else if (op == on[Operators::Add] || op == on[Operators::Subtract]) return 5;
-    else if (op == on[Operators::BitwiseLeftShift] || op == on[Operators::BitwiseRightShift]) return 4;
-    else if (op == on[Operators::BitwiseAnd]) return 3;
-    else if (op == on[Operators::BitwiseXOr]) return 2;
-    else if (op == on[Operators::BitwiseOr]) return 1;
-    else if (op == on[Operators::Equal] || op == on[Operators::NotEqual] || op == on[Operators::LessThan] || op == on[Operators::GreaterThan] || op == on[Operators::LessThanOrEqual] || op == on[Operators::GreaterThanOrEqual]) return 0;
-    else if (op == on[Operators::LogicalAnd]) return -1;
-    else if (op == on[Operators::LogicalOr]) return -2;
-    return -3;
-}
+int getOperatorPrecedence(const std::string& op);
+bool isAssignmentOperator(const std::string& op);
 
 //Parser
 class Parser {
 public:
     Parser(const std::vector<Token>& tokens, const std::string& moduleName) : tokens(tokens), moduleName(moduleName) {}
-    MemoryPtr<ModuleNode> parseModule(); // main parsing
-    void printModule();
+    void parseModule(); // main parsing
+    void printModule(int indentation = 0);
+
+    MemoryPtr<ModuleNode> moduleSource = nullptr;
 private:
     std::vector<Token> tokens;
     size_t pos = 0;
@@ -62,6 +52,7 @@ private:
 
     // Statement parsing
     MemoryPtr<ASTNode> parseStatement();
+    MemoryPtr<DeclarationNode> parseDeclaration();
     MemoryPtr<AssignmentNode> parseAssignment();
     MemoryPtr<ReturnStatementNode> parseReturn();
 
@@ -90,4 +81,6 @@ private:
     // Helper functions
     MemoryPtr<ASTNode> parseBlockorStatement();
     bool isNextLine();
+    // Lookahead helper to check if upcoming tokens form an assignable lvalue followed by an assignment operator
+    bool isAssignableAhead(size_t offset = 0);
 };
