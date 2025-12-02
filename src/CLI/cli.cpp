@@ -210,7 +210,7 @@ PTOutputType parseOutput(std::string outputType) {
     else if (outputType == "obj") return PTOutputType::Object;
     else if (outputType == "sharedlib") return PTOutputType::SharedLibrary;
     else if (outputType == "staticlib") return PTOutputType::StaticLibrary;
-    else std::println(std::cerr, "{}[NeolumaCLI/IDtoOutput] The format of PTOutputType is incorrect. Available ones are: exe, ir, obj, sharedlib, staticlib ", Color::TextHex("#ff5050"));
+    else std::println(std::cerr, "{}[NeolumaCLI/IDtoOutput] The identifier of output type is incorrect. Available ones are: exe, ir, obj, sharedlib, staticlib ", Color::TextHex("#ff5050"));
     return PTOutputType::None;
 }
 
@@ -231,7 +231,7 @@ void run(const std::string& nlpFile) {
 void check(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
     ProjectManager manager = { config };
-    std::println("✅ Syntax check for: {}", config.name);
+    std::println("✅ Semantic check for: {}", config.name);
     // add recursively adding files
     for (const auto& file : std::filesystem::recursive_directory_iterator(std::filesystem::path(nlpFile).parent_path() / std::filesystem::path(config.sourceFolder))) {
         if (file.is_regular_file()) {
