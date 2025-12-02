@@ -61,7 +61,7 @@ void clearScreen() {
 
 // Asks a question
 std::string askQuestion(const std::string& question) {
-    return asker::input(question, true);
+    return asker::input(+question, true);
 }
 
 // -------- stuff required for parseProjectFile
