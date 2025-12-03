@@ -7,7 +7,7 @@
       "build": {
         "initialization": "🔨 Building project:"
       },
-      "run" : {
+      "run": {
         "initialization": "🚀 Running executable..."
       },
       "check": {
