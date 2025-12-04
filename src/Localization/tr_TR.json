@@ -7,7 +7,7 @@
         "initialization": "🔨 Building project:"
       },
       "run": {
-        "initialization": "🚀 Running executable..."
+        "initialization": "🚀Applicazione in esecuzione..."
       },
       "check": {
         "initialization": "✅ Semantic check for:"
@@ -22,7 +22,7 @@
         "confirmation.yes": "{}✅ Project created! Have fun building in Neoluma!{}",
         "confirmation.no": "{}❌ Project cancelled. If it's a mistake, try create a project again!{}",
         "template.main.comment": "Welcome to Neoluma! Have fun building!",
-        "template.main.printmsg": "Hello from Neoluma!"
+        "template.main.printmsg": "Ciao di Neoluma!"
       }
     },
     "Core": {
