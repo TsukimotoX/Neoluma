@@ -155,7 +155,7 @@ namespace Toml {
     const TomlValue& Table::operator[](const std::string& key) const {
         for (const auto& [k, v] : data)
             if (k == key) return v;
-        throw std::out_of_range("[Toml::Table] Key '" + key + "' not found");
+        throw std::out_of_range(std::format("[NeolumaLibs/Toml::Table] Key '{}' not found", key));
     }
 
     TomlTable& Table::get() { return data; }
