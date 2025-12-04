@@ -1,28 +1,28 @@
 {
   "Compiler": {
     "CLI": {
-      "helpMessage": "Neoluma لغةَ برمجة عاليةَ المستوى،  مصنوعة لكل شئ،حتي لو كنت تكتب script صغيرا أو تبني operating system، فهي مصنوعة لتتوسع معك،تستغدم syntax شبه python، الarchitecture مستوحى من  ++C#/C. هي لغة تعبيرية وقوية.\n\nألاستخدامات:\nneoluma build <project.nlp> l\n- compile الproject إلي executable\nneoluma run <project.nlp> l\n- compile ثم شغل الملف\nneoluma check <project.nlp> l\n- أكد الsyntax بدون ان تقوم بbuild\nneoluma new <name> l\n- اصنع project جديد\nneoluma version l\n-اطبع الversion خاص بالcompiler",
-      "parseProjectFile.parseOutputError": "الidentifier لألoutput خاطئ،الأختبارات المحتوية هي: exe, ir, obj, sharedlib, staticlib",
+      "helpMessage": "Neoluma ist eine höhere und allzweckliche Programmiersprache.\nUnabhängig davon, ob Sie ein kleines Skript erstellen oder ein ganzes Betriebssystem.\nNeoluma ist dafür entwickelt, mit Ihnen zu skalieren.\nAnhand der ähnlichen Syntax wie Python und der Architektur inspiriert von C# und C++ ist es sowohl ausdrucksvoll als auch leistungsstark.\n\nVerwendung:\n  neoluma build <project.nlp>  - Kompilieren als ausführbares Programm\n  neoluma run <project.nlp>    - Kompilieren und ausführen\n  neoluma check <project.nlp>  - Syntaxüberprüfung ohne Kompilierung\n  neoluma new <name>           - Neues Projekt erstellen\n  neoluma version              - Ausgeben der Version des Kompilierers",
+      "parseProjectFile.parseOutputError": "Das Kennzeichen des Ausgabetypen ist ungültig. Verfügbare Optionen: exe, ir, obj, sharedlib, staticlib",
       "build": {
-        "initialization": "بدأ البناء للproject:"
+        "initialization": "🔨 Baue Projekt:"
       },
       "run": {
-        "initialization": "بدأ تشغيل الملف..."
+        "initialization": "🚀 Programmausführung..."
       },
       "check": {
-        "initialization": "بدأ التأكيد ل:"
+        "initialization": "✅ Semantische Überprüfung von:"
       },
       "createProject": {
-        "initialization": "لقد بدأ تصنيع الproject الجديد",
-        "projectName": "مل اسم الproject؟ ",
-        "projectVersion": "ما الversion الأول لألproject (يمكن أن يكون أي شئ)؟ ",
-        "projectAuthors": "من هو الكاتب لهذا الproject (منقسم باستخدام ،)؟",
-        "projectLicense": "ما الlicense خاص بالproject؟",
-        "confirmation": "لنلخص الproject!\nاسم الproject: {}؛\nالversion خاص بالproject: {}؛\nالكاتب: {}؛\nالlicense: {}؛\n\n{}هل هذا صحيح؟{}",
-        "confirmation.yes": "قد صنع الproject! نتمنى انك تستمتع بneoluma",
-        "confirmation.no": "الproject أتلغي،إذا هدا كان خطأ جرب أن تصنع project مجددا",
-        "template.main.comment": "أهلاً إلي neoluma! نتمنى انك ستستمتع به. ",
-        "template.main.printmsg": "أهلاً من neoluma!"
+        "initialization": "📃 Neues Neoluma Projekt erstellen",
+        "projectName": "❓ Was ist der Name Ihres Projektes?",
+        "projectVersion": "🆚 Was ist Ihre erste Projektversion (alles möglich)?",
+        "projectAuthors": "🤓 Wer sind die Projektauthoren (getrennt mit Komma)?",
+        "projectLicense": "📃 Welche Lizenz hat Ihr Projekt?",
+        "confirmation": "{}😎 Lass uns Ihr Projekt zusammenfassen!\n   Projektname: {};\n   Version: {};\n   Authoren: {};\n   Lizenz: {};\n\n{}ist dies korrekt?{}",
+        "confirmation.yes": "{}✅ Projekt erstellt! Viel Spaß beim Erstellen mit Neoluma!{}",
+        "confirmation.no": "{}❌ Projekterstellung abgebrochen. Falls dies ein Fehler wahr, versuchen Sie es erneut!{}",
+        "template.main.comment": "Willkommen bei Neoluma! Viel Spaß beim Erschaffen!",
+        "template.main.printmsg": "Hallo von Neoluma!"
       }
     },
     "Core": {
@@ -30,7 +30,7 @@
     },
     "Libraries": {
       "toml": {
-        "tableOutOfBoundsError": "المفتاح '{}' ليس موجود"
+        "tableOutOfBoundsError": "Schlüssen '{}' nicht gefunden"
       }
     }
   },
