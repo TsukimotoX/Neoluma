@@ -1,0 +1,44 @@
+
+class User {
+    name: string
+    age: int
+
+    User(name: string, age: int) {
+        self.name = name
+        self.age = age
+    }
+
+    fn displayInfo() {
+        print("Name: ${self.name}, Age: ${self.age}")
+    }
+}
+
+class Admin <- User {
+    level: int
+
+    Admin(name: string, age: int, level: int) {
+        super(name, age)
+        self.level = level
+    }
+
+    @logExecution
+    override fn displayInfo() {
+        print("Admin: ${self.name}, Level: ${self.level}")
+    }
+
+    static fn getAdminRole() -> string {
+        return "Administrator"
+    }
+}
+
+// Enum example
+enum UserRole {
+    Guest,
+    Member,
+    Admin
+}
+
+// Interface example
+interface Displayable {
+    fn display()
+}

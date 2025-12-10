@@ -1,0 +1,32 @@
+// Utility functions
+
+// Adds two numbers
+fn add(a: int, b: int) -> int {
+    return a + b
+}
+
+// Greets a user
+fn greet(user: User) {
+    print("Hello, ${user.name}!")
+}
+
+// A risky operation that throws an error
+fn riskyOperation() {
+    throw "Something went wrong!"
+}
+
+// String manipulation
+fn reverseString(s: string) -> string {
+    //return s[::-1]
+}
+
+// Advanced math operation
+@float
+fn calculateArea(radius: float) -> float {
+    return 3.14 * radius * radius
+}
+
+// Custom decorator example
+decorator logExecution() {
+    print("Executing function...")
+}
