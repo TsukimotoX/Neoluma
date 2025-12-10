@@ -1,28 +1,28 @@
 {
   "Compiler": {
     "CLI": {
-      "helpMessage": "Neoluma — это высокоуровневый, универсальный язык программирования, созданный как язык “для всего”. Будь то маленький скрипт или целая операционная система — Neoluma масштабируется вместе с вами. Синтаксис, напоминающий Python, и архитектура, вдохновлённая C# и C++, делают его одновременно выразительным и мощным.\n\nИспользование:\n  neoluma build <project.nlp>  - Скомпилировать проект в исполняемый файл\n  neoluma run <project.nlp>    - Скомпилировать и сразу запустить\n  neoluma check <project.nlp>  - Проверить синтаксис без сборки\n  neoluma new <name>           - Создать новый проект\n  neoluma version              - Показать версию компилятора",
-      "parseProjectFile.parseOutputError": "Идентификатор типа вывода некорректен. Доступные на данный момент: exe, ir, obj, sharedlib, staticlib",
+      "helpMessage": "Neoluma is a high-level, all-purpose programming language designed to be a language for everything.\nWhether you're writing a small script or building an entire operating system, Neoluma is made to scale with you. With a Python-like syntax and C#/C++-inspired architecture,\nit's both expressive and powerful.\n\nUsage:\n  neoluma build <project.nlp>  - Compile project to executable\n  neoluma run <project.nlp>    - Compile and immediately run\n  neoluma check <project.nlp>  - Syntax-check without building\n  neoluma new <name>           - Create new project\n  neoluma version              - Print compiler version",
+      "parseProjectFile.parseOutputError": "The identifier of output type is incorrect. Available ones are: exe, ir, obj, sharedlib, staticlib",
       "build": {
-        "initialization": "🔨 Сборка проекта:"
+        "initialization": "🔨 Building project:"
       },
       "run": {
-        "initialization": "🚀 Запуск программы..."
+        "initialization": "🚀 Running executable..."
       },
       "check": {
-        "initialization": "✅ Семантическая проверка для:"
+        "initialization": "✅ Semantic check for:"
       },
       "createProject": {
-        "initialization": "📃 Создание нового проекта Neoluma",
-        "projectName": "❓ Какое имя вашего проекта?",
-        "projectVersion": "🆚 Какая первая версия вашего проекта (может быть что угодно)?",
-        "projectAuthors": "🤓 Кто является автором(-ами) вашего проекта (разделите через ,)?",
-        "projectLicense": "📃 Под какой лицензией находится ваш проект?",
-        "confirmation": "{}😎 Давайте подытожим ваш проект!\n   Название проекта: {};\n   Версия: {};\n   Авторы: {};\n   Лицензия: {};\n\n{}Это верно?{}",
-        "confirmation.yes": "{}✅ Проект создан! Удачного времяпровождения и создания в Neoluma!{}",
-        "confirmation.no": "{}❌ Проект отменён. Если это была ошибка, попробуйте создать проект снова!{}",
-        "template.main.comment": "Добро пожаловать в Neoluma! Удачного времяпровождения и создания!",
-        "template.main.printmsg": "Привет от Neoluma!"
+        "initialization": "📃 Creating a new Neoluma project",
+        "projectName": "❓ What's the name of your project?",
+        "projectVersion": "🆚 What's your project first version (can be anything)?",
+        "projectAuthors": "🤓 Who is/are the author(s) of the project (separate with ,)?",
+        "projectLicense": "📃 What license does your project have?",
+        "confirmation": "{}😎 Let's sum up your project!\n   Project Name: {};\n   Version: {};\n   Authors: {};\n   License: {};\n\n{}Is that correct?{}",
+        "confirmation.yes": "{}✅ Project created! Have fun building in Neoluma!{}",
+        "confirmation.no": "{}❌ Project cancelled. If it's a mistake, try create a project again!{}",
+        "template.main.comment": "Welcome to Neoluma! Have fun building!",
+        "template.main.printmsg": "Hello from Neoluma!"
       }
     },
     "Core": {
@@ -30,7 +30,7 @@
     },
     "Libraries": {
       "toml": {
-        "tableOutOfBoundsError": "Ключ '{}' не найден"
+        "tableOutOfBoundsError": "Key '{}' not found"
       }
     }
   },
