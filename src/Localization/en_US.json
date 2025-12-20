@@ -19,9 +19,9 @@
         "projectVersion": "🆚 What's your project first version (can be anything)?",
         "projectAuthors": "🤓 Who is/are the author(s) of the project (separate with ,)?",
         "projectLicense": "📃 What license does your project have?",
-        "confirmation": "{0}😎 Let's sum up your project!\n   Project Name: {1};\n   Version: {2};\n   Authors: {3};\n   License: {4};\n\n{5}Is that correct?{6}",
-        "confirmation.yes": "{0}✅ Project created! Have fun building in Neoluma!{1}",
-        "confirmation.no": "{0}❌ Project cancelled. If it's a mistake, try create a project again!{1}",
+        "confirmation": "{}😎 Let's sum up your project!\n   Project Name: {};\n   Version: {};\n   Authors: {};\n   License: {};\n\n{}Is that correct?{}",
+        "confirmation.yes": "{}✅ Project created! Have fun building in Neoluma!{}",
+        "confirmation.no": "{}❌ Project cancelled. If it's a mistake, try create a project again!{}",
 
         "template.main.comment": "Welcome to Neoluma! Have fun building!",
         "template.main.printmsg": "Hello from Neoluma!"

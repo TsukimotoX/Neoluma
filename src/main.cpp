@@ -63,6 +63,8 @@ int main(int argc, char** argv) {
         }
         
         check(projectFilePath);
+    } else if (args.command == "version") {
+        std::println("{}Neoluma v1.0{}", Color::TextHex("#ff28e6"), Color::Reset);
     } else {
         printHelp();
     }

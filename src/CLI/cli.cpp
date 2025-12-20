@@ -335,7 +335,6 @@ void createProject(ProjectConfig config) {
 }
 
 void printHelp() {
-    std::cout << Localization::translate("Compiler.CLI.helpMessage") << "\n";
-    //std::println(std::cout, "{}", Localization::translate("Compiler.CLI.helpMessage"));
+    std::println(std::cout, "{}", Localization::translate("Compiler.CLI.helpMessage"));
 }
 

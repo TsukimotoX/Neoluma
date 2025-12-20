@@ -14,13 +14,13 @@
       },
       "createProject": {
         "initialization": "لقد بدأ تصنيع الproject الجديد",
-        "projectName": "مل اسم الproject؟ ",
+        "projectName": "ما اسم الproject؟ ",
         "projectVersion": "ما الversion الأول لألproject (يمكن أن يكون أي شئ)؟ ",
         "projectAuthors": "من هو الكاتب لهذا الproject (منقسم باستخدام ،)؟",
         "projectLicense": "ما الlicense خاص بالproject؟",
-        "confirmation": "{0}لنلخص الproject!\nاسم الproject: {1}؛\nالversion خاص بالproject: {2}؛\nالكاتب: {3}؛\nالlicense: {4}؛\n\n{5}هل هذا صحيح؟{6}",
-        "confirmation.yes": "{0}قد صنع الproject!{1} نتمنى انك تستمتع بneoluma",
-        "confirmation.no": "{0}الproject أتلغي،إذا هدا كان خطأ جرب أن تصنع project مجددا{1}",
+        "confirmation": "{}لنلخص الproject!\nاسم الproject: {}؛\nالversion خاص بالproject: {}؛\nالكاتب: {}؛\nالlicense: {}؛\n\n{}هل هذا صحيح؟{}",
+        "confirmation.yes": "{}قد صنع الproject!{} نتمنى انك تستمتع بneoluma",
+        "confirmation.no": "{}الproject أتلغي،إذا هدا كان خطأ جرب أن تصنع project مجددا{}",
         "template.main.comment": "أهلاً إلي neoluma! نتمنى انك ستستمتع به. ",
         "template.main.printmsg": "أهلاً من neoluma!"
       }
