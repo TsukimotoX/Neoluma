@@ -3,7 +3,7 @@
 **Neoluma** is a high-level, general-purpose programming language designed to be *a language for everything*. 
 Whether you're crafting a quick script on your knee or developing a large operating system, Neoluma is made with developer experience in mind. Featuring a clean, Python-JS-like syntax with the structure and power of C++ & C# - it's expressive, efficient, and built for modern development.
 
-| [Website](https://neoluma.dev) | [License](./LICENSE) | [Discord](https://discord.gg/zmrB9dbmy5) |
+| [Website](https://neoluma.dev) | [License](./LICENSE) | [Discord](https://discord.gg/zmrB9dbmy5) | [Crowdin (Translate!)](https://crowdin.com/project/neoluma) |
 
 ## ✨ Features
 - **Clean, modern syntax** inspired by Python, JavaScript, and C#
@@ -83,5 +83,7 @@ Neoluma is in early development. Contributions and feedback are welcome!
 
 More documentation and compiler features coming soon!
 **Join our [Discord server](https://discord.gg/zmrB9dbmy5)!**
+
+Help us translate Neoluma to other languages via **our [Crowdin!](https://crowdin.com/project/neoluma)**
 
 This project uses [LLVM](https://llvm.org/) under the Apache License v2.0 with LLVM Exceptions.

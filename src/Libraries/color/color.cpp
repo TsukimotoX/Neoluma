@@ -1,4 +1,5 @@
 #include "color.hpp"
+#include <format>
 
 namespace Color {
     std::string TextRGB(uint8_t r, uint8_t g, uint8_t b) {
@@ -8,7 +9,7 @@ namespace Color {
     std::string BackgroundRGB(uint8_t r, uint8_t g, uint8_t b) {
         return std::format("\033[48;2;{};{};{}m", r, g, b);
     }
-    
+
     std::string TextHex(const std::string& hex) {
         unsigned int r, g, b;
         if (hex[0] == '#') {
