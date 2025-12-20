@@ -8,7 +8,7 @@
 #include "../Libraries/toml/toml.hpp"
 #include "../Libraries/asker/asker.hpp"
 #include "../Libraries/color/color.hpp"
-#include "../Core/Frontend/Lexer/lexer.hpp"
+#include "../Libraries/localization/localization.hpp"
 #include "../Core/Extras/ProjectManager/projectmanager.hpp"
 #include "../HelperFunctions.hpp"
 
@@ -210,7 +210,7 @@ PTOutputType parseOutput(std::string outputType) {
     else if (outputType == "obj") return PTOutputType::Object;
     else if (outputType == "sharedlib") return PTOutputType::SharedLibrary;
     else if (outputType == "staticlib") return PTOutputType::StaticLibrary;
-    else std::println(std::cerr, "{}[NeolumaCLI/IDtoOutput] The format of PTOutputType is incorrect. Available ones are: exe, ir, obj, sharedlib, staticlib ", Color::TextHex("#ff5050"));
+    else std::println(std::cerr, "{}[NeolumaCLI/IDtoOutput] {}", Color::TextHex("#ff5050"), Localization::translate("Compiler.CLI.parseProjectFile.parseOutputError"));
     return PTOutputType::None;
 }
 
@@ -218,20 +218,20 @@ PTOutputType parseOutput(std::string outputType) {
 
 void build(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
-    std::println("🔨 Building project: {}", config.name);
+    std::println("{} {}", Localization::translate("Compiler.CLI.build.initialization"), config.name);
     // todo: вызов компилятора, генерация .exe
 }
 
 void run(const std::string& nlpFile) {
     build(nlpFile);
-    std::println("🚀 Running executable...\n");
+    std::println("{}\n", Localization::translate("Compiler.CLI.run.initialization"));
     // todo: запускаем с помощью std::system или CreateProcess
 }
 
 void check(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
     ProjectManager manager = { config };
-    std::println("✅ Syntax check for: {}", config.name);
+    std::println("{} {}",  Localization::translate("Compiler.CLI.check.initialization"), config.name);
     // add recursively adding files
     for (const auto& file : std::filesystem::recursive_directory_iterator(std::filesystem::path(nlpFile).parent_path() / std::filesystem::path(config.sourceFolder))) {
         if (file.is_regular_file()) {
@@ -245,23 +245,24 @@ void check(const std::string& nlpFile) {
 void createProject() {
     ProjectConfig config;
     int steps = 5; int step = 1;
+    std::string title = std::format("{} ", Localization::translate("Compiler.CLI.createProject.initialization"));
 
     clearScreen();
-    showProgressBar("📃 Creating a new Neoluma project ", step++, steps);
+    showProgressBar(title, step++, steps);
 
-    config.name = askQuestion("❓ What's the name of your project?");
+    config.name = askQuestion(Localization::translate("Compiler.CLI.createProject.projectName"));
     clearScreen();
-    showProgressBar("📃 Creating a new Neoluma project ", step++, steps);
-    config.version = askQuestion("🆚 What's your project first version (can be anything)?");
+    showProgressBar(title, step++, steps);
+    config.version = askQuestion(Localization::translate("Compiler.CLI.createProject.projectVersion"));
     clearScreen();
-    showProgressBar("📃 Creating a new Neoluma project ", step++, steps);
-    std::vector<std::string> authors = split(askQuestion("🤓 Who is/are the author(s) of the project (separate with ,)?"), ',');
+    showProgressBar(title, step++, steps);
+    std::vector<std::string> authors = split(askQuestion(Localization::translate("Compiler.CLI.createProject.projectAuthors")), ',');
     std::string authorList = listAuthors(authors);
     config.author = authors;
     clearScreen();
-    showProgressBar("📃 Creating a new Neoluma project ", step++, steps);
+    showProgressBar(title, step++, steps);
     std::string licenses[14] = { "MIT", "Apache 2.0", "GNU GPL v3", "BSD 2-Clause \"Simplified\"", "BSD 3-Clause \"New\" or \"Revised\"", "Boost Software 1.0", "CC0 v1 Universal", "Eclipse", "GNU AGPL v3", "GNU GPL v2", "GNU LGPL v2.1", "Mozilla 2.0", "The Unlicense", "Custom"};
-    std::string license = asker::selectList("📃 What license does your project have?", licenses);
+    std::string license = asker::selectList(Localization::translate("Compiler.CLI.createProject.projectLicense"), licenses);
 
     if (license == "MIT") config.license = License::MIT;
     else if (license == "Apache 2.0") config.license = License::Apache;
@@ -279,14 +280,15 @@ void createProject() {
     else config.license = License::Custom;
     
     clearScreen();
-    showProgressBar("📃 Creating a new Neoluma project ", step++, steps);
-    bool confirmation = asker::confirm(std::format("{}😎 Let's sum up your project!\n   Project Name: {};\n   Version: {};\n   Authors: {};\n   License: {};\n\n{}Is that correct?{}", Color::TextHex("#FF8C75"), config.name, config.version, authorList, license, Color::TextHex("#96fcbd"), Color::Reset));
+    showProgressBar(title, step++, steps);
+    bool confirmation = asker::confirm(formatStr(Localization::translate("Compiler.CLI.createProject.confirmation"),
+        Color::TextHex("#FF8C75"), config.name, config.version, authorList, license, Color::TextHex("#96fcbd"), Color::Reset));
     if (confirmation) {
         createProject(config);
         clearScreen();
-        std::println("{}✅ Project created! Have fun building in Neoluma!{}", Color::TextHex("#75ff87"), Color::Reset);
+        std::println(std::cerr, "{}", formatStr(Localization::translate("Compiler.CLI.createProject.confirmation.yes"), Color::TextHex("#75ff87"), Color::Reset));
     } else {
-        std::println("{}❌ Project cancelled. If it's a mistake, try create a project again!{}", Color::TextHex("#ff5050"), Color::Reset);
+        std::println(std::cerr, "{}", formatStr(Localization::translate("Compiler.CLI.createProject.confirmation.no"), Color::TextHex("#ff5050"), Color::Reset));
     }
     std::println(Color::Reset);
 }
@@ -297,11 +299,7 @@ void createProject(ProjectConfig config) {
     std::filesystem::create_directory(projectPath / "src");
 
     std::ofstream mainFile(projectPath / "src/main.nm");
-    mainFile << R""""(// Welcome to Neoluma! Have fun building!
-@entry
-fn main() {
-    print("Hello from Neoluma!");
-})"""";
+    mainFile << std::format("// {} \n@entry\nfn main() {{\n    print(\"{}\");\n}}", Localization::translate("Compiler.CLI.createProject.template.main.comment"), Localization::translate("Compiler.CLI.createProject.template.main.printMsg"));
     mainFile.close();
 
     Toml::Table table;
@@ -337,16 +335,6 @@ fn main() {
 }
 
 void printHelp() {
-    std::println(R""""(Neoluma is a high-level, all-purpose programming language designed to be a language for everything.
-Whether you're writing a small script or building an entire operating system, Neoluma is made to scale with you. With a Python-like syntax and C#/C++-inspired architecture,
-it's both expressive and powerful.
-
-Usage:
-  neoluma build <project.nlp>  - Compile project to executable
-  neoluma run <project.nlp>    - Compile and immediately run
-  neoluma check <project.nlp>  - Syntax-check without building
-  neoluma new <name>           - Create new project
-  neoluma version              - Print compiler version
-)"""");
+    std::println(std::cout, "{}", Localization::translate("Compiler.CLI.helpMessage"));
 }
 
