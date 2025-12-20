@@ -7,7 +7,7 @@
         "initialization": "🔨 Building project:"
       },
       "run": {
-        "initialization": "🚀Applicazione in esecuzione..."
+        "initialization": "🚀 Applicazione in esecuzione..."
       },
       "check": {
         "initialization": "✅ Semantic check for:"
