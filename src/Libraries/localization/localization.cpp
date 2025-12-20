@@ -22,11 +22,11 @@ namespace Localization {
 			}
 			return "en_US"; // fallback
 		#else
-			std::string lang = getenv("LANG");
-			if (!lang) return "en_US";
+			const char* langPtr = getenv("LANG");
+			if (langPtr == nullptr) return "en_US";
 
-			std::string s = lang;
-			if (s.find('.') == std::string::npos) s = s.substr(0, s.find('.'));
+			std::string s = langPtr;
+			if (s.find('.') != std::string::npos) s = s.substr(0, s.find('.'));
 			return s;
 		#endif
 	}

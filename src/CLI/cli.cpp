@@ -286,9 +286,9 @@ void createProject() {
     if (confirmation) {
         createProject(config);
         clearScreen();
-        std::println(std::cerr, "{}", formatStr(Localization::translate("Compiler.CLI.createProject.confirmation.yes"), Color::TextHex("#75ff87"), Color::Reset));
+        std::println(std::cout, "{}", formatStr(Localization::translate("Compiler.CLI.createProject.confirmation.yes"), Color::TextHex("#75ff87"), Color::Reset));
     } else {
-        std::println(std::cerr, "{}", formatStr(Localization::translate("Compiler.CLI.createProject.confirmation.no"), Color::TextHex("#ff5050"), Color::Reset));
+        std::println(std::cout, "{}", formatStr(Localization::translate("Compiler.CLI.createProject.confirmation.no"), Color::TextHex("#ff5050"), Color::Reset));
     }
     std::println(Color::Reset);
 }
@@ -299,7 +299,7 @@ void createProject(ProjectConfig config) {
     std::filesystem::create_directory(projectPath / "src");
 
     std::ofstream mainFile(projectPath / "src/main.nm");
-    mainFile << std::format("// {} \n@entry\nfn main() {{\n    print(\"{}\");\n}}", Localization::translate("Compiler.CLI.createProject.template.main.comment"), Localization::translate("Compiler.CLI.createProject.template.main.printMsg"));
+    mainFile << std::format("// {} \n@entry\nfn main() {{\n    print(\"{}\");\n}}", Localization::translate("Compiler.CLI.createProject.template.main.comment"), Localization::translate("Compiler.CLI.createProject.template.main.printmsg"));
     mainFile.close();
 
     Toml::Table table;
