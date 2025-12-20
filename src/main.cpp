@@ -7,6 +7,7 @@
 #include "Libraries/color/color.hpp"
 #include "Core/Frontend/Lexer/lexer.hpp"
 #include "HelperFunctions.hpp"
+#include "Libraries/localization/localization.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -25,6 +26,7 @@ int main(int argc, char** argv) {
     #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     #endif
+    Localization::init();
     CLIArgs args = parseArgs(argc, argv);
 
     if (args.command == "new") {
@@ -55,6 +57,7 @@ int main(int argc, char** argv) {
         }
 
         if (projectFilePath.empty()) {
+            // translate later
             std::println("{}[Neoluma/Check] Project file was not found!{}", Color::TextHex("#ff5050"), Color::Reset);
             return 2;
         }

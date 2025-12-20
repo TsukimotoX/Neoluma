@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
 
 # Neoluma, a programming language
 project(Neoluma)

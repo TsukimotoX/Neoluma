@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
 #include <string>
 #include <filesystem>
@@ -40,3 +39,12 @@ std::string readFile(const std::string& filePath);
 
 // Extracts the file name from a given file path
 std::string getFileName(const std::string& filePath);
+
+template<typename... Args>
+std::string formatStr(const std::string& base, Args&&... args)
+{
+    std::ostringstream oss;
+    oss << base;
+    (oss << ... << std::forward<Args>(args));
+    return oss.str();
+}

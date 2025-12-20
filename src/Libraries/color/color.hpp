@@ -12,20 +12,20 @@ namespace Color {
     std::string BackgroundHex(const std::string& hex);
 
     namespace Effect {
-        constexpr const char* BoldOn       = "\033[1m";
-        constexpr const char* DimOn        = "\033[2m";
-        constexpr const char* UnderlineOn  = "\033[4m";
-        constexpr const char* BlinkOn      = "\033[5m";
-        constexpr const char* ReverseOn    = "\033[7m";
-        constexpr const char* HideOn       = "\033[8m";
+        constexpr std::string BoldOn       = "\033[1m";
+        constexpr std::string DimOn        = "\033[2m";
+        constexpr std::string UnderlineOn  = "\033[4m";
+        constexpr std::string BlinkOn      = "\033[5m";
+        constexpr std::string ReverseOn    = "\033[7m";
+        constexpr std::string HideOn       = "\033[8m";
 
-        constexpr const char* BoldOff      = "\033[21m";
-        constexpr const char* DimOff       = "\033[22m";
-        constexpr const char* UnderlineOff = "\033[24m";
-        constexpr const char* BlinkOff     = "\033[25m";
-        constexpr const char* ReverseOff   = "\033[27m";
-        constexpr const char* HideOff      = "\033[28m";
+        constexpr std::string BoldOff      = "\033[21m";
+        constexpr std::string DimOff       = "\033[22m";
+        constexpr std::string UnderlineOff = "\033[24m";
+        constexpr std::string BlinkOff     = "\033[25m";
+        constexpr std::string ReverseOff   = "\033[27m";
+        constexpr std::string HideOff      = "\033[28m";
     }
 
-    constexpr const char* Reset = "\033[0m";
+    constexpr std::string Reset = "\033[0m";
 }
