@@ -20,7 +20,7 @@
         "projectLicense": "📃 Welche Lizenz hat Ihr Projekt?",
         "confirmation": "{}😎 Lass uns Ihr Projekt zusammenfassen!\n   Projektname: {};\n   Version: {};\n   Authoren: {};\n   Lizenz: {};\n\n{}ist dies korrekt?{}",
         "confirmation.yes": "{}✅ Projekt erstellt! Viel Spaß beim Erstellen mit Neoluma!{}",
-        "confirmation.no": "{}❌ Projekterstellung abgebrochen. Falls dies ein Fehler wahr, versuchen Sie es erneut!{}",
+        "confirmation.no": "{}❌ Projekterstellung abgebrochen. Falls dies ein Fehler war, versuchen Sie es erneut!{}",
         "template.main.comment": "Willkommen bei Neoluma! Viel Spaß beim Erschaffen!",
         "template.main.printmsg": "Hallo von Neoluma!"
       }
