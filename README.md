@@ -80,6 +80,7 @@ Neoluma is in early development. Contributions and feedback are welcome!
 ## 📖 Credits
 
 **Created by [Tsukimoto](https://github.com/TsukimotoX) under [Apache License](./LICENSE)**. 
+**Neoluma™** is a [trademark](./TRADEMARK.md) of the **Neoluma** project; the name and branding are **not granted** under the Apache-2.0 license.
 
 More documentation and compiler features coming soon!
 **Join our [Discord server](https://discord.gg/zmrB9dbmy5)!**
