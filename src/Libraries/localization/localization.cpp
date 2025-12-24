@@ -79,6 +79,8 @@ namespace Localization {
 		auto item = localeMap.find(key);
 		if (item != localeMap.end()) return item->second;
 
+		std::cerr << "[Localization] Couldn't translate key '" << key << "'\n";
+
 		auto fallbackItem = fallbackMap.find(key);
 		if (fallbackItem != fallbackMap.end()) return fallbackItem->second;
 

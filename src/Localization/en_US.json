@@ -28,7 +28,29 @@
       }
     },
     "Core": {
-      "ErrorManager": {}
+      "ErrorManager": {
+        "ErrorType": {
+          "syntax": {
+            "type": "Syntax",
+            "errors": {
+              "UnexpectedToken":  "Unexpected Token",
+              "MissingToken":  "Missing Token",
+              "InvalidStatement": "Invalid Statement",
+              "InvalidPreprocessorDirective",
+              "UnterminatedString",
+              "UnterminatedComment",
+              "InvalidNumberFormat",
+              "UnexpectedEndOfFile",
+              "MismatchedBrackets"
+            }
+          },
+          "semantic": "Semantic",
+          "type": "Type",
+          "preprocessor": "Preprocessor",
+          "codegen": "Codegen",
+          "runtime": "Runtime"
+        }
+      }
     },
     "Libraries": {
       "toml": {

@@ -48,6 +48,11 @@ struct ASTNode {
     ASTNodeType type;
     std::string value; // for basic values like literals, etc.
 
+    // Tracking the node for the Semantic Analysis purposes
+    int line = 0;
+    int column = 0;
+    std::string filePath = "";
+
     virtual ~ASTNode();
     virtual std::string toString(int indent) const = 0;
     //virtual llvm::LLVMContext generateCode(); // for the compiler to generate code from this AST node
@@ -386,11 +391,13 @@ struct EnumMemberNode : ASTNode {
 };
 
 struct EnumNode : ASTNode {
+    std::string name;
     std::vector<MemoryPtr<CallExpressionNode>> decorators;
     std::vector<MemoryPtr<ModifierNode>> modifiers;
     std::vector<MemoryPtr<EnumMemberNode>> elements;
 
-    EnumNode(std::vector<MemoryPtr<EnumMemberNode>> elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = std::vector<MemoryPtr<CallExpressionNode>>{}, std::vector<MemoryPtr<ModifierNode>> modifiers = std::vector<MemoryPtr<ModifierNode>>{}) {
+    EnumNode(const std::string& name, std::vector<MemoryPtr<EnumMemberNode>> elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = std::vector<MemoryPtr<CallExpressionNode>>{}, std::vector<MemoryPtr<ModifierNode>> modifiers = std::vector<MemoryPtr<ModifierNode>>{})
+    : name(name) {
         this->type = ASTNodeType::Enum;
         this->elements = std::move(elements);
         this->decorators = std::move(decorators);
@@ -420,11 +427,13 @@ struct InterfaceFieldNode : ASTNode {
 };
 
 struct InterfaceNode : ASTNode {
+    std::string name;
     std::vector<MemoryPtr<CallExpressionNode>> decorators;
     std::vector<MemoryPtr<ModifierNode>> modifiers;
     std::vector<MemoryPtr<InterfaceFieldNode>> elements;
 
-    InterfaceNode(std::vector<MemoryPtr<InterfaceFieldNode>> elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = std::vector<MemoryPtr<CallExpressionNode>>{}, std::vector<MemoryPtr<ModifierNode>> modifiers = std::vector<MemoryPtr<ModifierNode>>{}) {
+    InterfaceNode(const std::string& name, std::vector<MemoryPtr<InterfaceFieldNode>> elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = std::vector<MemoryPtr<CallExpressionNode>>{}, std::vector<MemoryPtr<ModifierNode>> modifiers = std::vector<MemoryPtr<ModifierNode>>{})
+    : name(name) {
         this->type = ASTNodeType::Interface;
         this->elements = std::move(elements);
         this->decorators = std::move(decorators);
