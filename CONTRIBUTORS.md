@@ -1,5 +1,8 @@
 # Neoluma Contributors
 
+## Owner
+- [TsukimotoX](https://github.com/TsukimotoX)
+
 ## Maintainers
 - [TsukimotoX](https://github.com/TsukimotoX)
 
