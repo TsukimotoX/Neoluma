@@ -1,22 +1,22 @@
 # Neoluma Contributors
 
-# Maintainers
+## Maintainers
 - [TsukimotoX](https://github.com/TsukimotoX)
 
-# NeolumaWeb (website)
+## NeolumaWeb (website)
 - [TsukimotoX](https://github.com/TsukimotoX)
 - Zeltux
 
-# Crowdin Translations
+## Crowdin Translations
 
-## Arabic
+### Arabic
 - ZackPd
 
-## German
+### German
 - [Scanavium21](https://github.com/Scanavium21)
 
-## Italian
+### Italian
 - [niceEli](https://github.com/niceEli)
 
-## Russian
+### Russian
 - [TsukimotoX](https://github.com/TsukimotoX)
