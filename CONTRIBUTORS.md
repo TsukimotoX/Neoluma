@@ -13,7 +13,7 @@
 ## Crowdin Translations
 
 ### Arabic
-- ZackPd
+- [ZackPd](https://github.com/zackpandora)
 
 ### German
 - [Scanavium21](https://github.com/Scanavium21)
