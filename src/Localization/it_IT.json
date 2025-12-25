@@ -4,7 +4,7 @@
       "helpMessage": "Neoluma is a high-level, all-purpose programming language designed to be a language for everything.\nWhether you're writing a small script or building an entire operating system, Neoluma is made to scale with you. With a Python-like syntax and C#/C++-inspired architecture,\nit's both expressive and powerful.\n\nUsage:\n  neoluma build <project.nlp>  - Compile project to executable\n  neoluma run <project.nlp>    - Compile and immediately run\n  neoluma check <project.nlp>  - Syntax-check without building\n  neoluma new <name>           - Create new project\n  neoluma version              - Print compiler version",
       "parseProjectFile.parseOutputError": "The identifier of output type is incorrect. Available ones are: exe, ir, obj, sharedlib, staticlib",
       "build": {
-        "initialization": "🔨 Building project:"
+        "initialization": "🔨 Edificio il progetto:"
       },
       "run": {
         "initialization": "🚀 Applicazione in esecuzione..."
