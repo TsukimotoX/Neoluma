@@ -4,12 +4,11 @@
 #include <vector>
 #include "../token.hpp"
 
-class Lexer {
-public: 
+struct Lexer {
     std::vector<Token> tokenize(const std::string& filePath, const std::string& source);
     void printTokens(const std::string& filename) const; // Debug command to check tokens correctness
     std::vector<Token> tokens;
-private:
+
     std::string source;
     size_t pos = 0;
     std::string filePath;

@@ -183,9 +183,9 @@ class ErrorManager {
 public:
     void addError(ErrorType type, std::variant<SyntaxErrors, SemanticErrors, TypeErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType, const Token& token, const std::string& msg, const std::string& hint = "") { errors.push_back(Error{type, detailedType, token, msg, hint}); }
     void printErrors(const std::string& source);
-    bool hasErrors() const { return errors.empty(); }
+    [[nodiscard]] bool hasErrors() const { return errors.empty(); }
 private:
     std::vector<Error> errors;
-    std::string formatErrorType(std::variant<SyntaxErrors, SemanticErrors, TypeErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType);
-    std::string formatMessage(std::variant<SyntaxErrors, SemanticErrors, TypeErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType);
+    static std::string formatErrorType(std::variant<SyntaxErrors, SemanticErrors, TypeErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType);
+    static std::string formatMessage(std::variant<SyntaxErrors, SemanticErrors, TypeErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType);
 };

@@ -61,7 +61,7 @@ enum class PTOutputType { Executable, StaticLibrary, SharedLibrary, Object, Inte
 // ProjectConfig is a struct that allows me to determine project structure.
 struct ProjectConfig {
     std::string name = "Untitled Project";
-    std::string version = "1.0.0"; // TODO:: Make an incremental count for versions.
+    std::string version = "1.0.0"; // TODO: Make an incremental count for versions.
     std::vector<std::string> author = { "Untitled Author" };
     std::vector<PlatformTarget> targets;
     License license = License::MIT;
@@ -75,27 +75,23 @@ struct ProjectConfig {
 
     CompilerSettings compilerSettings;
     std::vector<std::string> filesList; // List of files inside the project to feed to compiler.
+    std::string sourcePath; // Absolute path to locate the project
 };
 
 // ProjectManager is a class that... manages... projects?
-class ProjectManager {
-public:
-    ProjectManager(const ProjectConfig& config);
+struct ProjectManager {
+    ProjectConfig config;
+
+    ProjectManager(ProjectConfig& config) : config(config) {};
 
     // Main functions
-    void build();
     void clean();
-    void run();
-    void check();
 
     // Helpful utilities
-    std::vector<std::string> listFiles() const { return config.filesList; }
+    [[nodiscard]] std::vector<std::string> listFiles() const { return config.filesList; }
     void addFile(const std::string& file) { config.filesList.push_back(file); }
     void removeFile(const std::string& file) {  config.filesList.erase(std::remove(config.filesList.begin(), config.filesList.end(), file), config.filesList.end()); }
 
     // Access to ProjectConfig
     ProjectConfig& getConfig();
-    const ProjectConfig& getConfig() const;
-private:
-    ProjectConfig config;
 };
