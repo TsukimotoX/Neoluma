@@ -12,7 +12,7 @@
 
 // ==== Print the parser output ====
 void Parser::printModule(int indentation) {
-    parseModule();
+    parseModule(tokens, moduleName);
     if (!moduleSource) {
         std::cerr << "[Neoluma/Parser]["<< __func__ << "] No module to print.\n";
         return;
@@ -22,7 +22,10 @@ void Parser::printModule(int indentation) {
 }
 
 // ==== Main parsing ====
-void Parser::parseModule() {
+void Parser::parseModule(const std::vector<Token>& tok, const std::string& name) {
+    // initialization
+    this->tokens = tok; this->moduleName = name;
+
     auto moduleNode = ASTBuilder::createModule(moduleName);
     auto dn = getDelimeterNames();
 

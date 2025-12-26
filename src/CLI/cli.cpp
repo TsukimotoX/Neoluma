@@ -156,7 +156,7 @@ ProjectConfig parseProjectFile(const std::string& file) {
     config.languagePacks = extractMap(root, "languagePacks");
 
     // configure source path
-    config.sourcePath = file;
+    config.sourcePath = std::filesystem::path(file).parent_path().string();
     
     return config;
 }
@@ -234,9 +234,11 @@ void run(const std::string& nlpFile) {
 
 void check(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
+    std::string name = config.name;
     Compiler compiler = Compiler(config);
-    std::println("{} {}",  Localization::translate("Compiler.CLI.check.initialization"), config.name);
+    std::println("{} {}",  Localization::translate("Compiler.CLI.check.initialization"), name);
     compiler.check();
+    std::println("{} ",  Localization::translate("Compiler.CLI.check.complete"));
     // todo: only lexer, parser and semantic analysis
 }
 

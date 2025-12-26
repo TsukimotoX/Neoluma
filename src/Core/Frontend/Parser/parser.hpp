@@ -11,7 +11,7 @@ bool isAssignmentOperator(const std::string& op);
 
 //Parser
 struct Parser {
-    void parseModule(); // main parsing
+    void parseModule(const std::vector<Token>& tok, const std::string& moduleName); // main parsing
     void printModule(int indentation = 0);
 
     MemoryPtr<ModuleNode> moduleSource = nullptr;
