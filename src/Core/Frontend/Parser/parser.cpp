@@ -12,7 +12,6 @@
 
 // ==== Print the parser output ====
 void Parser::printModule(int indentation) {
-    parseModule(tokens, moduleName);
     if (!moduleSource) {
         std::cerr << "[Neoluma/Parser]["<< __func__ << "] No module to print.\n";
         return;
@@ -24,7 +23,7 @@ void Parser::printModule(int indentation) {
 // ==== Main parsing ====
 void Parser::parseModule(const std::vector<Token>& tok, const std::string& name) {
     // initialization
-    this->tokens = tok; this->moduleName = name;
+    this->moduleSource = nullptr; this->tokens = tok; this->moduleName = name; this->pos = 0;
 
     auto moduleNode = ASTBuilder::createModule(moduleName);
     auto dn = getDelimeterNames();
@@ -865,7 +864,7 @@ MemoryPtr<BlockNode> Parser::parseBlock() {
             return nullptr;
         }
         block.push_back(std::move(stmt));
-        if (curToken().type == TokenType::Delimeter && isNextLine()) next();
+        if (match(TokenType::Delimeter, dn[Delimeters::Semicolon])) next();
     }
     if (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
         std::println(std::cerr, "[Neoluma/Parser][{}] Expected '}}' to end block (L{}:{})", __func__, curToken().line, curToken().column);
@@ -1031,7 +1030,7 @@ MemoryPtr<ASTNode> Parser::parsePreprocessor() {
         }
         node = ASTBuilder::createImport(moduleName, alias, importType);
     }
-    if (match(TokenType::Preprocessor, pn[Preprocessors::Macro])) {
+    else if (match(TokenType::Preprocessor, pn[Preprocessors::Macro])) {
         next();
         if (!match(TokenType::Identifier)) {
             std::println(std::cerr, "[Neoluma/Parser][{}] Couldn't find identifier after #macro{} (L{}:{})", __func__, "", curToken().line, curToken().column);
@@ -1045,20 +1044,19 @@ MemoryPtr<ASTNode> Parser::parsePreprocessor() {
         }
         node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Macro, value);
     }
-    if (match(TokenType::Preprocessor, pn[Preprocessors::Baremetal])) {
+    else if (match(TokenType::Preprocessor, pn[Preprocessors::Baremetal])) {
         next();
         node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Baremetal);
     }
-    if (match(TokenType::Preprocessor, pn[Preprocessors::Unsafe])) {
+    else if (match(TokenType::Preprocessor, pn[Preprocessors::Unsafe])) {
         next();
         node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Unsafe);
     }
-    if (match(TokenType::Preprocessor, pn[Preprocessors::Float])) {
+    else if (match(TokenType::Preprocessor, pn[Preprocessors::Float])) {
         next();
         node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Float);
     }
-
-    node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::None);
+    else node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::None);
     node->line = _.line; node->column = _.column; node->filePath = _.filePath;
     return node;
 }

@@ -236,9 +236,8 @@ void check(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
     std::string name = config.name;
     Compiler compiler = Compiler(config);
-    std::println("{} {}",  Localization::translate("Compiler.CLI.check.initialization"), name);
+    std::println("{}", formatStr(Localization::translate("Compiler.CLI.check.initialization"), Color::TextHex("#75ff87"), name, Color::Reset));
     compiler.check();
-    std::println("{} ",  Localization::translate("Compiler.CLI.check.complete"));
     // todo: only lexer, parser and semantic analysis
 }
 

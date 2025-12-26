@@ -5,8 +5,7 @@
 
 enum struct ErrorType {
     Syntax,
-    Semantic,
-    Type,
+    Analysis,
     Preprocessor,
     Codegen,
     Runtime,
@@ -17,7 +16,6 @@ enum struct SyntaxErrors {
     UnexpectedToken,
     MissingToken,
     InvalidStatement,
-    InvalidPreprocessorDirective,
     UnterminatedString,
     UnterminatedComment,
     InvalidNumberFormat,
@@ -25,8 +23,8 @@ enum struct SyntaxErrors {
     MismatchedBrackets,
 };
 
-// NSeE{x}
-enum struct SemanticErrors {
+// NAnE{x}
+enum struct AnalysisErrors {
     // Variables & Scope
     UndefinedVariable,
     RedefinedVariable,
@@ -42,7 +40,6 @@ enum struct SemanticErrors {
     MissingRequiredParameter,
     DuplicateParameterName,
     InvalidParameterOrder,
-    InvalidReturnType,
     MissingReturnStatement,
     ReturnInVoidFunction,
 
@@ -87,10 +84,7 @@ enum struct SemanticErrors {
 
     // Assignment
     AssignmentToNonLValue,
-};
 
-// NTyE{x}
-enum struct TypeErrors {
     // Core Type Errors
     TypeMismatch,
     UnknownType,
@@ -173,19 +167,19 @@ enum struct RuntimeErrors {
 
 struct Error {
     ErrorType type;
-    std::variant<SyntaxErrors, SemanticErrors, TypeErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType;
+    std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType;
     Token token;
     std::string message;
     std::string hint;
+    std::string filePath;
 };
 
-class ErrorManager {
-public:
-    void addError(ErrorType type, std::variant<SyntaxErrors, SemanticErrors, TypeErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType, const Token& token, const std::string& msg, const std::string& hint = "") { errors.push_back(Error{type, detailedType, token, msg, hint}); }
-    void printErrors(const std::string& source);
-    [[nodiscard]] bool hasErrors() const { return errors.empty(); }
-private:
+struct ErrorManager {
     std::vector<Error> errors;
-    static std::string formatErrorType(std::variant<SyntaxErrors, SemanticErrors, TypeErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType);
-    static std::string formatMessage(std::variant<SyntaxErrors, SemanticErrors, TypeErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType);
+
+    void addError(ErrorType type, std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType, const Token& token, const std::string& filePath, const std::string& msg, const std::string& hint = "") { errors.push_back(Error{type, detailedType, token, msg, hint, filePath}); }
+    void printErrors();
+    [[nodiscard]] bool hasErrors() const { return !errors.empty(); }
+
+    static std::string formatErrorType(std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType);
 };

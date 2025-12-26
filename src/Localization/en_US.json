@@ -11,9 +11,9 @@
         "initialization": "🚀 Running executable..."
       },
       "check": {
-        "initialization": "✅ Semantic check for:",
-        "complete": "🎉 Check completed successfully!",
-        "failed": "❌ Semantic check failed. Please check the errors above."
+        "initialization": "{}✅ Analytic check for: {}{}",
+        "complete": "{}🎉 Check completed successfully!{}",
+        "failed": "{}❌ Analytic check failed. Please check the errors above.{}"
       },
       "createProject": {
         "initialization": "📃 Creating a new Neoluma project",
@@ -31,28 +31,31 @@
     },
     "Core": {
       "ErrorManager": {
+        "hint": "{}💡  Hint: {}{}",
         "ErrorType": {
           "syntax": {
-            "type": "Syntax",
-            "messages": {
-              "UnexpectedToken":  "Unexpected Token",
-              "MissingToken":  "Missing Token",
-              "InvalidStatement": "Invalid Statement",
-              "InvalidPreprocessorDirective":  "Invalid Preprocessor Directive",
-              "UnterminatedString": "Unterminated String",
-              "UnterminatedComment": "Unterminated Comment",
-              "InvalidNumberFormat": "Invalid Number Format",
-              "UnexpectedEndOfFile": "Unexpected End Of File",
-              "MismatchedBrackets": "Mismatched Brackets"
-            }
-          },
-          "semantic": {
-            "type": "Semantic"
-          },
-          "type": "Type",
-          "preprocessor": "Preprocessor",
-          "codegen": "Codegen",
-          "runtime": "Runtime"
+            "UnexpectedToken": {
+              "message": "Unexpected Token: '{}'",
+              "hint": "Clear it, or make sure you typed it correctly."
+            },
+            "MissingToken":  "Missing Token",
+            "InvalidStatement": "Invalid Statement",
+            "InvalidPreprocessorDirective":  "Invalid Preprocessor Directive",
+            "UnterminatedString": "Unterminated String",
+            "UnterminatedComment": {
+              "message": "Unterminated Comment",
+              "hint": "Close the comment via '*/'"
+            },
+            "InvalidNumberFormat": "Invalid Number Format",
+            "UnexpectedEndOfFile": "Unexpected End Of File",
+            "MismatchedBrackets": "Mismatched Brackets"
+          }
+        },
+        "preprocessor": {
+          "InvalidDirective": {
+            "message": "Invalid directive '{}'",
+            "hint": "Check out Neoluma documentation to see what directives are available."
+          }
         }
       }
     },
