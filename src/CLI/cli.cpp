@@ -11,6 +11,7 @@
 #include "../Libraries/localization/localization.hpp"
 #include "../Core/Extras/ProjectManager/projectmanager.hpp"
 #include "../HelperFunctions.hpp"
+#include "Core/compiler.hpp"
 
 // ==== Helping functions
 
@@ -153,37 +154,40 @@ ProjectConfig parseProjectFile(const std::string& file) {
     config.dependencies = extractMap(root, "dependencies");
     config.tests = extractMap(root, "tests");
     config.languagePacks = extractMap(root, "languagePacks");
+
+    // configure source path
+    config.sourcePath = file;
     
     return config;
 }
 
 std::string licenseID(License license) {
     switch (license) {
-        case License::AGPL: return "agpl"; break;
-        case License::Apache: return "apache"; break;
-        case License::Boost: return "boost"; break;
-        case License::BSD2: return "bsd2"; break;
-        case License::BSD3: return "bsd3"; break;
-        case License::CC0: return "cc0"; break;
-        case License::Eclipse: return "eclipse"; break;
-        case License::GPL2: return "gpl2"; break;
-        case License::GPL3: return "gpl3"; break;
-        case License::LGPL: return "lgpl"; break;
-        case License::MIT: return "mit"; break;
-        case License::Mozilla: return "mozilla"; break;
-        case License::Unlicense: return "unlicense"; break;
-        default: return "custom"; break;
+        case License::AGPL: return "agpl";
+        case License::Apache: return "apache";
+        case License::Boost: return "boost";
+        case License::BSD2: return "bsd2";
+        case License::BSD3: return "bsd3";
+        case License::CC0: return "cc0";
+        case License::Eclipse: return "eclipse";
+        case License::GPL2: return "gpl2";
+        case License::GPL3: return "gpl3";
+        case License::LGPL: return "lgpl";
+        case License::MIT: return "mit";
+        case License::Mozilla: return "mozilla";
+        case License::Unlicense: return "unlicense";
+        default: return "custom";
     }
 }
 
 std::string outputID(PTOutputType type) {
     switch (type) {
-        case PTOutputType::Executable: return "exe"; break;
-        case PTOutputType::IntermediateRepresentation: return "ir"; break;
-        case PTOutputType::Object: return "obj"; break;
-        case PTOutputType::SharedLibrary: return "sharedlib"; break;
-        case PTOutputType::StaticLibrary: return "staticlib"; break;
-        default: return ""; break;
+        case PTOutputType::Executable: return "exe";
+        case PTOutputType::IntermediateRepresentation: return "ir";
+        case PTOutputType::Object: return "obj";
+        case PTOutputType::SharedLibrary: return "sharedlib";
+        case PTOutputType::StaticLibrary: return "staticlib";
+        default: return "";
     }
 }
 
@@ -230,21 +234,15 @@ void run(const std::string& nlpFile) {
 
 void check(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
-    ProjectManager manager = { config };
+    Compiler compiler = Compiler(config);
     std::println("{} {}",  Localization::translate("Compiler.CLI.check.initialization"), config.name);
-    // add recursively adding files
-    for (const auto& file : std::filesystem::recursive_directory_iterator(std::filesystem::path(nlpFile).parent_path() / std::filesystem::path(config.sourceFolder))) {
-        if (file.is_regular_file()) {
-            manager.addFile(file.path().string());
-        }
-    }
-    manager.check();
-    // todo: only lexer and parser
+    compiler.check();
+    // todo: only lexer, parser and semantic analysis
 }
 
 void createProject() {
     ProjectConfig config;
-    int steps = 5; int step = 1;
+    int steps = 5; int step = 0;
     std::string title = std::format("{} ", Localization::translate("Compiler.CLI.createProject.initialization"));
 
     clearScreen();

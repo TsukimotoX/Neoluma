@@ -49,14 +49,14 @@ void ErrorManager::printErrors(const std::string& source) {
         std::println("");
     }
 }
-/*
+
 std::string ErrorManager::formatErrorType(std::variant<SyntaxErrors, SemanticErrors, TypeErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType){
-    if (std::holds_alternative<SyntaxErrors>(detailedType)) return "NSyE{}" + (int)std::get<SyntaxErrors>(detailedType);
-    if (std::holds_alternative<SemanticErrors>(detailedType)) return "NSeE{}" + (int)std::get<SemanticErrors>(detailedType);
-    if (std::holds_alternative<TypeErrors>(detailedType)) return "NTyE{}" + (int)std::get<TypeErrors>(detailedType);
-    if (std::holds_alternative<PreprocessorErrors>(detailedType)) return "NPrE{}" + (int)std::get<PreprocessorErrors>(detailedType);
-    if (std::holds_alternative<CodegenErrors>(detailedType)) return "NCoE{}" + (int)std::get<CodegenErrors>(detailedType);
-    if (std::holds_alternative<RuntimeErrors>(detailedType)) return "NRuE{}" + (int)std::get<RuntimeErrors>(detailedType);
+    if (std::holds_alternative<SyntaxErrors>(detailedType)) return std::format("NSyE{}", (int)std::get<SyntaxErrors>(detailedType));
+    if (std::holds_alternative<SemanticErrors>(detailedType)) return std::format("NSeE{}", (int)std::get<SemanticErrors>(detailedType));
+    if (std::holds_alternative<TypeErrors>(detailedType)) return std::format("NTyE{}", (int)std::get<TypeErrors>(detailedType));
+    if (std::holds_alternative<PreprocessorErrors>(detailedType)) return std::format("NPrE{}", (int)std::get<PreprocessorErrors>(detailedType));
+    if (std::holds_alternative<CodegenErrors>(detailedType)) return std::format("NCoE{}", (int)std::get<CodegenErrors>(detailedType));
+    if (std::holds_alternative<RuntimeErrors>(detailedType)) return std::format("NRuE{}", (int)std::get<RuntimeErrors>(detailedType));
     return "[ErrorManager/formatErrorType] No error type detected";
 }
 
@@ -64,12 +64,58 @@ std::string ErrorManager::formatMessage(std::variant<SyntaxErrors, SemanticError
     switch (std::get<SyntaxErrors>(detailedType)){
         case SyntaxErrors::UnexpectedToken: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.UnexpectedToken"); break;
         case SyntaxErrors::MissingToken: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.MissingToken"); break;
-        case SyntaxErrors::InvalidStatement: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.UnexpectedToken"); break;
-        case SyntaxErrors::InvalidPreprocessorDirective: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.UnexpectedToken"); break;
-        case SyntaxErrors::UnterminatedString: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.UnexpectedToken"); break;
-        case SyntaxErrors::UnterminatedComment: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.UnexpectedToken"); break;
-        case SyntaxErrors::InvalidNumberFormat: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.UnexpectedToken"); break;
-        case SyntaxErrors::UnexpectedEndOfFile: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.UnexpectedToken"); break;
-        case SyntaxErrors::MismatchedBrackets: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.UnexpectedToken"); break;
-    }
-}*/
+        case SyntaxErrors::InvalidStatement: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.InvalidStatement"); break;
+        case SyntaxErrors::InvalidPreprocessorDirective: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.InvalidPreprocessorDirective"); break;
+        case SyntaxErrors::UnterminatedString: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.UnterminatedString"); break;
+        case SyntaxErrors::UnterminatedComment: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.UnterminatedComment"); break;
+        case SyntaxErrors::InvalidNumberFormat: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.InvalidNumberFormat"); break;
+        case SyntaxErrors::UnexpectedEndOfFile: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.UnexpectedEndOfFile"); break;
+        case SyntaxErrors::MismatchedBrackets: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.errors.MismatchedBrackets"); break;
+    }/*
+    switch (std::get<SemanticErrors>(detailedType)){
+        case SemanticErrors::UndefinedVariable: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.UndefinedVariable"); break;
+        case SemanticErrors::RedefinedVariable: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.RedefinedVariable"); break;
+        case SemanticErrors::UninitializedVariable: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.UninitializedVariable"); break;
+        case SemanticErrors::ConstantReassignment: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.ConstantReassignment"); break;
+        case SemanticErrors::VariableOutOfScope: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.VariableOutOfScope"); break;
+        case SemanticErrors::ShadowedVariable: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.ShadowedVariable"); break;
+        case SemanticErrors::FunctionMismatch: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.FunctionMismatch"); break;
+        case SemanticErrors::UndefinedFunction: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.UndefinedFunction"); break;
+        case SemanticErrors::WrongArgumentCount: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.WrongArgumentCount"); break;
+        case SemanticErrors::MissingRequiredParameter: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.MissingRequiredParameter"); break;
+        case SemanticErrors::DuplicateParameterName: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.DuplicateParameterName"); break;
+        case SemanticErrors::InvalidParameterOrder: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.InvalidParameterOrder"); break;
+        case SemanticErrors::InvalidReturnType: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.InvalidReturnType"); break;
+        case SemanticErrors::MissingReturnStatement: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.MissingReturnStatement"); break;
+        case SemanticErrors::ReturnInVoidFunction: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.ReturnInVoidFunction"); break;
+        case SemanticErrors::UndefinedMember: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.UndefinedMember"); break;
+        case SemanticErrors::CircularInheritance: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.CircularInheritance"); break;
+        case SemanticErrors::InvalidSuperClass: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.InvalidSuperClass"); break;
+        case SemanticErrors::MissingSuperCall: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.MissingSuperCall"); break;
+        case SemanticErrors::InvalidSuperCall: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.InvalidSuperCall"); break;
+        case SemanticErrors::AccessViolation: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.AccessViolation"); break;
+        case SemanticErrors::InvalidOverride: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.InvalidOverride"); break;
+        case SemanticErrors::OverrideSignatureMismatch: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.OverrideSignatureMismatch"); break;
+        case SemanticErrors::InvalidModifierUsage: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.InvalidModifierUsage"); break;
+        case SemanticErrors::ConflictingModifiers: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.ConflictingModifiers"); break;
+        case SemanticErrors::DecoratorMisuse: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.DecoratorMisuse"); break;
+        case SemanticErrors::UndefinedDecorator: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.UndefinedDecorator"); break;
+        case SemanticErrors::DecoratorOnInvalidTarget: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.DecoratorOnInvalidTarget"); break;
+        case SemanticErrors::DecoratorArgumentMismatch: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.DecoratorArgumentMismatch"); break;
+        case SemanticErrors::MultipleEntryPoints: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.MultipleEntryPoints"); break;
+        case SemanticErrors::BreakOutsideLoop: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.BreakOutsideLoop"); break;
+        case SemanticErrors::ContinueOutsideLoop: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.ContinueOutsideLoop"); break;
+        case SemanticErrors::UnreachableCode: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.UnreachableCode"); break;
+        case SemanticErrors::DuplicateCaseValue: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.DuplicateCaseValue"); break;
+        case SemanticErrors::CaseTypeMismatch: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.CaseTypeMismatch"); break;
+        case SemanticErrors::InterfaceNotImplemented: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.InterfaceNotImplemented"); break;
+        case SemanticErrors::InterfaceSignatureMismatch: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.InterfaceSignatureMismatch"); break;
+        case SemanticErrors::DuplicateEnumMember: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.DuplicateEnumMember"); break;
+        case SemanticErrors::InvalidCapture: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.InvalidCapture"); break;
+        case SemanticErrors::ModifyingCapturedConst: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.ModifyingCapturedConst"); break;
+        case SemanticErrors::AwaitOutsideAsync: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.AwaitOutsideAsync"); break;
+        case SemanticErrors::YieldOutsideGenerator: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.YieldOutsideGenerator"); break;
+        case SemanticErrors::AssignmentToNonLValue: return Localization::translate("Compiler.Core.ErrorManager.ErrorType.semantic.errors.AssignmentToNonLValue:"); break;
+    }*/
+    return "No error detected";
+}

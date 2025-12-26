@@ -10,14 +10,11 @@ int getOperatorPrecedence(const std::string& op);
 bool isAssignmentOperator(const std::string& op);
 
 //Parser
-class Parser {
-public:
-    Parser(const std::vector<Token>& tokens, const std::string& moduleName) : tokens(tokens), moduleName(moduleName) {}
+struct Parser {
     void parseModule(); // main parsing
     void printModule(int indentation = 0);
 
     MemoryPtr<ModuleNode> moduleSource = nullptr;
-private:
     std::vector<Token> tokens;
     size_t pos = 0;
     std::string moduleName = "";
@@ -72,7 +69,6 @@ private:
     MemoryPtr<InterfaceNode> parseInterface(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers);
 
     // Imports, decorators, modifiers, preprocessor
-    MemoryPtr<ImportNode> parseImport();
     MemoryPtr<ASTNode> parseDecorator(std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}, bool isCall=false);
     std::vector<MemoryPtr<CallExpressionNode>> parseDecoratorCalls();
     std::vector<MemoryPtr<ModifierNode>> parseModifiers();
