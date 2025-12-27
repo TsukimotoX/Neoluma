@@ -4,24 +4,5 @@
 #include "../../../HelperFunctions.hpp"
 #include <fstream>
 #include <sstream>
+#include "Core/compiler.hpp"
 
-ProjectManager::ProjectManager(const ProjectConfig& config) : config(config) {}
-
-void ProjectManager::build() {}
-
-void ProjectManager::clean() {}
-
-void ProjectManager::run() {}
-
-void ProjectManager::check() {
-    // temporarily check things here. after that you move it into compiler
-    for (const auto& file : listFiles()) {
-        std::string source = readFile(file);
-        Lexer lexer;
-        lexer.tokenize(file, source); // Shortened file to file's name
-        lexer.printTokens(file);
-
-        Parser parser = Parser { lexer.tokens, getFileName(file) };
-        parser.printModule();
-    }
-}
