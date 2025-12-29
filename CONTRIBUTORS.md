@@ -15,6 +15,9 @@
 ### Arabic
 - [ZackPd](https://github.com/zackpandora)
 
+### Chinese (Simplified)
+- Soviet Commander (soviet_commander1922 on Discord)
+
 ### German
 - [Scanavium21](https://github.com/Scanavium21)
 
