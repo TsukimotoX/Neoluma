@@ -16,7 +16,7 @@
         "initialization": "📃 Creating a new Neoluma project",
         "projectName": "❓ What's the name of your project?",
         "projectVersion": "🆚 What's your project first version (can be anything)?",
-        "projectAuthors": "🤓 Who is/are the author(s) of the project (separate with ,)?",
+        "projectAuthors": "🤓 项目作者是谁如多于一人, (请以逗号分隔）？",
         "projectLicense": "📃 What license does your project have?",
         "confirmation": "{}😎 Let's sum up your project!\n   Project Name: {};\n   Version: {};\n   Authors: {};\n   License: {};\n\n{}Is that correct?{}",
         "confirmation.yes": "{}✅ Project created! Have fun building in Neoluma!{}",
