@@ -1,28 +1,28 @@
 {
   "Compiler": {
     "CLI": {
-      "helpMessage": "Neoluma is a high-level, all-purpose programming language designed to be a language for everything.\nWhether you're writing a small script or building an entire operating system, Neoluma is made to scale with you. With a Python-like syntax and C#/C++-inspired architecture,\nit's both expressive and powerful.\n\nUsage:\n  neoluma build <project.nlp>  - Compile project to executable\n  neoluma run <project.nlp>    - Compile and immediately run\n  neoluma check <project.nlp>  - Syntax-check without building\n  neoluma new <name>           - Create new project\n  neoluma version              - Print compiler version",
-      "parseProjectFile.parseOutputError": "The identifier of output type is incorrect. Available ones are: exe, ir, obj, sharedlib, staticlib",
+      "helpMessage": "Neoluma 是一种高级且通用的编程语言，旨在成为适用于一切场景的语言。\n无论您是在编写小型脚本还是构建整个操作系统，Neoluma 正是为您量身定做。\n它有类似 Python 的语法和受到C#/C++ 启发的架构，既有表达力又功能强大。\n\n使用方法：\n  neoluma build <project.nlp> - 将项目编译为可执行文件\n  neoluma run <project.nlp> - 编译并立即运行\n  neoluma check <project.nlp> - 仅进行语法检查，不构建\n  neoluma new <name> - 创建新项目\n  neoluma version - 打印编译器版本",
+      "parseProjectFile.parseOutputError": "输出类型标识符不正确，可用的类型为：exe, ir, obj, sharedlib, staticlib",
       "build": {
-        "initialization": "🔨 Building project:"
+        "initialization": "🔨 构建项目:"
       },
       "run": {
-        "initialization": "🚀 Running executable..."
+        "initialization": "🚀 正在执行文件..."
       },
       "check": {
-        "initialization": "✅ Semantic check for:"
+        "initialization": "✅语义检查已完成:"
       },
       "createProject": {
-        "initialization": "📃 Creating a new Neoluma project",
-        "projectName": "❓ What's the name of your project?",
-        "projectVersion": "🆚 What's your project first version (can be anything)?",
-        "projectAuthors": "🤓 项目作者是谁？如多于一人，请以逗号分隔。",
-        "projectLicense": "📃 What license does your project have?",
-        "confirmation": "{}😎 Let's sum up your project!\n   Project Name: {};\n   Version: {};\n   Authors: {};\n   License: {};\n\n{}Is that correct?{}",
-        "confirmation.yes": "{}✅ Project created! Have fun building in Neoluma!{}",
-        "confirmation.no": "{}❌ Project cancelled. If it's a mistake, try create a project again!{}",
-        "template.main.comment": "Welcome to Neoluma! Have fun building!",
-        "template.main.printmsg": "Hello from Neoluma!"
+        "initialization": "📃 创建一个新的 Neoluma 项目",
+        "projectName": "❓ 您的项目名称是什么?",
+        "projectVersion": "🆚 您的项目初始版本是什么（随意就行）?",
+        "projectAuthors": "🤓 项目作者是谁？（如多于一人，请以逗号分隔）",
+        "projectLicense": "📃 您的项目有什么许可证？",
+        "confirmation": "{}😎 －起来汇总您的项目信息吧！\n   项目名称: {};\n   版本: {};\n   作者: {};\n   许可证: {};\n\n{}以上信息是否正确？{}",
+        "confirmation.yes": "{}✅ 项目已创建！祝您在 Neoluma 中编码愉快！{}",
+        "confirmation.no": "{}❌ 项目已取消。若为操作失误，请重新尝试创建项目！{}",
+        "template.main.comment": "欢迎使用 Neoluma！祝您构建愉快！",
+        "template.main.printmsg": "来自 Neoluma 的诚挚问候！"
       }
     },
     "Core": {
@@ -30,7 +30,7 @@
     },
     "Libraries": {
       "toml": {
-        "tableOutOfBoundsError": "Key '{}' not found"
+        "tableOutOfBoundsError": "關键词“{}”未能找到"
       }
     }
   },
