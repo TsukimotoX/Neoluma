@@ -3,6 +3,8 @@
 #include <vector>
 #include <variant>
 
+#include "Core/Frontend/nodes.hpp"
+
 enum struct ErrorType {
     Syntax,
     Analysis,
@@ -165,19 +167,26 @@ enum struct RuntimeErrors {
     UnhandledError,
 };
 
+struct ErrorSpan {
+    std::string filePath;
+    int line, column, len = 0;
+    ErrorSpan(const std::string& filePath, const std::string& value, int line, int column): filePath(filePath), len((int)value.length()), line(line), column(column) {};
+};
+
 struct Error {
     ErrorType type;
     std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType;
-    Token token;
-    std::string message;
-    std::string hint;
-    std::string filePath;
+    ErrorSpan span;
+    std::string message; // Message that contains main error + context error
+    std::string hint;  // Hint to fix the error
+
+    std::optional<std::string> contextKey; // a text to refer to on context. like "expected '{}' after x"
 };
 
 struct ErrorManager {
     std::vector<Error> errors;
 
-    void addError(ErrorType type, std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType, const Token& token, const std::string& filePath, const std::string& msg, const std::string& hint = "") { errors.push_back(Error{type, detailedType, token, msg, hint, filePath}); }
+    void addError(ErrorType type, std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType, const ErrorSpan& span, const std::string& msg, const std::string& hint = "", const std::optional<std::string>& contextKey = std::nullopt) { errors.push_back(Error{type, detailedType, span, msg, hint, contextKey}); }
     void printErrors();
     [[nodiscard]] bool hasErrors() const { return !errors.empty(); }
 

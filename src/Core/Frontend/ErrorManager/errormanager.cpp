@@ -12,6 +12,7 @@ void ErrorManager::printErrors() {
 
     int count = 1;
     for (auto& e : errors) {
+        std::string errid = "Compiler.Core.ErrorManager.ErrorType.";
         std::string typeColor;
         std::string hintColor = Color::TextHex("#f6ff75");
         std::string msgColor = Color::TextHex("#ff7575");
@@ -24,37 +25,43 @@ void ErrorManager::printErrors() {
             case ErrorType::Runtime:      typeColor = Color::TextHex("#ffa500"); break;
         }
 
-        std::istringstream srcStream(readFile(e.filePath));
-        std::string line;
-        int lineNum = 1;
+        std::istringstream srcStream(readFile(e.span.filePath));
+        std::string prevLine;
+        std::string line; //temp to read those
+        std::string nextLine;
         std::string errorLine;
-
+        int lineNum = 1;
         while (std::getline(srcStream, line)) {
-            if (lineNum == e.token.line) {
+            if (lineNum == e.span.line) {
                 errorLine = line;
+                std::getline(srcStream, nextLine);
                 break;
-            } lineNum++;
+            }
+            prevLine = line;
+            lineNum++;
         }
 
         // Replaces filepath's \ to /
         size_t fppos = 0;
-        while ((fppos = e.token.filePath.find("\\", fppos)) != std::string::npos) {
-            e.token.filePath.replace(fppos, 1, "/");
+        while ((fppos = e.span.filePath.find("\\", fppos)) != std::string::npos) {
+            e.span.filePath.replace(fppos, 1, "/");
             fppos += 1;
         }
 
-
-        std::println("{}[{}]  ❌  {}{}", typeColor, formatErrorType(e.detailedType), e.message, Color::Reset);
-        std::println("➡️  {}:{}:{}", e.token.filePath, e.token.line, e.token.column);
-        std::println("    |");
-        std::println("{:>3} | {}", e.token.line, errorLine);
-        std::string pointerLine(e.token.column - 1, ' ');
-        std::println("    |{}^^^^^", pointerLine);
-        if (!e.hint.empty())
-            std::println(std::cout, "{}", formatStr(Localization::translate("Compiler.Core.ErrorManager.hint"), hintColor, e.hint, Color::Reset));
+        std::println("{}[{}]  ❌  {}{}", typeColor, formatErrorType(e.detailedType),
+            formatStr(errid+"{}", e.message),
+            /*// TODO: Fucking fix this shit. It sucks. it sucks. fix this shit.
+            !e.contextKey.empty() ? formatStr(": {}", formatStr(Localization::translate(formatStr(errid+"{}.message", e.contextKey)), e.contextValue)) : "",*/
+            Color::Reset);
+        std::println("➡️  {}:{}:{}", e.span.filePath, e.span.line, e.span.column);
+        std::println("{:>3} | {}", e.span.line-1, prevLine);
+        std::println("{:>3} | {}", e.span.line, errorLine);
+        auto tmp = std::string(std::to_string(e.span.line).length()+1, ' ');
+        std::println("{} | {}{} {}", tmp, std::string(e.span.column-1, ' '), std::string(e.span.len+2, '^'), e.message);
+        std::println("{:>3} | {}", e.span.line+1, nextLine);
+        if (!e.hint.empty()) std::println(std::cout, "{}", formatStr(Localization::translate("Compiler.Core.ErrorManager.hint"), hintColor, e.hint, Color::Reset));
 
         count++;
-        std::println("");
     }
 }
 

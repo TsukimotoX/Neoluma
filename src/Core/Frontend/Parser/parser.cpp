@@ -8,6 +8,10 @@
 #include <print>
 #include <typeinfo>
 
+#include "Core/compiler.hpp"
+#include "Libraries/color/color.hpp"
+#include "Libraries/localization/localization.hpp"
+
 // TODO: Clean up the token saving at the start of every function (the one used for errors)
 
 // ==== Print the parser output ====
@@ -33,10 +37,34 @@ void Parser::parseModule(const std::vector<Token>& tok, const std::string& name)
 
         MemoryPtr<ASTNode> stmt = parseStatement();
         if (!stmt) {
-            std::println(std::cerr, "[Neoluma/Parser][{}] Failed to parse statement in module {} (L{}:{}, char '{}')", __func__, moduleName, curToken().line, curToken().column, curToken().value);
-            break;
-        }
+            // TODO: Think something about fixing the InvalidStatement's context. It showcases only the last token.
+            //compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::InvalidStatement, ErrorSpan{stmt->filePath, stmt->line, stmt->column, stmt->value.length()}, Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.InvalidStatement.message"), "");
+            std::println(std::cerr, "[Neoluma/Parser][{}] Invalid statement (L{}:{})", __func__, curToken().line, curToken().column);
 
+            size_t startPos = pos;
+            int guard = 0;
+            auto dn = getDelimeterNames();
+            while (!isAtEnd() && guard++ < 1000){
+                if (match(TokenType::Delimeter, dn[Delimeters::Semicolon])){
+                    next();
+                    break;
+                }
+                if (match(TokenType::Delimeter, dn[Delimeters::RightBraces])){
+                    break;
+                }
+                next();
+            }
+
+            if (pos == startPos && !isAtEnd()) next();
+
+            if (guard >= 1000) {
+                //std::println(std::cerr, "{}", formatStr(Localization::translate("Compiler.Core.ErrorManager.safetyGuard"), Color::TextHex("#ff5050"), __func__, curToken().filePath, curToken().line, curToken().column, Color::Reset));
+                std::println(std::cerr, "{} ❌😵‍💫 Recovery guard triggered! Stopping parsing to avoid infinite loop. If you see this message somehow, report this to the developers. \n\n Information: \n Function: {},\n File {},\n Happened at Line {}:{}\n\nThank you!\n{}", Color::TextHex("#ff5050"), __func__, curToken().filePath, curToken().line, curToken().column, Color::Reset);
+                break;
+            }
+
+            continue;
+        }
         moduleNode->body.push_back(std::move(stmt));
     }
 
@@ -77,7 +105,17 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
             next();
             MemoryPtr<ASTNode> expr = parseExpression();
             if (!expr) {
-                std::println(std::cerr, "[Neoluma/Parser][{}] Expected expression after 'return' (L{}:{})", __func__, curToken().line, curToken().column);
+                /*
+                compiler->errorManager.addError(
+                    ErrorType::Syntax, SyntaxErrors::MissingToken, lookBack(), lookBack().filePath,
+                    "syntax.MissingToken.message",
+                    "syntax.MissingToken.context.novariableafter.hint",
+                    "syntax.MissingToken.context.novariableafter",
+                    "return");
+                next();
+                // todo: finish implementing errormanager in parser
+                */
+                std::println(std::cerr, "[Neoluma/Parser][{}] Missing variable after 'return' (L{}:{})", __func__, curToken().line, curToken().column);
                 return nullptr;
             }
             auto node = ASTBuilder::createReturnStatement(std::move(expr));
@@ -88,7 +126,9 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
             next();
             MemoryPtr<ASTNode> expr = parseExpression();
             if (!expr) {
-                std::println(std::cerr, "[Neoluma/Parser][{}] Expected expression after 'throw' (L{}:{})", __func__, curToken().line, curToken().column);
+                //compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::MissingToken, lookBack(), lookBack().filePath, Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.MissingToken.message"), "");
+                std::println(std::cerr, "[Neoluma/Parser][{}] Missing variable after 'throw' (L{}:{})", __func__, curToken().line, curToken().column);
+                next();
                 return nullptr;
             }
             return ASTBuilder::createThrowStatement(std::move(expr));
@@ -110,7 +150,9 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
         if (km[token.value] == Keywords::Enum) return parseEnum(std::move(decorators), std::move(modifiers));
         if (km[token.value] == Keywords::Interface) return parseInterface(std::move(decorators), std::move(modifiers));
         if (km[token.value] == Keywords::Decorator) return parseDecorator(std::move(decorators), std::move(modifiers));
-        if (!modifiers.empty()) { std::println(std::cerr, "[Neoluma/Parser][{}] Unexpected modifier before {} (L{}:{})", __func__, token.value, token.line, token.column); }
+        if (!modifiers.empty()) {
+            std::println(std::cerr, "[Neoluma/Parser][{}] Unexpected modifier before {} (L{}:{})", __func__, token.value, token.line, token.column);
+        }
     }
 
     // === Block ===
@@ -149,7 +191,6 @@ MemoryPtr<ASTNode> Parser::parseExpression() {
 MemoryPtr<ASTNode> Parser::parseBinary(int prevPredecence) {
     MemoryPtr<ASTNode> left = parsePrimary();
     if (!left) return nullptr;
-    //std::println("Parsed left: {}", left->toString());
 
     while (true) {
         Token token = curToken();
@@ -157,19 +198,15 @@ MemoryPtr<ASTNode> Parser::parseBinary(int prevPredecence) {
         if (token.type != TokenType::Operator || predecence < prevPredecence) break;
         std::string op = token.value;
         next();
-        //std::println("Current operator: {}", op);
 
         MemoryPtr<ASTNode> right = parseBinary(predecence+1);
         if (!right) return nullptr;
-
-        //std::println("Parsed right: {}", right->toString());
 
         auto node = ASTBuilder::createBinaryOperation(std::move(left), op, std::move(right));
         node->line = token.line; node->column = token.column; node->filePath = token.filePath;
         left = std::move(node);
     }
 
-    //std::println("Result: {}", left->toString());
     return left;
 }
 

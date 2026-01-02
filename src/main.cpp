@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
     SetConsoleOutputCP(CP_UTF8);
     #endif
     Localization::init();
-    Localization::setLanguage("ru_RU");
+    //Localization::setLanguage("ru_RU");
     CLIArgs args = parseArgs(argc, argv);
 
     if (args.command == "new") {

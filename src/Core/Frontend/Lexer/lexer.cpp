@@ -37,7 +37,17 @@ std::vector<Token> Lexer::tokenize(const std::string& filePath, const std::strin
         else {
             std::string unknown(1, move());
             auto tok = Token{TokenType::Unknown, unknown, filePath, line, column};
-            compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::UnexpectedToken, tok, formatStr(Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.UnexpectedToken.message"), unknown), Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.UnexpectedToken.hint"));
+            unsigned char uc = (unsigned char)c;
+            if (uc > 127) {
+                while (!isAtEnd() && (unsigned char)curChar() >= 128 && (unsigned char)curChar() < 192) move();
+            }
+/*
+            compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::UnexpectedToken, tok, filePath,
+                "syntax.UnexpectedToken.message",
+                "syntax.UnexpectedToken.hint",
+                "syntax.UnexpectedToken.context.default",
+                tok.value);*/
+            std::println(std::cerr, "[Neoluma/Lexer][{}] Unexpected token: '{}' (L{}:{})", __func__, tok.value, tok.line, tok.column);
             tokens.push_back(tok);
         }
     }
@@ -113,7 +123,12 @@ void Lexer::parseString() {
                 case '\\': value += '\\'; break;
                 case '"': value += '"'; break;
                 default:
-                    compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::UnexpectedToken, Token{TokenType::Unknown, formatStr("\\{}",c), filePath, line, column}, filePath, formatStr(Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.UnexpectedToken.message"), formatStr("\\{}",c)), Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.UnexpectedToken.hint"));
+                    /*
+                    compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::UnexpectedToken, Token{TokenType::Unknown, formatStr("\\{}",c), filePath, line, column}, filePath,
+                        "syntax.UnexpectedToken.message", "syntax.UnexpectedToken.hint",
+                        "syntax.UnexpectedToken.context.default",
+                        formatStr("\\{}",c));*/
+                    std::println(std::cerr, "[Neoluma/Lexer][{}] Unexpected token: '{}' (L{}:{})", __func__, curChar(), sl, sc);
                     value += c;
                     break;
             }
@@ -151,8 +166,14 @@ void Lexer::parseDelimeter() {
     auto dm = getDelimeterMap();
 
     if (dm.find(delimeter) != dm.end()) tokens.push_back(Token{TokenType::Delimeter, delimeter, filePath, sl, sc});
-    else {
-        compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::UnexpectedToken, Token{TokenType::Delimeter, delimeter, filePath, line, column}, formatStr(Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.UnexpectedToken.message"), delimeter), Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.UnexpectedToken.hint"));
+    else {/*
+        compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::UnexpectedToken, Token{TokenType::Delimeter, delimeter, filePath, line, column}, filePath,
+            "syntax.UnexpectedToken.message",
+            "syntax.UnexpectedToken.hint",
+            "syntax.UnexpectedToken.context.default",
+            delimeter);
+            */
+        std::println(std::cerr, "[Neoluma/Lexer][{}] Unexpected token: '{}' (L{}:{})", __func__, curChar(), sl, sc);
         tokens.push_back(Token{TokenType::Unknown, delimeter, filePath, sl, sc});
     }
 }
@@ -166,8 +187,13 @@ void Lexer::parsePreprocessor() {
     auto pm = getPreprocessorMap();
 
     if (pm.find(word) != pm.end()) tokens.push_back(Token{TokenType::Preprocessor, word, filePath, sl, sc});
-    else {
-        compiler->errorManager.addError(ErrorType::Preprocessor, PreprocessorErrors::InvalidDirective, Token{TokenType::Unknown, "#"+word, filePath, sl, sc}, filePath, formatStr(Localization::translate("Compiler.Core.ErrorManager.ErrorType.preprocessor.InvalidDirective.message"), "#"+word), Localization::translate("Compiler.Core.ErrorManager.ErrorType.preprocessor.InvalidDirective.hint"));
+    else {/*
+        compiler->errorManager.addError(ErrorType::Preprocessor, PreprocessorErrors::InvalidDirective, Token{TokenType::Unknown, "#"+word, filePath, sl, sc}, filePath,
+        "preprocessor.InvalidDirective.message",
+        "preprocessor.InvalidDirective.hint",
+        "preprocessor.InvalidDirective.context.default",
+        "#"+word);*/
+        std::println(std::cerr, "[Neoluma/Lexer][{}] Invalid Directive: '#{}' (L{}:{})", __func__, word, sl, sc);
         tokens.push_back(Token{TokenType::Unknown, "#" + word, filePath, sl, sc});
     }
 }
@@ -213,7 +239,13 @@ void Lexer::skipComment() {
             move(); // \n_terminator3000
         }
         // Unterminated block comment
-        compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::UnterminatedComment, Token{TokenType::Unknown, "/*", filePath, sl, sc}, filePath, Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.UnterminatedComment.message"), Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.UnterminatedComment.hint"));
+        compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::UnterminatedComment,
+                                        ErrorSpan{filePath, std::format("{}{}", source[pos - 2], source[pos - 1]), sl, sc},
+                                        Localization::translate(
+                                            "Compiler.Core.ErrorManager.ErrorType.syntax.UnterminatedComment.message"),
+                                        Localization::translate(
+                                            "Compiler.Core.ErrorManager.ErrorType.syntax.UnterminatedComment.hint"));
+        std::println(std::cerr, "[Neoluma/Lexer][{}] Unterminated comment (L{}:{})", __func__,sl, sc);
         return;
     }
 

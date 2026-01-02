@@ -7,10 +7,13 @@ fn main() {
     user: User = User("Tsuki", 18)
     // Greet the user
     greet(user)
-
+    /*
     // Perform some calculations
     res: int = add(10, 20)
     print("10 + 20 = ${res}")
+
+    return
+    throw
 
     // Demonstrate control flow
     if (user.age >= 18) {

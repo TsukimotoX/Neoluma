@@ -30,15 +30,26 @@
     "Core": {
       "ErrorManager": {
         "hint": "{}💡  Подсказка: {}{}",
+        "safetyGuard": "{} ❌😵‍💫 Сработала защита восстановления! Останавливаем парсер для избежания вечного цикла. Если каким-то образом вы видите это сообщение, доложите об этом разработчикам. \n\n Информация: \n Функция: {},\n Файл {},\n Случилось в строке {}:{}\n\nСпасибо!\n{}",
         "ErrorType": {
           "syntax": {
             "UnexpectedToken": {
               "message": "Неожиданный токен: '{}'",
               "hint": "Уберите его, или проверьте, не наделали ли вы ошибок в названии"
             },
-            "MissingToken": "Missing Token",
-            "InvalidStatement": "Invalid Statement",
-            "InvalidPreprocessorDirective": "Invalid Preprocessor Directive",
+            "MissingToken": {
+              "message": "Отсутствует токен",
+              "context": {
+                "novariableafter": {
+                  "message": "Отсутствует переменная после '{}'",
+                  "hint": "Исправьте это, указав переменную после '{}'."
+                }
+              }
+            },
+            "InvalidStatement": {
+              "message": "Недопустимая конструкция"
+            },
+            "InvalidPreprocessorDirective":  "Invalid Preprocessor Directive",
             "UnterminatedString": "Unterminated String",
             "UnterminatedComment": {
               "message": "Незакрытый комментарий",
@@ -47,12 +58,12 @@
             "InvalidNumberFormat": "Invalid Number Format",
             "UnexpectedEndOfFile": "Unexpected End Of File",
             "MismatchedBrackets": "Mismatched Brackets"
-          }
-        },
-        "preprocessor": {
-          "InvalidDirective": {
-            "message": "Invalid directive '{}'",
-            "hint": "Check out Neoluma documentation to see what directives are available."
+          },
+          "preprocessor": {
+            "InvalidDirective": {
+              "message": "Невалидный препроцессор '{}'",
+              "hint": "Посмотрите документацию Neoluma, чтобы узнать какие препроцессоры доступны."
+            }
           }
         }
       }
