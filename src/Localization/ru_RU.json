@@ -36,9 +36,9 @@
               "message": "Неожиданный токен: '{}'",
               "hint": "Уберите его, или проверьте, не наделали ли вы ошибок в названии"
             },
-            "MissingToken":  "Missing Token",
+            "MissingToken": "Missing Token",
             "InvalidStatement": "Invalid Statement",
-            "InvalidPreprocessorDirective":  "Invalid Preprocessor Directive",
+            "InvalidPreprocessorDirective": "Invalid Preprocessor Directive",
             "UnterminatedString": "Unterminated String",
             "UnterminatedComment": {
               "message": "Незакрытый комментарий",
@@ -47,12 +47,12 @@
             "InvalidNumberFormat": "Invalid Number Format",
             "UnexpectedEndOfFile": "Unexpected End Of File",
             "MismatchedBrackets": "Mismatched Brackets"
-          },
-          "preprocessor": {
-            "InvalidDirective": {
-              "message": "Невалидный препроцессор '{}'",
-              "hint": "Посмотрите документацию Neoluma, чтобы узнать какие препроцессоры доступны."
-            }
+          }
+        },
+        "preprocessor": {
+          "InvalidDirective": {
+            "message": "Invalid directive '{}'",
+            "hint": "Check out Neoluma documentation to see what directives are available."
           }
         }
       }
