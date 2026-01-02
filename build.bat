@@ -1,6 +1,5 @@
 @echo off
 setlocal
-
 for /f %%A in ('echo prompt $E ^| cmd') do set "\\033=%%A"
 
 set EXE_NAME=Neoluma.exe
@@ -12,7 +11,7 @@ echo %\\033%[38;2;232;75;133m[INFO] Cleaning and creating build folder...%\\033%
 ::    rmdir /s /q %BUILD_DIR%
 :: )
 :: mkdir %BUILD_DIR%
-cd %BUILD_DIR%
+pushd %BUILD_DIR%
 
 echo %\\033%[38;2;232;75;133m[INFO] Configuring with CMake for Visual Studio...%\\033%[38;2;117;181;255m
 cmake .. -G "Ninja" || (
@@ -33,4 +32,6 @@ if exist %RESULTING_PATH% (
     exit /b 1
 )
 
+popd
 endlocal
+exit /b 0
