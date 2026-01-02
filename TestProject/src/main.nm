@@ -5,7 +5,6 @@
 fn main() {
     // Create a new user
     user: User = User("Tsuki", 18)
-
     // Greet the user
     greet(user)
 

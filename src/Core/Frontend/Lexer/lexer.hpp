@@ -4,12 +4,17 @@
 #include <vector>
 #include "../token.hpp"
 
-class Lexer {
-public: 
+struct Compiler; // forward declaration cuz f##k c++ ig
+
+struct Lexer {
     std::vector<Token> tokenize(const std::string& filePath, const std::string& source);
     void printTokens(const std::string& filename) const; // Debug command to check tokens correctness
     std::vector<Token> tokens;
-private:
+
+    // Compiler access through a pointer
+    Compiler* compiler = nullptr;
+    void setCompiler(Compiler* comp) { this->compiler = comp; }
+
     std::string source;
     size_t pos = 0;
     std::string filePath;

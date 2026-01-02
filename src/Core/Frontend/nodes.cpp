@@ -228,7 +228,7 @@ std::string EnumMemberNode::toString(int indent) const {
 }
 
 std::string EnumNode::toString(int indent) const {
-    std::string res = std::format("{}Enum{{\n", std::string(indent, ' '));
+    std::string res = std::format("{}Enum(name={}){{\n", std::string(indent, ' '), name);
     res += std::string(indent+2, ' ') + "elements: [\n";
     for (const auto& elem : elements) {
         res += elem ? elem->toString(indent+4) + "\n" : "null\n";
@@ -258,7 +258,7 @@ std::string InterfaceFieldNode::toString(int indent) const {
 }
 
 std::string InterfaceNode::toString(int indent) const {
-    std::string res = std::format("{}Interface{{\n", std::string(indent, ' '));
+    std::string res = std::format("{}Interface(name={}){{\n", std::string(indent, ' '), name);
     res += std::string(indent+2, ' ') + "elements: [\n";
     for (const auto& elem : elements) {
         res += elem ? elem->toString(indent+4) + "\n" : "null\n";

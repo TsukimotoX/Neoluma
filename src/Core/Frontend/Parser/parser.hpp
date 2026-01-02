@@ -5,19 +5,22 @@
 #include "../token.hpp"
 #include <iostream>
 
+struct Compiler; // forward declaration cuz f##k c++ ig
+
 // to make math order
 int getOperatorPrecedence(const std::string& op);
 bool isAssignmentOperator(const std::string& op);
 
 //Parser
-class Parser {
-public:
-    Parser(const std::vector<Token>& tokens, const std::string& moduleName) : tokens(tokens), moduleName(moduleName) {}
-    void parseModule(); // main parsing
+struct Parser {
+    void parseModule(const std::vector<Token>& tok, const std::string& moduleName); // main parsing
     void printModule(int indentation = 0);
 
+    // Compiler access through a pointer
+    Compiler* compiler = nullptr;
+    void setCompiler(Compiler* comp) { this->compiler = comp; }
+
     MemoryPtr<ModuleNode> moduleSource = nullptr;
-private:
     std::vector<Token> tokens;
     size_t pos = 0;
     std::string moduleName = "";
@@ -72,7 +75,6 @@ private:
     MemoryPtr<InterfaceNode> parseInterface(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers);
 
     // Imports, decorators, modifiers, preprocessor
-    MemoryPtr<ImportNode> parseImport();
     MemoryPtr<ASTNode> parseDecorator(std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}, bool isCall=false);
     std::vector<MemoryPtr<CallExpressionNode>> parseDecoratorCalls();
     std::vector<MemoryPtr<ModifierNode>> parseModifiers();

@@ -8,9 +8,10 @@
 #include <print>
 #include <typeinfo>
 
+// TODO: Clean up the token saving at the start of every function (the one used for errors)
+
 // ==== Print the parser output ====
 void Parser::printModule(int indentation) {
-    parseModule();
     if (!moduleSource) {
         std::cerr << "[Neoluma/Parser]["<< __func__ << "] No module to print.\n";
         return;
@@ -20,7 +21,10 @@ void Parser::printModule(int indentation) {
 }
 
 // ==== Main parsing ====
-void Parser::parseModule() {
+void Parser::parseModule(const std::vector<Token>& tok, const std::string& name) {
+    // initialization
+    this->moduleSource = nullptr; this->tokens = tok; this->moduleName = name; this->pos = 0;
+
     auto moduleNode = ASTBuilder::createModule(moduleName);
     auto dn = getDelimeterNames();
 
@@ -76,7 +80,9 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
                 std::println(std::cerr, "[Neoluma/Parser][{}] Expected expression after 'return' (L{}:{})", __func__, curToken().line, curToken().column);
                 return nullptr;
             }
-            return ASTBuilder::createReturnStatement(std::move(expr));
+            auto node = ASTBuilder::createReturnStatement(std::move(expr));
+            node->line = token.line; node->column = token.column; node->filePath = token.filePath;
+            return node;
         }
         if (km[token.value] == Keywords::Throw) {
             next();
@@ -87,8 +93,16 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
             }
             return ASTBuilder::createThrowStatement(std::move(expr));
         }
-        if (km[token.value] == Keywords::Break) return ASTBuilder::createBreakStatement();
-        if (km[token.value] == Keywords::Continue) return ASTBuilder::createContinueStatement();
+        if (km[token.value] == Keywords::Break) {
+            auto node = ASTBuilder::createBreakStatement();
+            node->line = token.line; node->column = token.column; node->filePath = token.filePath;
+            return node;
+        }
+        if (km[token.value] == Keywords::Continue) {
+            auto node = ASTBuilder::createContinueStatement();
+            node->line = token.line; node->column = token.column; node->filePath = token.filePath;
+            return node;
+        }
 
         // for modifier affected structures
         if (km[token.value] == Keywords::Function) return parseFunction(std::move(decorators), std::move(modifiers));
@@ -150,7 +164,9 @@ MemoryPtr<ASTNode> Parser::parseBinary(int prevPredecence) {
 
         //std::println("Parsed right: {}", right->toString());
 
-        left = ASTBuilder::createBinaryOperation(std::move(left), op, std::move(right));
+        auto node = ASTBuilder::createBinaryOperation(std::move(left), op, std::move(right));
+        node->line = token.line; node->column = token.column; node->filePath = token.filePath;
+        left = std::move(node);
     }
 
     //std::println("Result: {}", left->toString());
@@ -300,7 +316,7 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
             auto callee = ASTBuilder::createVariable(id.value);
             node = ASTBuilder::createCallExpression(std::move(callee), std::move(args));
         } else {
-            // else identifier
+            // else identifier/variable
             node = ASTBuilder::createVariable(id.value);
         }
 
@@ -319,6 +335,7 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
             }
             node = ASTBuilder::createMemberAccess(std::move(parent), std::move(member));
         }
+        node->line = id.line; node->column = id.column; node->filePath = id.filePath;
         return node;
     }
 
@@ -367,7 +384,9 @@ MemoryPtr<DeclarationNode> Parser::parseDeclaration() {
         }
     }
 
-    return ASTBuilder::createDeclaration(std::move(var), rawType, std::move(value), isNullable);
+    auto node = ASTBuilder::createDeclaration(std::move(var), rawType, std::move(value), isNullable);
+    node->line = token.line; node->column = token.column; node->filePath = token.filePath;
+    return node;
 }
 
 MemoryPtr<AssignmentNode> Parser::parseAssignment() {
@@ -398,7 +417,9 @@ MemoryPtr<AssignmentNode> Parser::parseAssignment() {
         return nullptr;
     }
 
-    return ASTBuilder::createAssignment(std::move(var), op, std::move(value));
+    auto node = ASTBuilder::createAssignment(std::move(var), op, std::move(value));
+    node->line = token.line; node->column = token.column; node->filePath = token.filePath;
+    return node;
 }
 
 MemoryPtr<ReturnStatementNode> Parser::parseReturn(){
@@ -423,6 +444,7 @@ MemoryPtr<ReturnStatementNode> Parser::parseReturn(){
 
 // ==== Control flow ====
 MemoryPtr<IfNode> Parser::parseIf() {
+    auto token = curToken();
     next();
     auto dm = getDelimeterNames();
 
@@ -457,10 +479,13 @@ MemoryPtr<IfNode> Parser::parseIf() {
         elseBlock = parseBlockorStatement();
     }
 
-    return ASTBuilder::createIf(std::move(condition), std::move(ifBlock), std::move(elseBlock));
+    auto node = ASTBuilder::createIf(std::move(condition), std::move(ifBlock), std::move(elseBlock));
+    node->line = token.line; node->column = token.column; node->filePath = token.filePath;
+    return node;
 }
 
 MemoryPtr<SwitchNode> Parser::parseSwitch() {
+    auto _ = curToken();
     next();
     auto dm = getDelimeterNames();
     auto km = getKeywordNames();
@@ -537,10 +562,13 @@ MemoryPtr<SwitchNode> Parser::parseSwitch() {
         return nullptr;
     }
     next();
-    return ASTBuilder::createSwitch(std::move(expr), std::move(cases), std::move(defaultCase));
-}
+    auto node = ASTBuilder::createSwitch(std::move(expr), std::move(cases), std::move(defaultCase));
+    node->line = _.line; node->column = _.column; node->filePath = _.filePath;
+    return node;
+};
 
 MemoryPtr<TryCatchNode> Parser::parseTryCatch() {
+    auto _ = curToken();
     next();
     auto km = getKeywordNames();
     auto dn = getDelimeterNames();
@@ -583,10 +611,13 @@ MemoryPtr<TryCatchNode> Parser::parseTryCatch() {
         return nullptr;
     }
 
-    return ASTBuilder::createTryCatch(std::move(tryBlock), std::move(exception), std::move(catchBlock));
+    auto node = ASTBuilder::createTryCatch(std::move(tryBlock), std::move(exception), std::move(catchBlock));
+    node->line = _.line; node->column = _.column; node->filePath = _.filePath;
+    return node;
 }
 
 MemoryPtr<ForLoopNode> Parser::parseFor() {
+    auto _ = curToken();
     next();
     auto dm = getDelimeterNames();
 
@@ -629,10 +660,13 @@ MemoryPtr<ForLoopNode> Parser::parseFor() {
         return nullptr;
     }
 
-    return ASTBuilder::createForLoop(std::move(varNode), std::move(iterable), std::move(body));
+    auto node = ASTBuilder::createForLoop(std::move(varNode), std::move(iterable), std::move(body));
+    node->line = _.line; node->column = _.column; node->filePath = _.filePath;
+    return node;
 }
 
 MemoryPtr<WhileLoopNode> Parser::parseWhile() {
+    auto _ = curToken();
     next();
     auto dm = getDelimeterNames();
 
@@ -658,7 +692,9 @@ MemoryPtr<WhileLoopNode> Parser::parseWhile() {
         return nullptr;
     }
 
-    return ASTBuilder::createWhileLoop(std::move(condition), std::move(body));
+    auto node = ASTBuilder::createWhileLoop(std::move(condition), std::move(body));
+    node->line = _.line; node->column = _.column; node->filePath = _.filePath;
+    return node;
 }
 
 // ==== Declarations ====
@@ -735,11 +771,12 @@ MemoryPtr<FunctionNode> Parser::parseFunction(std::vector<MemoryPtr<CallExpressi
     MemoryPtr<BlockNode> body = parseBlock();
     if (!body) return nullptr;
 
-    return ASTBuilder::createFunction(funcName, std::move(params), std::move(returnType), std::move(body), std::move(decorators), std::move(modifiers));
+    auto node = ASTBuilder::createFunction(funcName, std::move(params), std::move(returnType), std::move(body), std::move(decorators), std::move(modifiers));
+    node->line = nameToken.line; node->column = nameToken.column; node->filePath = nameToken.filePath;
+    return node;
 }
 
 MemoryPtr<ClassNode> Parser::parseClass(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers) {
-    // TODO: Add constructor parsing, it will be neat
     next();
     auto dm = getDelimeterNames();
     auto km = getKeywordNames();
@@ -804,7 +841,9 @@ MemoryPtr<ClassNode> Parser::parseClass(std::vector<MemoryPtr<CallExpressionNode
     }
 
     next();
-    return ASTBuilder::createClass(className, std::move(constructor), std::move(super), std::move(fields), std::move(methods), std::move(decorators), std::move(modifiers));
+    auto node = ASTBuilder::createClass(className, std::move(constructor), std::move(super), std::move(fields), std::move(methods), std::move(decorators), std::move(modifiers));
+    node->line = nameToken.line; node->column = nameToken.column; node->filePath = nameToken.filePath;
+    return node;
 }
 
 MemoryPtr<BlockNode> Parser::parseBlock() {
@@ -825,7 +864,7 @@ MemoryPtr<BlockNode> Parser::parseBlock() {
             return nullptr;
         }
         block.push_back(std::move(stmt));
-        if (curToken().type == TokenType::Delimeter && isNextLine()) next();
+        if (match(TokenType::Delimeter, dn[Delimeters::Semicolon])) next();
     }
     if (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
         std::println(std::cerr, "[Neoluma/Parser][{}] Expected '}}' to end block (L{}:{})", __func__, curToken().line, curToken().column);
@@ -839,6 +878,7 @@ MemoryPtr<BlockNode> Parser::parseBlock() {
 MemoryPtr<ASTNode> Parser::parseDecorator(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers, bool isCall) {
     auto dm = getDelimeterNames();
     Token nameToken = curToken();
+    MemoryPtr<ASTNode> node;
 
     if (!isCall) {
         next();
@@ -889,34 +929,32 @@ MemoryPtr<ASTNode> Parser::parseDecorator(std::vector<MemoryPtr<CallExpressionNo
             std::println(std::cerr, "[Neoluma/Parser][{}] Expected block after decorator declaration (L{}:{})", __func__, curToken().line, curToken().column);
             return nullptr;
         }
-
-        return ASTBuilder::createDecorator(name, std::move(params), std::move(block), std::move(decorators), std::move(modifiers));
-    }
-
-    if (!match(TokenType::Decorator)) {
-        std::println(std::cerr, "[Neoluma/Parser][{}] Expected decorator name (L{}:{})", __func__, nameToken.line, nameToken.column);
-        return nullptr;
-    }
-    std::string name = nameToken.value;
-    next();
-
-    std::vector<MemoryPtr<ASTNode>> args;
-    if (match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
+        node = ASTBuilder::createDecorator(name, std::move(params), std::move(block), std::move(decorators), std::move(modifiers));
+        node->line = nameToken.line; node->column = nameToken.column; node->filePath = nameToken.filePath;
+    } else {
+        std::string name = nameToken.value;
         next();
-        while (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
-            auto arg = parseExpression();
-            if (arg) args.push_back(std::move(arg));
 
-            if (match(TokenType::Delimeter, dm[Delimeters::Comma])) next();
-            else break;
+        std::vector<MemoryPtr<ASTNode>> args;
+        if (match(TokenType::Delimeter, dm[Delimeters::LeftParen])) {
+            next();
+            while (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
+                auto arg = parseExpression();
+                if (arg) args.push_back(std::move(arg));
+
+                if (match(TokenType::Delimeter, dm[Delimeters::Comma])) next();
+                else break;
+            }
+            if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
+                std::println(std::cerr, "[Neoluma/Parser][{}] Unterminated decorator params (L{}:{})", __func__, curToken().line, curToken().column);
+                return nullptr;
+            }
+            next();
         }
-        if (!match(TokenType::Delimeter, dm[Delimeters::RightParen])) {
-            std::println(std::cerr, "[Neoluma/Parser][{}] Unterminated decorator params (L{}:{})", __func__, curToken().line, curToken().column);
-            return nullptr;
-        }
-        next();
+        node = ASTBuilder::createCallExpression(ASTBuilder::createVariable(name), std::move(args));
+        node->line = nameToken.line; node->column = nameToken.column; node->filePath = nameToken.filePath;
     }
-    return ASTBuilder::createCallExpression(ASTBuilder::createVariable(name), std::move(args));
+    return node;
 }
 
 std::vector<MemoryPtr<CallExpressionNode>> Parser::parseDecoratorCalls() {
@@ -968,7 +1006,9 @@ std::vector<MemoryPtr<ModifierNode>> Parser::parseModifiers() {
 }
 
 MemoryPtr<ASTNode> Parser::parsePreprocessor() {
+    Token _ = curToken();
     auto pn = getPreprocessorNames();
+    MemoryPtr<ASTNode> node;
 
     if (match(TokenType::Preprocessor, pn[Preprocessors::Import])) {
         next();
@@ -988,9 +1028,9 @@ MemoryPtr<ASTNode> Parser::parsePreprocessor() {
             next();
             alias = curToken().value;
         }
-        return makeMemoryPtr<ImportNode>(moduleName, alias, importType);
+        node = ASTBuilder::createImport(moduleName, alias, importType);
     }
-    if (match(TokenType::Preprocessor, pn[Preprocessors::Macro])) {
+    else if (match(TokenType::Preprocessor, pn[Preprocessors::Macro])) {
         next();
         if (!match(TokenType::Identifier)) {
             std::println(std::cerr, "[Neoluma/Parser][{}] Couldn't find identifier after #macro{} (L{}:{})", __func__, "", curToken().line, curToken().column);
@@ -1002,23 +1042,23 @@ MemoryPtr<ASTNode> Parser::parsePreprocessor() {
             value += curToken().value;
             next();
         }
-        return ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Macro, value);
+        node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Macro, value);
     }
-    if (match(TokenType::Preprocessor, pn[Preprocessors::Baremetal])) {
+    else if (match(TokenType::Preprocessor, pn[Preprocessors::Baremetal])) {
         next();
-        return ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Baremetal);
+        node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Baremetal);
     }
-    if (match(TokenType::Preprocessor, pn[Preprocessors::Unsafe])) {
+    else if (match(TokenType::Preprocessor, pn[Preprocessors::Unsafe])) {
         next();
-        return ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Unsafe);
+        node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Unsafe);
     }
-    if (match(TokenType::Preprocessor, pn[Preprocessors::Float])) {
+    else if (match(TokenType::Preprocessor, pn[Preprocessors::Float])) {
         next();
-        return ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Float);
+        node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Float);
     }
-
-    auto type = ASTPreprocessorDirectiveType::None; // Fallback to none, if this somehow got out of hand.
-    return makeMemoryPtr<PreprocessorDirectiveNode>(type);
+    else node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::None);
+    node->line = _.line; node->column = _.column; node->filePath = _.filePath;
+    return node;
 }
 
 MemoryPtr<EnumNode> Parser::parseEnum(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers) {
@@ -1030,6 +1070,7 @@ MemoryPtr<EnumNode> Parser::parseEnum(std::vector<MemoryPtr<CallExpressionNode>>
         std::println(std::cerr, "[Neoluma/Parser][{}] Enum does not have a name (L{}:{})", __func__, curToken().line, curToken().column);
         return nullptr;
     }
+    auto enumToken = curToken();
     next();
     if (!match(TokenType::Delimeter, dn[Delimeters::LeftBraces])) {
         std::println(std::cerr, "[Neoluma/Parser][{}] Missing '{{' after enum name (L{}:{})", __func__, curToken().line, curToken().column);
@@ -1074,7 +1115,9 @@ MemoryPtr<EnumNode> Parser::parseEnum(std::vector<MemoryPtr<CallExpressionNode>>
     }
     next();
 
-    return ASTBuilder::createEnum(std::move(elements), std::move(decorators), std::move(modifiers));
+    auto node = ASTBuilder::createEnum(enumToken.value, std::move(elements), std::move(decorators), std::move(modifiers));
+    node->line = enumToken.line; node->column = enumToken.column; node->filePath = enumToken.filePath;
+    return node;
 }
 
 MemoryPtr<InterfaceNode> Parser::parseInterface(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers) {
@@ -1087,6 +1130,7 @@ MemoryPtr<InterfaceNode> Parser::parseInterface(std::vector<MemoryPtr<CallExpres
         std::println(std::cerr, "[Neoluma/Parser][{}] Interface does not have a name (L{}:{})", __func__, curToken().line, curToken().column);
         return nullptr;
     }
+    auto interfaceToken = curToken();
     next();
     if (!match(TokenType::Delimeter, dn[Delimeters::LeftBraces])) {
         std::println(std::cerr, "[Neoluma/Parser][{}] Missing '{{' after interface name (L{}:{})", __func__, curToken().line, curToken().column);
@@ -1190,7 +1234,9 @@ MemoryPtr<InterfaceNode> Parser::parseInterface(std::vector<MemoryPtr<CallExpres
     }
     next();
 
-    return ASTBuilder::createInterface(std::move(elements), std::move(decorators), std::move(modifiers));
+    auto node = ASTBuilder::createInterface(interfaceToken.value, std::move(elements), std::move(decorators), std::move(modifiers));
+    node->line = interfaceToken.line; node->column = interfaceToken.column; node->filePath = interfaceToken.filePath;
+    return node;
 }
 
 // ==== Helper functions ====

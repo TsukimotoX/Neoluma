@@ -146,8 +146,8 @@ struct ASTBuilder {
     }
 
     // Creates an EnumNode
-    static MemoryPtr<EnumNode> createEnum(std::vector<MemoryPtr<EnumMemberNode>> elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
-        return makeMemoryPtr<EnumNode>(std::move(elements), std::move(decorators), std::move(modifiers));
+    static MemoryPtr<EnumNode> createEnum(const std::string& name, std::vector<MemoryPtr<EnumMemberNode>> elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
+        return makeMemoryPtr<EnumNode>(name, std::move(elements), std::move(decorators), std::move(modifiers));
     }
 
     // Creates an InterfaceFieldNode
@@ -156,8 +156,8 @@ struct ASTBuilder {
     }
 
     // Creates an InterfaceNode
-    static MemoryPtr<InterfaceNode> createInterface(std::vector<MemoryPtr<InterfaceFieldNode>> elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
-        return makeMemoryPtr<InterfaceNode>(std::move(elements), std::move(decorators), std::move(modifiers));
+    static MemoryPtr<InterfaceNode> createInterface(const std::string& name, std::vector<MemoryPtr<InterfaceFieldNode>> elements, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
+        return makeMemoryPtr<InterfaceNode>(name, std::move(elements), std::move(decorators), std::move(modifiers));
     }
 
     // Creates a LambdaNode
