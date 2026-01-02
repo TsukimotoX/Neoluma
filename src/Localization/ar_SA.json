@@ -10,7 +10,9 @@
         "initialization": "بدأ تشغيل الملف..."
       },
       "check": {
-        "initialization": "بدأ التأكيد ل:"
+        "initialization": "بدأ التأكيد ل:",
+        "complete": "{}🎉 Check completed successfully!{}",
+        "failed": "{}❌ Analytic check failed. Please check the errors above.{}"
       },
       "createProject": {
         "initialization": "لقد بدأ تصنيع الproject الجديد",
@@ -26,7 +28,34 @@
       }
     },
     "Core": {
-      "ErrorManager": {}
+      "ErrorManager": {
+        "hint": "{}💡  Hint: {}{}",
+        "ErrorType": {
+          "syntax": {
+            "UnexpectedToken": {
+              "message": "Unexpected Token: '{}'",
+              "hint": "Clear it, or make sure you typed it correctly."
+            },
+            "MissingToken": "Missing Token",
+            "InvalidStatement": "Invalid Statement",
+            "InvalidPreprocessorDirective": "Invalid Preprocessor Directive",
+            "UnterminatedString": "Unterminated String",
+            "UnterminatedComment": {
+              "message": "Unterminated Comment",
+              "hint": "Close the comment via '*/'"
+            },
+            "InvalidNumberFormat": "Invalid Number Format",
+            "UnexpectedEndOfFile": "Unexpected End Of File",
+            "MismatchedBrackets": "Mismatched Brackets"
+          }
+        },
+        "preprocessor": {
+          "InvalidDirective": {
+            "message": "Invalid directive '{}'",
+            "hint": "Check out Neoluma documentation to see what directives are available."
+          }
+        }
+      }
     },
     "Libraries": {
       "toml": {
