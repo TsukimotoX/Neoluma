@@ -1,6 +1,6 @@
 # <img src="neoluma.png" alt="Neoluma" width="32px"/> Neoluma
 
-**Neoluma** *(from et.: gr. neo- & lat. -lumen, aka "New Light")* is a high-level, general-purpose programming language designed to be *a language for everything*. 
+**Neoluma** *(from et.: gr. neo- & lat. -lumen, aka "New Light")* is a multi-level, general-purpose programming language designed to be *a language for everything*. 
 Whether you're crafting a quick script on your knee or developing a large operating system, Neoluma is made with developer experience in mind. Featuring a clean, Python-JS-like syntax with the structure and power of C++ & C# - it's expressive, efficient, and built for modern development.
 
 | [Website](https://neoluma.dev) | [License](./LICENSE) | [Discord](https://discord.gg/zmrB9dbmy5) | [Crowdin (Translate!)](https://crowdin.com/project/neoluma) |
