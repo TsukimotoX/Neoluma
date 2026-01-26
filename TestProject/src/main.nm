@@ -4,16 +4,15 @@
 @entry
 fn main() {
     // Create a new user
-    user: User = User("Tsuki", 18)
+    user: User = User("Tsuki", 18);
     // Greet the user
     greet(user)
-    /*
+
     // Perform some calculations
     res: int = add(10, 20)
     print("10 + 20 = ${res}")
 
-    return
-    throw
+    const c = (x.y) => { greet(user); }
 
     // Demonstrate control flow
     if (user.age >= 18) {

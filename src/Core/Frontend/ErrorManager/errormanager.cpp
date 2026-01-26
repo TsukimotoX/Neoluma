@@ -12,7 +12,7 @@ void ErrorManager::printErrors() {
 
     int count = 1;
     for (auto& e : errors) {
-        std::string errid = "Compiler.Core.ErrorManager.ErrorType.";
+        //std::string errid = "Compiler.Core.ErrorManager.ErrorType.";
         std::string typeColor;
         std::string hintColor = Color::TextHex("#f6ff75");
         std::string msgColor = Color::TextHex("#ff7575");
@@ -48,21 +48,22 @@ void ErrorManager::printErrors() {
             fppos += 1;
         }
 
+        auto msg = e.message + (e.contextKey.has_value() ? formatStr(": {}", e.contextKey.value()) : "");
         std::println("{}[{}]  ❌  {}{}", typeColor, formatErrorType(e.detailedType),
-            formatStr(errid+"{}", e.message),
-            /*// TODO: Fucking fix this shit. It sucks. it sucks. fix this shit.
-            !e.contextKey.empty() ? formatStr(": {}", formatStr(Localization::translate(formatStr(errid+"{}.message", e.contextKey)), e.contextValue)) : "",*/
+            msg,
             Color::Reset);
         std::println("➡️  {}:{}:{}", e.span.filePath, e.span.line, e.span.column);
         std::println("{:>3} | {}", e.span.line-1, prevLine);
         std::println("{:>3} | {}", e.span.line, errorLine);
         auto tmp = std::string(std::to_string(e.span.line).length()+1, ' ');
-        std::println("{} | {}{} {}", tmp, std::string(e.span.column-1, ' '), std::string(e.span.len+2, '^'), e.message);
+        std::println("{} | {}{} {}", tmp, std::string(e.span.column-1, ' '), std::string(e.span.len+2, '^'), msg);
         std::println("{:>3} | {}", e.span.line+1, nextLine);
         if (!e.hint.empty()) std::println(std::cout, "{}", formatStr(Localization::translate("Compiler.Core.ErrorManager.hint"), hintColor, e.hint, Color::Reset));
 
         count++;
     }
+
+    std::println(std::cout, "{}{} errors found!{}", Color::TextHex("#ff5050"), errors.size(), Color::Reset);
 }
 
 std::string ErrorManager::formatErrorType(std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType){

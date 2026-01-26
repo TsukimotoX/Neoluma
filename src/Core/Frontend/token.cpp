@@ -43,7 +43,7 @@ const EPreprocessor preprocessorMap[] {
 const EDelimeter delimeterMap[] {
     {"(", Delimeters::LeftParen}, {")", Delimeters::RightParen},
     {"{", Delimeters::LeftBraces}, {"}", Delimeters::RightBraces},
-    {";", Delimeters::Semicolon}, {":", Delimeters::Colon}, {"\\n", Delimeters::Semicolon}, {",", Delimeters::Comma},
+    {";", Delimeters::Semicolon}, {":", Delimeters::Colon}, {"\\n", Delimeters::Newline}, {",", Delimeters::Comma},
     {".", Delimeters::Dot}, {"[", Delimeters::LeftBracket},
     {"]", Delimeters::RightBracket},
 };

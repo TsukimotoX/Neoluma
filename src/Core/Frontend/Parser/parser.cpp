@@ -35,17 +35,25 @@ void Parser::parseModule(const std::vector<Token>& tok, const std::string& name)
     while (!isAtEnd()) {
         if (curToken().type == TokenType::Delimeter && curToken().value == dn[Delimeters::Semicolon]) { next(); continue; }
 
+        // To get the first token of the statement
+        //Token stmtStart = statementAnchor;
+
         MemoryPtr<ASTNode> stmt = parseStatement();
+        if (!stmt && match(TokenType::Delimeter, dn[Delimeters::RightBraces])) { next(); continue; }
         if (!stmt) {
-            // TODO: Think something about fixing the InvalidStatement's context. It showcases only the last token.
-            //compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::InvalidStatement, ErrorSpan{stmt->filePath, stmt->line, stmt->column, stmt->value.length()}, Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.InvalidStatement.message"), "");
-            std::println(std::cerr, "[Neoluma/Parser][{}] Invalid statement (L{}:{})", __func__, curToken().line, curToken().column);
+            /*commented out due to obsoleteness
+             *compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::InvalidStatement,
+                ErrorSpan{statementAnchor.filePath, statementAnchor.value, statementAnchor.line, statementAnchor.column},
+                "InvalidStatement");
+            */
+            //std::println(std::cerr, "[Neoluma/Parser][{}] Invalid statement (L{}:{})", __func__, curToken().line, curToken().column);
+            while (!isAtEnd() && !isNextLine()) next();
 
             size_t startPos = pos;
             int guard = 0;
             auto dn = getDelimeterNames();
-            while (!isAtEnd() && guard++ < 1000){
-                if (match(TokenType::Delimeter, dn[Delimeters::Semicolon])){
+            while (!isAtEnd() && guard++ < 100){
+                if (isNextLine()){
                     next();
                     break;
                 }
@@ -57,7 +65,7 @@ void Parser::parseModule(const std::vector<Token>& tok, const std::string& name)
 
             if (pos == startPos && !isAtEnd()) next();
 
-            if (guard >= 1000) {
+            if (guard >= 100) {
                 //std::println(std::cerr, "{}", formatStr(Localization::translate("Compiler.Core.ErrorManager.safetyGuard"), Color::TextHex("#ff5050"), __func__, curToken().filePath, curToken().line, curToken().column, Color::Reset));
                 std::println(std::cerr, "{} ❌😵‍💫 Recovery guard triggered! Stopping parsing to avoid infinite loop. If you see this message somehow, report this to the developers. \n\n Information: \n Function: {},\n File {},\n Happened at Line {}:{}\n\nThank you!\n{}", Color::TextHex("#ff5050"), __func__, curToken().filePath, curToken().line, curToken().column, Color::Reset);
                 break;
@@ -73,10 +81,9 @@ void Parser::parseModule(const std::vector<Token>& tok, const std::string& name)
 
 // ==== Statement parsing ====
 MemoryPtr<ASTNode> Parser::parseStatement() {
-    while (match(TokenType::Delimeter) && isNextLine()) { // Skips newlines in case they ever appear
+    while (isNextLine()) { // Skips newlines in case they ever appear
         next();
     }
-
     Token token = curToken();
     auto km = getKeywordMap();
     auto dm = getDelimeterMap();
@@ -94,6 +101,7 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
         return parseDeclaration();
 
     token = curToken();
+    //this->statementAnchor = token;
     // === Control Flow Keywords ===
     if (token.type == TokenType::Keyword) {
         if (km[token.value] == Keywords::If) return parseIf();
@@ -103,42 +111,59 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
         if (km[token.value] == Keywords::While) return parseWhile();
         if (km[token.value] == Keywords::Return) {
             next();
-            MemoryPtr<ASTNode> expr = parseExpression();
+
+            // allow "return;" or "return }"
+            if (isNextLine() || match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
+                if (isNextLine()) next();
+                auto node = ASTBuilder::createReturnStatement(nullptr);
+                node->line = token.line; node->column = token.column; node->filePath = token.filePath;
+                return node;
+            }
+
+            auto expr = parseExpression();
             if (!expr) {
-                /*
                 compiler->errorManager.addError(
-                    ErrorType::Syntax, SyntaxErrors::MissingToken, lookBack(), lookBack().filePath,
-                    "syntax.MissingToken.message",
-                    "syntax.MissingToken.context.novariableafter.hint",
-                    "syntax.MissingToken.context.novariableafter",
+                    ErrorType::Syntax, SyntaxErrors::MissingToken,
+                    ErrorSpan{lookBack().filePath, lookBack().value, lookBack().line, lookBack().column},
+                    "Missing expression after", "",
                     "return");
-                next();
-                // todo: finish implementing errormanager in parser
-                */
-                std::println(std::cerr, "[Neoluma/Parser][{}] Missing variable after 'return' (L{}:{})", __func__, curToken().line, curToken().column);
                 return nullptr;
             }
+
+            if (isNextLine()) next();
+
             auto node = ASTBuilder::createReturnStatement(std::move(expr));
             node->line = token.line; node->column = token.column; node->filePath = token.filePath;
             return node;
         }
         if (km[token.value] == Keywords::Throw) {
             next();
-            MemoryPtr<ASTNode> expr = parseExpression();
-            if (!expr) {
-                //compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::MissingToken, lookBack(), lookBack().filePath, Localization::translate("Compiler.Core.ErrorManager.ErrorType.syntax.MissingToken.message"), "");
-                std::println(std::cerr, "[Neoluma/Parser][{}] Missing variable after 'throw' (L{}:{})", __func__, curToken().line, curToken().column);
-                next();
+            if (isNextLine() || match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
+                compiler->errorManager.addError(
+                    ErrorType::Syntax, SyntaxErrors::MissingToken,
+                    ErrorSpan{token.filePath, token.value, token.line, token.column},
+                    "Missing expression after", "",
+                    "throw");
+                if (isNextLine()) next();
                 return nullptr;
             }
-            return ASTBuilder::createThrowStatement(std::move(expr));
+
+            auto expr = parseExpression();
+            if (!expr) return nullptr;
+            if (isNextLine()) next();
+
+            auto node = ASTBuilder::createThrowStatement(std::move(expr));
+            node->line = token.line; node->column = token.column; node->filePath = token.filePath;
+            return node;
         }
         if (km[token.value] == Keywords::Break) {
+            next();
             auto node = ASTBuilder::createBreakStatement();
             node->line = token.line; node->column = token.column; node->filePath = token.filePath;
             return node;
         }
         if (km[token.value] == Keywords::Continue) {
+            next();
             auto node = ASTBuilder::createContinueStatement();
             node->line = token.line; node->column = token.column; node->filePath = token.filePath;
             return node;
@@ -213,7 +238,12 @@ MemoryPtr<ASTNode> Parser::parseBinary(int prevPredecence) {
 MemoryPtr<UnaryOperationNode> Parser::parseUnary(const std::string& op) {
     MemoryPtr<ASTNode> operand = parsePrimary();
     if (!operand) {
-        std::println(std::cerr, "[Neoluma/Parser][{}] Missing operand after unary operator: {} (L{}:{})", __func__, op, curToken().line, curToken().column);
+        compiler->errorManager.addError(
+                            ErrorType::Syntax, SyntaxErrors::MissingToken,
+                            ErrorSpan{lookBack().filePath, lookBack().value, lookBack().line, lookBack().column},
+                            "Missing operand after unary operator", formatStr("Add an operand after '{}'. Like !x, -x, etc.", op),
+                            op);
+        //std::println(std::cerr, "[Neoluma/Parser][{}] Missing operand after unary operator: {} (L{}:{})", __func__, op, curToken().line, curToken().column);
         return nullptr;
     }
     return ASTBuilder::createUnaryOperation(op, std::move(operand));
@@ -233,7 +263,11 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
             while (!match(TokenType::Delimeter, dn[Delimeters::RightParen])) {
                 MemoryPtr<ASTNode> expr = parseExpression();
                 if (!expr) {
-                    std::println(std::cerr, "[Neoluma/Parser][{}] Expected expression after '(' in lambda expression (L{}:{})", __func__, token.line, token.column);
+                    compiler->errorManager.addError(
+                    ErrorType::Syntax, SyntaxErrors::MissingToken,
+                    ErrorSpan{token.filePath, token.value, token.line, token.column},
+                    "Missing expression after '(' in lambda expression");
+                    //std::println(std::cerr, "[Neoluma/Parser][{}] Expected expression after '(' in lambda expression (L{}:{})", __func__, token.line, token.column);
                     return nullptr;
                 }
                 exprs.push_back(std::move(expr));
@@ -242,7 +276,11 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
                 else break;
             }
             if (!match(TokenType::Delimeter, dn[Delimeters::RightParen])) {
-                std::println(std::cerr, "[Neoluma/Parser][{}] Expected ')' after expressions in lambda expression (L{}:{})", __func__, token.line, token.column);
+                compiler->errorManager.addError(
+                    ErrorType::Syntax, SyntaxErrors::MissingToken,
+                    ErrorSpan{token.filePath, token.value, token.line, token.column},
+                    "Missing expression after ')' in lambda expression");
+                //std::println(std::cerr, "[Neoluma/Parser][{}] Expected ')' after expressions in lambda expression (L{}:{})", __func__, token.line, token.column);
                 return nullptr;
             }
             next();
@@ -251,15 +289,21 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
                 next();
                 auto block = parseBlock();
                 if (!block) {
-                    std::println(std::cerr, "[Neoluma/Parser][{}] Could not find a block of code after assignment arrow. (L{}:{})", __func__, token.line, token.column);
+                    compiler->errorManager.addError(
+                    ErrorType::Syntax, SyntaxErrors::InvalidStatement,
+                    ErrorSpan{curToken().filePath, curToken().value, curToken().line, curToken().column},
+                    "Could not find a block of code after an assignment arrow");
+                    //std::println(std::cerr, "[Neoluma/Parser][{}] Could not find a block of code after assignment arrow. (L{}:{})", __func__, token.line, token.column);
                     return nullptr;
                 }
                 return ASTBuilder::createLambda(std::move(exprs), std::move(block));
             }
+            // todo: change to a more safe option to move
             return std::move(exprs[0]);
         }
         // Arrays
         if (token.value == dn[Delimeters::LeftBracket]) {
+            // TODO: implement the strict types for arrays, sets, dicts?
             next();
             std::vector<MemoryPtr<ASTNode>> e;
 
@@ -304,11 +348,6 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
             next();
             return ASTBuilder::createSet(std::move(e)/*, typeHint miss*/);
         }
-        if (isNextLine()) {
-            next();
-            //std::println("skip newline L{}:{}", token.line, token.column);
-            return nullptr;
-        }
     }
     // Data type + Booleans
     else if ((token.type == TokenType::Number || token.type == TokenType::String)
@@ -345,7 +384,11 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
             }
             //std::println("I closed the args with ')', current token: {}", curToken().value);
             if (!match(TokenType::Delimeter, dn[Delimeters::RightParen])) {
-                std::println(std::cerr, "[Neoluma/Parser][{}] Expected ')' after arguments (L{}:{})", __func__, token.line, token.column);
+                compiler->errorManager.addError(
+                    ErrorType::Syntax, SyntaxErrors::MissingToken,
+                    ErrorSpan{token.filePath, token.value, token.line, token.column},
+                    "Missing ')' after arguments");
+                //std::println(std::cerr, "[Neoluma/Parser][{}] Expected ')' after arguments (L{}:{})", __func__, token.line, token.column);
                 return nullptr;
             }
             next();
@@ -459,26 +502,6 @@ MemoryPtr<AssignmentNode> Parser::parseAssignment() {
     return node;
 }
 
-MemoryPtr<ReturnStatementNode> Parser::parseReturn(){
-    next();
-
-    if (curToken().type == TokenType::Delimeter && isNextLine()) {
-        return ASTBuilder::createReturnStatement(nullptr);
-    }
-
-    MemoryPtr<ASTNode> expr = parseExpression();
-    if (!expr) {
-        return nullptr;
-    }
-
-    if (curToken().type != TokenType::Delimeter || !isNextLine()) {
-        return nullptr;
-    }
-    next();
-
-    return ASTBuilder::createReturnStatement(std::move(expr));
-}
-
 // ==== Control flow ====
 MemoryPtr<IfNode> Parser::parseIf() {
     auto token = curToken();
@@ -589,6 +612,7 @@ MemoryPtr<SwitchNode> Parser::parseSwitch() {
             while (match(TokenType::Delimeter, dm[Delimeters::Semicolon])) next();
             defaultCase = ASTBuilder::createDefaultCase(std::move(body));
         }
+        else if (isNextLine()) next();
         else {
             std::println(std::cerr, "[Neoluma/Parser][{}] Expected 'case' or 'default' in 'switch' statement but found '{}' (L{}:{})", __func__, tok.value, tok.line, tok.column);
             return nullptr;
@@ -806,7 +830,10 @@ MemoryPtr<FunctionNode> Parser::parseFunction(std::vector<MemoryPtr<CallExpressi
     }
 
     MemoryPtr<BlockNode> body = parseBlock();
-    if (!body) return nullptr;
+    if (!body) {
+        std::println(std::cerr, "[Neoluma/Parser][{}] Expected a block after function (L{}:{})", __func__, curToken().line, curToken().column);
+        return nullptr;
+    }
 
     auto node = ASTBuilder::createFunction(funcName, std::move(params), std::move(returnType), std::move(body), std::move(decorators), std::move(modifiers));
     node->line = nameToken.line; node->column = nameToken.column; node->filePath = nameToken.filePath;
@@ -858,7 +885,7 @@ MemoryPtr<ClassNode> Parser::parseClass(std::vector<MemoryPtr<CallExpressionNode
             if (method) methods.push_back(std::move(method));
         } else if (match(TokenType::Identifier, className)) {
             // Moving it back by one to make sure it doesn't screw up
-            pos--;;
+            pos--;
             constructor = parseFunction(std::move(funcdec), std::move(modifs));
             if (!constructor) {
                 std::println(std::cerr, "[Neoluma/Parser][{}] Failed to parse constructor (L{}:{})", __func__, curToken().line, curToken().column);
@@ -890,24 +917,53 @@ MemoryPtr<BlockNode> Parser::parseBlock() {
         return nullptr;
     }
     next();
-    if (match(TokenType::Delimeter, dn[Delimeters::Semicolon])) next();
+    while (isNextLine()) next();
 
     std::vector<MemoryPtr<ASTNode>> block = {};
 
-    while (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
+    while (!isAtEnd()) {
+        while (isNextLine()) next();
+
+        if (match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
+            break;
+        }
+
         MemoryPtr<ASTNode> stmt = parseStatement();
+        if (!stmt && match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
+            break;
+        }
         if (!stmt) {
             std::println(std::cerr, "[Neoluma/Parser][{}] Failed to parse statement in block (L{}:{})", __func__, curToken().line, curToken().column);
-            return nullptr;
+
+            while (!isAtEnd() && !isNextLine()) next();
+
+            size_t startPos = pos;
+            int guard = 0;
+            auto dn = getDelimeterNames();
+            while (!isAtEnd() && guard++ < 100){
+                if (isNextLine()){ next(); break; }
+                if (match(TokenType::Delimeter, dn[Delimeters::RightBraces])){ break; }
+                next();
+            }
+
+            if (pos == startPos && !isAtEnd()) next();
+
+            if (guard >= 100) {
+                //std::println(std::cerr, "{}", formatStr(Localization::translate("Compiler.Core.ErrorManager.safetyGuard"), Color::TextHex("#ff5050"), __func__, curToken().filePath, curToken().line, curToken().column, Color::Reset));
+                std::println(std::cerr, "{} ❌😵‍💫 Recovery guard triggered! Stopping parsing to avoid infinite loop. If you see this message somehow, report this to the developers. \n\n Information: \n Function: {},\n File {},\n Happened at Line {}:{}\n\nThank you!\n{}", Color::TextHex("#ff5050"), __func__, curToken().filePath, curToken().line, curToken().column, Color::Reset);
+                break;
+            }
+
+            if (isAtEnd()) break;
+            continue;
         }
         block.push_back(std::move(stmt));
-        if (match(TokenType::Delimeter, dn[Delimeters::Semicolon])) next();
+        while (isNextLine()) next();
     }
     if (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
         std::println(std::cerr, "[Neoluma/Parser][{}] Expected '}}' to end block (L{}:{})", __func__, curToken().line, curToken().column);
         return nullptr;
     }
-
     next();
     return ASTBuilder::createBlock(std::move(block));
 }
@@ -1302,7 +1358,7 @@ MemoryPtr<ASTNode> Parser::parseBlockorStatement() {
 // Detects nextline expression
 bool Parser::isNextLine(){
     auto dn = getDelimeterNames();
-    if (match(TokenType::Delimeter, dn[Delimeters::Semicolon])) return true;
+    if (match(TokenType::Delimeter, dn[Delimeters::Semicolon]) || match(TokenType::Delimeter, dn[Delimeters::Newline])) return true;
     return false;
 }
 

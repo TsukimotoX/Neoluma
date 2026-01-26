@@ -30,7 +30,8 @@ struct Parser {
         return tokens[pos]; 
     };
     Token lookBack() {
-        return tokens[pos--];
+        if (pos + 1 >= tokens.size()) return Token{TokenType::EndOfFile, ""};
+        return tokens[pos - 1];
     }
     Token next() { 
         if (pos >= tokens.size()) return Token{TokenType::EndOfFile, ""};
@@ -57,7 +58,6 @@ struct Parser {
     MemoryPtr<ASTNode> parseStatement();
     MemoryPtr<DeclarationNode> parseDeclaration();
     MemoryPtr<AssignmentNode> parseAssignment();
-    MemoryPtr<ReturnStatementNode> parseReturn();
 
     // Control flow
     MemoryPtr<IfNode> parseIf();
@@ -85,4 +85,6 @@ struct Parser {
     bool isNextLine();
     // Lookahead helper to check if upcoming tokens form an assignable lvalue followed by an assignment operator
     bool isAssignableAhead(size_t offset = 0);
+
+    //Token statementAnchor; // statementAnchor allows errorManager to refer to the statement itself instead of decorators and modifiers for it. Example: function, class, etc.
 };
