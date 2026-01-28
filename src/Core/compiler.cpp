@@ -19,7 +19,11 @@ void Compiler::check() {
         //lexer.printTokens(getFileName(file));
 
         parser.parseModule(tokens, getFileName(file));
-        //parser.printModule();
+        parser.printModule();
+        MemoryPtr<ModuleNode> tree = std::move(parser.moduleSource);
+
+        //analysis.visitModule(tree.get());
+        modules.push_back(std::move(tree));
     }
     if (errorManager.hasErrors()) {
         errorManager.printErrors();

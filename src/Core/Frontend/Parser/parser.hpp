@@ -53,10 +53,11 @@ struct Parser {
     MemoryPtr<ASTNode> parseExpression();
     MemoryPtr<ASTNode> parseBinary(int prevPrecedence = 0);
     MemoryPtr<UnaryOperationNode> parseUnary(const std::string& op);
+    MemoryPtr<RawTypeNode> parseType();
 
     // Statement parsing
     MemoryPtr<ASTNode> parseStatement();
-    MemoryPtr<DeclarationNode> parseDeclaration();
+    MemoryPtr<DeclarationNode> parseDeclaration(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers);
     MemoryPtr<AssignmentNode> parseAssignment();
 
     // Control flow

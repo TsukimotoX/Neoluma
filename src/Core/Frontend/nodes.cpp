@@ -1,382 +1,593 @@
+// nodes.cpp
 // note from tsuki: this is tf2 coconut of this entire project. if you delete it
 // the entire project will blow tf up. don't delete it.
 // xD /jk
+//
+/*
+ * Note: this code is AI-generated. I didn't want to repetitively sit for hours trying to make a
+ * nice debug output tree. Nobody's gonna use this anyway unless for dev purposes like me, who cares?!
+*/
 #include "nodes.hpp"
+
+#include <format>
+#include <string>
+#include <utility>
+#include <vector>
 
 ASTNode::~ASTNode() = default;
 
-// if you get this output it means you screwed up -tsuki
+// Pure-virtual can still have a body.
+// If you get this output it means you screwed up -tsuki
 std::string ASTNode::toString(int indent) const { return std::string(indent, ' ') + "<ASTNode>"; }
 
-// All toString implementations moved here from the header
+namespace {
+
+// ---------- tiny formatting helpers ----------
+inline std::string ind(int n) { return std::string(n, ' '); }
+inline const char* b2s(bool v) { return v ? "true" : "false"; }
+
+static std::string modifierToString(ASTModifierType modifier) {
+    switch (modifier) {
+        case ASTModifierType::Public: return "Public";
+        case ASTModifierType::Private: return "Private";
+        case ASTModifierType::Protected: return "Protected";
+        case ASTModifierType::Static: return "Static";
+        case ASTModifierType::Const: return "Const";
+        case ASTModifierType::Override: return "Override";
+        case ASTModifierType::Async: return "Async";
+        case ASTModifierType::Debug: return "Debug";
+        default: return "Unknown";
+    }
+}
+
+static std::string importTypeToString(ASTImportType importType) {
+    switch (importType) {
+        case ASTImportType::Native: return "Native";
+        case ASTImportType::Relative: return "Relative";
+        case ASTImportType::Foreign: return "Foreign";
+        case ASTImportType::ForeignRelative: return "ForeignRelative";
+        default: return "Unknown";
+    }
+}
+
+static std::string directiveToString(ASTPreprocessorDirectiveType directive) {
+    switch (directive) {
+        case ASTPreprocessorDirectiveType::Import: return "Import";
+        case ASTPreprocessorDirectiveType::Unsafe: return "Unsafe";
+        case ASTPreprocessorDirectiveType::Baremetal: return "Baremetal";
+        case ASTPreprocessorDirectiveType::Float: return "Float";
+        case ASTPreprocessorDirectiveType::Macro: return "Macro";
+        case ASTPreprocessorDirectiveType::None: return "None";
+        default: return "Unknown";
+    }
+}
+
+// ---- Header building ----
+// Keep base fields minimal: line/column only if not 0:0, filePath only if non-empty, value only if non-empty.
+static void appendBaseHeaderFields(std::vector<std::pair<std::string, std::string>>& fields, const ASTNode& n) {
+    if (!(n.line == 0 && n.column == 0)) {
+        fields.emplace_back("line", std::format("{}", n.line));
+        fields.emplace_back("column", std::format("{}", n.column));
+    }
+    if (!n.filePath.empty()) {
+        fields.emplace_back("filePath", n.filePath);
+    }
+    if (!n.value.empty()) {
+        fields.emplace_back("value", n.value);
+    }
+}
+
+static std::string makeHeader(const std::string& nodeName,
+                              const std::vector<std::pair<std::string, std::string>>& fields) {
+    if (fields.empty()) return nodeName;
+
+    std::string out = nodeName;
+    out += "(";
+    for (size_t i = 0; i < fields.size(); ++i) {
+        out += std::format("{}: {}", fields[i].first, fields[i].second);
+        if (i + 1 < fields.size()) out += ", ";
+    }
+    out += ")";
+    return out;
+}
+
+// ---- printing fields in body ----
+template <class TPtr>
+static void appendPtrField(std::string& out, const char* name, const TPtr& p, int indent) {
+    if (!p) {
+        out += std::format("{}{}: null\n", ind(indent), name);
+        return;
+    }
+    out += std::format("{}{}:\n", ind(indent), name);
+    out += p->toString(indent + 2);
+    out += "\n";
+}
+
+template <class TPtrVec>
+static void appendPtrVec(std::string& out, const char* name, const TPtrVec& vec, int indent) {
+    if (vec.empty()) {
+        out += std::format("{}{}: []\n", ind(indent), name);
+        return;
+    }
+
+    out += std::format("{}{}: [\n", ind(indent), name);
+    for (const auto& p : vec) {
+        if (p) out += p->toString(indent + 2);
+        else   out += ind(indent + 2) + "null";
+        out += "\n";
+    }
+    out += std::format("{}]\n", ind(indent));
+}
+
+} // namespace
+
+// -------------------- leaf / basic --------------------
+
 std::string LiteralNode::toString(int indent) const {
-    return std::format("{}Literal(value={})", std::string(indent, ' '), value);
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this); // includes value if not empty
+    return std::format("{}{}", ind(indent), makeHeader("Literal", hdr));
 }
 
 std::string VariableNode::toString(int indent) const {
-    return std::format("{}Variable(varName={})", std::string(indent, ' '), varName);
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("varName", varName);
+    return std::format("{}{}", ind(indent), makeHeader("Variable", hdr));
 }
 
-std::string DeclarationNode::toString(int indent) const {
-    return std::format("{}Declaration {{\n{}variable: {}\n{}rawType: {}\n{}value: {}\n{}isNullable: {}\n{}}}",
-        std::string(indent, ' '),
-        std::string(indent+2, ' '), variable ? variable->toString(indent+2) : "null",
-        std::string(indent+2, ' '), rawType,
-        std::string(indent+2, ' '), value ? value->toString(indent+2) : "null",
-        std::string(indent+2, ' '), isNullable ? "true" : "false",
-        std::string(indent, ' '));
-}
+// -------------------- expressions --------------------
 
 std::string AssignmentNode::toString(int indent) const {
-    return std::format("{}Assignment {{\n{}variable: {}\n{}op: {}\n{}value: {}\n{}}}",
-        std::string(indent, ' '),
-        std::string(indent+2, ' '), variable ? variable->toString(indent+2) : "null",
-        std::string(indent+2, ' '), op,
-        std::string(indent+2, ' '), value ? value->toString(indent+2) : "null",
-        std::string(indent, ' '));
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("op", op);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Assignment", hdr));
+    appendPtrField(out, "variable", variable, indent + 2);
+    appendPtrField(out, "value", value, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
 }
 
 std::string MemberAccessNode::toString(int indent) const {
-    return std::format("{}MemberAccess {{\n{}parent: {}\n{}val: {}\n{}}}",
-        std::string(indent, ' '),
-        std::string(indent+2, ' '), parent ? parent->toString(indent+2) : "null",
-        std::string(indent+2, ' '), val ? val->toString(indent+2) : "null",
-        std::string(indent, ' '));
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("MemberAccess", hdr));
+    appendPtrField(out, "parent", parent, indent + 2);
+    appendPtrField(out, "val", val, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
 }
 
 std::string BinaryOperationNode::toString(int indent) const {
-    return std::format("{}BinaryOperation({}){{\n{}{}, \n{}{}\n{}}}",
-        std::string(indent, ' '), value,
-        std::string(indent+2, ' '), leftOperand ? leftOperand->toString(indent+2) : "null",
-        std::string(indent+2, ' '), rightOperand ? rightOperand->toString(indent+2) : "null",
-        std::string(indent, ' '));
+    // operator stored in base `value`
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("BinaryOperation", hdr));
+    appendPtrField(out, "leftOperand", leftOperand, indent + 2);
+    appendPtrField(out, "rightOperand", rightOperand, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string RawTypeNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("RawType", hdr));
+    appendPtrField(out, "varType", varType, indent + 2);
+    appendPtrField(out, "varSize", varSize, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
 }
 
 std::string UnaryOperationNode::toString(int indent) const {
-    return std::format("{}UnaryOperation({}){{\n{}{}\n{}}}",
-        std::string(indent, ' '), value,
-        std::string(indent+2, ' '), operand ? operand->toString(indent+2) : "null",
-        std::string(indent, ' '));
-}
+    // operator stored in base `value`
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
 
-std::string BlockNode::toString(int indent) const {
-    std::string res = std::string(indent, ' ') + "Block {\n";
-    for (const auto& stmt : statements) {
-        if (stmt) res += stmt->toString(indent+2) + "\n";
-    }
-    res += std::string(indent, ' ') + "}";
-    return res;
-}
-
-std::string IfNode::toString(int indent) const {
-    return std::format("{}If{{\ncondition: {}\nthenBlock: {}\nelseBlock: {}}}",
-        std::string(indent, ' '),
-        condition ? condition->toString(indent + 2) : "null",
-        thenBlock ? thenBlock->toString(indent + 2) : "null",
-        elseBlock ? elseBlock->toString(indent + 2) : "None");
-}
-
-std::string SCDefaultNode::toString(int indent) const {
-    return std::format("{}SCDefault{{\n{}{}\n{}}}", std::string(indent, ' '),
-        std::string(indent+2, ' '), body ? body->toString(indent+2) : "null",
-        std::string(indent, ' '));
-}
-
-std::string CaseNode::toString(int indent) const {
-    return std::format("{}Case{{\n{}condition: {}\n{}body: {}\n{}}}", std::string(indent, ' '),
-        std::string(indent+2, ' '), condition ? condition->toString(indent+2) : "null",
-        std::string(indent+2, ' '), body ? body->toString(indent+2) : "null",
-        std::string(indent, ' '));
-}
-
-std::string SwitchNode::toString(int indent) const {
-    std::string res = std::format("{}Switch{{\n{}expression: {}\n", std::string(indent, ' '),
-        std::string(indent+2, ' '), expression ? expression->toString(indent+2) : "null");
-    res += std::string(indent+2, ' ') + "cases: [\n";
-    for (const auto& caseNode : cases) {
-        res += caseNode ? caseNode->toString(indent+4) + "\n" : "null\n";
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::format("{}defaultCase: {}\n{} }}", std::string(indent+2, ' '),
-        defaultCase ? defaultCase->toString(indent+2) : "null",
-        std::string(indent, ' '));
-    return res;
-}
-
-std::string ForLoopNode::toString(int indent) const {
-    return std::format("{}ForLoop{{\n{}variable: {}\n{}iterable: {}\n{}body: {}\n{}}}", std::string(indent, ' '),
-        std::string(indent+2, ' '), variable ? variable->toString(indent+2) : "null",
-        std::string(indent+2, ' '), iterable ? iterable->toString(indent+2) : "null",
-        std::string(indent+2, ' '), body ? body->toString(indent+2) : "null",
-        std::string(indent, ' '));
-}
-
-std::string WhileLoopNode::toString(int indent) const {
-    return std::format("{}WhileLoop{{\n{}condition: {}\n{}body: {}\n{}}}", std::string(indent, ' '),
-        std::string(indent+2, ' '), condition ? condition->toString(indent+2) : "null",
-        std::string(indent+2, ' '), body ? body->toString(indent+2) : "null",
-        std::string(indent, ' '));
-}
-
-std::string BreakStatementNode::toString(int indent) const { return std::format("{}BreakStatement", std::string(indent, ' ')); }
-std::string ContinueStatementNode::toString(int indent) const { return std::format("{}ContinueStatement", std::string(indent, ' ')); }
-
-std::string ReturnStatementNode::toString(int indent) const {
-    return std::format("{}ReturnStatement{{\n{}expression: {}\n{}}}", std::string(indent, ' '),
-        std::string(indent+2, ' '), expression ? expression->toString(indent+2) : "null",
-        std::string(indent, ' '));
-}
-
-std::string ThrowStatementNode::toString(int indent) const {
-    return std::format("{}ThrowStatement{{\n{}expression: {}\n{}}}", std::string(indent, ' '),
-        std::string(indent+2, ' '), expression ? expression->toString(indent+2) : "null",
-        std::string(indent, ' '));
-}
-
-std::string TryCatchNode::toString(int indent) const {
-    return std::format("{}TryCatch{{\n{}tryBlock: {}\n{}catchBlock: {}\n{}}}", std::string(indent, ' '),
-        std::string(indent+2, ' '), tryBlock ? tryBlock->toString(indent+2) : "null",
-        std::string(indent+2, ' '), catchBlock ? catchBlock->toString(indent+2) : "null",
-        std::string(indent, ' '));
-}
-
-std::string ArrayNode::toString(int indent) const {
-    std::string res = std::format("{}Array{{\n{}elements: [\n", std::string(indent, ' '), std::string(indent+2, ' '));
-    for (const auto& elem : elements) {
-        res += elem ? elem->toString(indent+4) + "\n" : "null\n";
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::format("{}typeHint: {}\n{}}}", std::string(indent+2, ' '),
-        typeHint ? typeHint->toString(indent+2) : "null",
-        std::string(indent, ' '));
-    return res;
-}
-
-std::string SetNode::toString(int indent) const {
-    std::string res = std::format("{}Set{{\n{}elements: [\n", std::string(indent, ' '), std::string(indent+2, ' '));
-    for (const auto& elem : elements) {
-        res += elem ? elem->toString(indent+4) + "\n" : "null\n";
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::format("{}typeHint: {}\n{}}}", std::string(indent+2, ' '),
-        typeHint ? typeHint->toString(indent+2) : "null",
-        std::string(indent, ' '));
-    return res;
-}
-
-std::string DictNode::toString(int indent) const {
-    std::string res = std::format("{}Dict{{\n{}elements: [\n", std::string(indent, ' '), std::string(indent+2, ' '));
-    for (const auto& elem : elements) {
-        res += std::format("{}Key: {}\n{}Value: {}\n", std::string(indent+4, ' '),
-            elem.first ? elem.first->toString(indent+6) : "null",
-            std::string(indent+4, ' '),
-            elem.second ? elem.second->toString(indent+6) : "null");
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::format("{}types: [keyType={}, valueType={}]\n{}}}", std::string(indent+2, ' '),
-        types[0], types[1],
-        std::string(indent, ' '));
-    return res;
-}
-
-std::string VoidNode::toString(int indent) const { return std::format("{}Void", std::string(indent, ' ')); }
-
-std::string ResultNode::toString(int indent) const {
-    return std::format("{}Result{{\n{}t: {}\n{}e: {}\n{}isError: {}\n{}}}", std::string(indent, ' '),
-        std::string(indent+2, ' '), t ? t->toString(indent+2) : "null",
-        std::string(indent+2, ' '), e ? e->toString(indent+2) : "null",
-        std::string(indent+2, ' '), isError ? "true" : "false",
-        std::string(indent, ' '));
-}
-
-std::string ParameterNode::toString(int indent) const {
-    return std::format("{}Parameter(parameterName={}, parameterRawType={}, defaultValue={})", std::string(indent, ' '), parameterName, parameterRawType, defaultValue ? defaultValue->toString(indent+2) : "null");
-}
-
-std::string ModifierNode::toString(int indent) const {
-    auto modifierString = [](ASTModifierType modifier) -> std::string {
-        switch (modifier) {
-            case ASTModifierType::Public: return "Public";
-            case ASTModifierType::Private: return "Private";
-            case ASTModifierType::Protected: return "Protected";
-            case ASTModifierType::Static: return "Static";
-            case ASTModifierType::Const: return "Const";
-            case ASTModifierType::Override: return "Override";
-            case ASTModifierType::Async: return "Async";
-            case ASTModifierType::Debug: return "Debug";
-            default: return "Unknown";
-        }
-    };
-    std::string modStr = modifierString(modifier);
-    return std::format("{}Modifier(modifier={})", std::string(indent, ' '), modStr);
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("UnaryOperation", hdr));
+    appendPtrField(out, "operand", operand, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
 }
 
 std::string CallExpressionNode::toString(int indent) const {
-    std::string res = std::format("{}CallExpression{{\n{}callee: {}\n", std::string(indent, ' '),
-        std::string(indent+2, ' '), callee ? callee->toString(indent+2) : "null");
-    res += std::string(indent+2, ' ') + "arguments: [\n";
-    for (const auto& arg : arguments) {
-        res += arg ? arg->toString(indent+4) + "\n" : "null\n";
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::string(indent, ' ') + "}";
-    return res;
-}
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
 
-std::string EnumMemberNode::toString(int indent) const {
-    return std::format("{}EnumMember(name={}, value={})", std::string(indent, ' '), name, value ? value->toString(indent) : "null");
-}
-
-std::string EnumNode::toString(int indent) const {
-    std::string res = std::format("{}Enum(name={}){{\n", std::string(indent, ' '), name);
-    res += std::string(indent+2, ' ') + "elements: [\n";
-    for (const auto& elem : elements) {
-        res += elem ? elem->toString(indent+4) + "\n" : "null\n";
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::string(indent, ' ') + "}";
-    return res;
-}
-
-std::string InterfaceFieldNode::toString(int indent) const {
-    std::string res = std::format("{}InterfaceField(name={}, rawType={}, isNullable={}){{\n", std::string(indent, ' '), name, rawType, isNullable ? "true" : "false");
-    if (isFunction) {
-        res += std::string(indent+2, ' ') + "isFunction: true\n";
-        res += std::string(indent+2, ' ') + "parameters: [\n";
-        for (const auto& param : parameters) {
-            res += param ? param->toString(indent+4) + "\n" : "null\n";
-        }
-        res += std::string(indent+2, ' ') + "]\n";
-        res += std::format("{}returnType: {}\n{}}}", std::string(indent+2, ' '),
-            returnType ? returnType->toString(indent+2) : "null",
-            std::string(indent, ' '));
-    } else {
-        res += std::string(indent+2, ' ') + "isFunction: false\n";
-        res += std::string(indent, ' ') + "}";
-    }
-    return res;
-}
-
-std::string InterfaceNode::toString(int indent) const {
-    std::string res = std::format("{}Interface(name={}){{\n", std::string(indent, ' '), name);
-    res += std::string(indent+2, ' ') + "elements: [\n";
-    for (const auto& elem : elements) {
-        res += elem ? elem->toString(indent+4) + "\n" : "null\n";
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::string(indent, ' ') + "}";
-    return res;
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("CallExpression", hdr));
+    appendPtrField(out, "callee", callee, indent + 2);
+    appendPtrVec(out, "arguments", arguments, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
 }
 
 std::string LambdaNode::toString(int indent) const {
-    std::string res = std::format("{}Lambda{{\n", std::string(indent, ' '));
-    res += std::string(indent+2, ' ') + "params: [\n";
-    for (const auto& param : params) {
-        res += param ? param->toString(indent+4) + "\n" : "null\n";
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Lambda", hdr));
+    appendPtrVec(out, "params", params, indent + 2);
+    appendPtrField(out, "body", body, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+// -------------------- statements / control flow --------------------
+
+std::string BlockNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Block", hdr));
+    appendPtrVec(out, "statements", statements, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string IfNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("If", hdr));
+    appendPtrField(out, "condition", condition, indent + 2);
+    appendPtrField(out, "thenBlock", thenBlock, indent + 2);
+    appendPtrField(out, "elseBlock", elseBlock, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string SCDefaultNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("SCDefault", hdr));
+    appendPtrField(out, "body", body, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string CaseNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Case", hdr));
+    appendPtrField(out, "condition", condition, indent + 2);
+    appendPtrField(out, "body", body, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string SwitchNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Switch", hdr));
+    appendPtrField(out, "expression", expression, indent + 2);
+
+    if (cases.empty()) {
+        out += std::format("{}cases: []\n", ind(indent + 2));
+    } else {
+        out += std::format("{}cases: [\n", ind(indent + 2));
+        for (const auto& c : cases) {
+            out += (c ? c->toString(indent + 4) : ind(indent + 4) + "null");
+            out += "\n";
+        }
+        out += std::format("{}]\n", ind(indent + 2));
     }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::format("{}body: {}\n{}}}", std::string(indent+2, ' '),
-        body ? body->toString(indent+2) : "null",
-        std::string(indent, ' '));
-    return res;
+
+    if (!defaultCase) out += std::format("{}defaultCase: null\n", ind(indent + 2));
+    else {
+        out += std::format("{}defaultCase:\n", ind(indent + 2));
+        out += defaultCase->toString(indent + 4);
+        out += "\n";
+    }
+
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string ForLoopNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("ForLoop", hdr));
+    appendPtrField(out, "variable", variable, indent + 2);
+    appendPtrField(out, "iterable", iterable, indent + 2);
+    appendPtrField(out, "body", body, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string WhileLoopNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("WhileLoop", hdr));
+    appendPtrField(out, "condition", condition, indent + 2);
+    appendPtrField(out, "body", body, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string BreakStatementNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    return std::format("{}{}", ind(indent), makeHeader("BreakStatement", hdr));
+}
+
+std::string ContinueStatementNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    return std::format("{}{}", ind(indent), makeHeader("ContinueStatement", hdr));
+}
+
+std::string ReturnStatementNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("ReturnStatement", hdr));
+    appendPtrField(out, "expression", expression, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string ThrowStatementNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("ThrowStatement", hdr));
+    appendPtrField(out, "expression", expression, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string TryCatchNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("TryCatch", hdr));
+    appendPtrField(out, "tryBlock", tryBlock, indent + 2);
+    appendPtrField(out, "exception", exception, indent + 2);
+    appendPtrField(out, "catchBlock", catchBlock, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+// -------------------- composite data --------------------
+
+std::string ArrayNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Array", hdr));
+    appendPtrVec(out, "elements", elements, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string SetNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Set", hdr));
+    appendPtrVec(out, "elements", elements, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string DictNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Dict", hdr));
+
+    if (elements.empty()) {
+        out += std::format("{}elements: []\n", ind(indent + 2));
+    } else {
+        out += std::format("{}elements: [\n", ind(indent + 2));
+        for (const auto& kv : elements) {
+            out += std::format("{}{{\n", ind(indent + 4));
+
+            out += std::format("{}key:\n", ind(indent + 6));
+            out += (kv.first ? kv.first->toString(indent + 8) : ind(indent + 8) + "null");
+            out += "\n";
+
+            out += std::format("{}value:\n", ind(indent + 6));
+            out += (kv.second ? kv.second->toString(indent + 8) : ind(indent + 8) + "null");
+            out += "\n";
+
+            out += std::format("{}}}\n", ind(indent + 4));
+        }
+        out += std::format("{}]\n", ind(indent + 2));
+    }
+
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string ResultNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("isError", b2s(isError));
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Result", hdr));
+    appendPtrField(out, "t", t, indent + 2);
+    appendPtrField(out, "e", e, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+// -------------------- higher structures --------------------
+
+std::string ParameterNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("parameterName", parameterName);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Parameter", hdr));
+    appendPtrField(out, "parameterRawType", parameterRawType, indent + 2);
+    appendPtrField(out, "defaultValue", defaultValue, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string ModifierNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("modifier", modifierToString(modifier));
+
+    return std::format("{}{}", ind(indent), makeHeader("Modifier", hdr));
+}
+
+std::string EnumMemberNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("name", name);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("EnumMember", hdr));
+    appendPtrField(out, "value", value, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string EnumNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("name", name);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Enum", hdr));
+    appendPtrVec(out, "decorators", decorators, indent + 2);
+    appendPtrVec(out, "modifiers", modifiers, indent + 2);
+    appendPtrVec(out, "elements", elements, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string InterfaceFieldNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    hdr.emplace_back("name", name);
+    hdr.emplace_back("isNullable", b2s(isNullable));
+    hdr.emplace_back("isFunction", b2s(isFunction));
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("InterfaceField", hdr));
+    appendPtrField(out, "rawType", rawType, indent + 2);
+    appendPtrVec(out, "parameters", parameters, indent + 2);
+    appendPtrField(out, "returnType", returnType, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string InterfaceNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("name", name);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Interface", hdr));
+    appendPtrVec(out, "decorators", decorators, indent + 2);
+    appendPtrVec(out, "modifiers", modifiers, indent + 2);
+    appendPtrVec(out, "elements", elements, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
 }
 
 std::string FunctionNode::toString(int indent) const {
-    std::string res = std::format("{}Function(name={}){{\n", std::string(indent, ' '), name);
-    res += std::string(indent+2, ' ') + "parameters: [\n";
-    for (const auto& param : parameters) {
-        res += param ? param->toString(indent+4) + "\n" : "null\n";
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::format("{}body: {}\n{}}}", std::string(indent+2, ' '),
-        body ? body->toString(indent+2) : "null",
-        std::string(indent, ' '));
-    return res;
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("name", name);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Function", hdr));
+    appendPtrVec(out, "decorators", decorators, indent + 2);
+    appendPtrVec(out, "modifiers", modifiers, indent + 2);
+    appendPtrVec(out, "parameters", parameters, indent + 2);
+    appendPtrField(out, "returnType", returnType, indent + 2);
+    appendPtrField(out, "body", body, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
+std::string DeclarationNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    hdr.emplace_back("isNullable", b2s(isNullable));
+    hdr.emplace_back("isTypeInference", b2s(isTypeInference));
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Declaration", hdr));
+    appendPtrVec(out, "decorators", decorators, indent + 2);
+    appendPtrVec(out, "modifiers", modifiers, indent + 2);
+    appendPtrField(out, "variable", variable, indent + 2);
+    appendPtrField(out, "rawType", rawType, indent + 2);
+    appendPtrField(out, "value", value, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
 }
 
 std::string ClassNode::toString(int indent) const {
-    std::string res = std::format("{}Class(name={}){{\n", std::string(indent, ' '), name);
-    res += std::string(indent+2, ' ') + "super (inherited from): " + (super ? super->toString(indent+2) : "null") + "\n";
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("name", name);
 
-    res += std::string(indent+2, ' ') + "constructor: {}\n" +
-        (constructor ? constructor->toString(indent+2) : "null") + "\n";
-
-    res += std::string(indent+2, ' ') + "fields: [\n";
-    for (const auto& field : fields) {
-        res += field ? field->toString(indent+4) + "\n" : "null\n";
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-
-    res += std::string(indent+2, ' ') + "methods: [\n";
-    for (const auto& method : methods) {
-        res += method ? method->toString(indent+4) + "\n" : "null\n";
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::string(indent, ' ') + "}";
-    return res;
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Class", hdr));
+    appendPtrField(out, "constructor", constructor, indent + 2);
+    appendPtrField(out, "super", super, indent + 2);
+    appendPtrVec(out, "decorators", decorators, indent + 2);
+    appendPtrVec(out, "modifiers", modifiers, indent + 2);
+    appendPtrVec(out, "fields", fields, indent + 2);
+    appendPtrVec(out, "methods", methods, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
 }
 
 std::string DecoratorNode::toString(int indent) const {
-    std::string res = std::format("{}Decorator(name={}){{\n", std::string(indent, ' '), name);
-    res += std::string(indent+2, ' ') + "parameters: [\n";
-    for (const auto& param : parameters) {
-        res += param ? param->toString(indent+4) + "\n" : "null\n";
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::format("{}body: {}\n{}}}", std::string(indent+2, ' '),
-        body ? body->toString(indent+2) : "null",
-        std::string(indent, ' '));
-    return res;
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("name", name);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Decorator", hdr));
+    appendPtrVec(out, "decorators", decorators, indent + 2);
+    appendPtrVec(out, "modifiers", modifiers, indent + 2);
+    appendPtrVec(out, "parameters", parameters, indent + 2);
+    appendPtrField(out, "body", body, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
 }
 
+// -------------------- imports / module / preprocessor --------------------
+
 std::string ImportNode::toString(int indent) const {
-    auto importTypeString = [](ASTImportType importType) -> std::string {
-        switch (importType) {
-            case ASTImportType::Native: return "Native";
-            case ASTImportType::Relative: return "Relative";
-            case ASTImportType::Foreign: return "Foreign";
-            case ASTImportType::ForeignRelative: return "ForeignRelative";
-            default: return "Unknown";
-        }
-    };
-    std::string impTypeStr = importTypeString(importType);
-    return std::format("{}Import(moduleName={}, alias={}, importType={})", std::string(indent, ' '), moduleName, alias, impTypeStr);
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    hdr.emplace_back("moduleName", moduleName);
+    hdr.emplace_back("alias", alias);
+    hdr.emplace_back("importType", importTypeToString(importType));
+
+    return std::format("{}{}", ind(indent), makeHeader("Import", hdr));
 }
 
 std::string PreprocessorDirectiveNode::toString(int indent) const {
-    auto directiveString = [](ASTPreprocessorDirectiveType directive) -> std::string {
-        switch (directive) {
-            case ASTPreprocessorDirectiveType::Import: return "Import";
-            case ASTPreprocessorDirectiveType::Unsafe: return "Unsafe";
-            case ASTPreprocessorDirectiveType::Baremetal: return "Baremetal";
-            case ASTPreprocessorDirectiveType::Float: return "Float";
-            case ASTPreprocessorDirectiveType::Macro: return "Macro";
-            case ASTPreprocessorDirectiveType::None: return "None";
-            default: return "Unknown";
-        }
-    };
-    std::string dirStr = directiveString(directive);
-    return std::format("{}Preprocessor(directive={}, value={})", std::string(indent, ' '), dirStr, value);
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("directive", directiveToString(directive));
+    // value is base `ASTNode::value` and is included only if not empty via appendBaseHeaderFields()
+
+    return std::format("{}{}", ind(indent), makeHeader("Preprocessor", hdr));
 }
 
 std::string ModuleNode::toString(int indent) const {
-    std::string res = std::format("{}Module(name={}){{\n", std::string(indent, ' '), moduleName);
-    res += std::string(indent+2, ' ') + "body: [\n";
-    for (const auto& node : body) {
-        res += node ? node->toString(indent+4) + "\n" : "null\n";
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::string(indent, ' ') + "}";
-    return res;
-}
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("moduleName", moduleName);
 
-std::string ProgramNode::toString(int indent) const {
-    std::string res = std::format("{}Program{{\n", std::string(indent, ' '));
-    res += std::string(indent+2, ' ') + "body: [\n";
-    for (const auto& module : body) {
-        res += module.toString(indent+4) + "\n";
-    }
-    res += std::string(indent+2, ' ') + "]\n";
-    res += std::string(indent, ' ') + "}";
-    return res;
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Module", hdr));
+    appendPtrVec(out, "body", body, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
 }

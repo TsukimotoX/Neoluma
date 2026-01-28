@@ -14,8 +14,8 @@ struct ASTBuilder {
     }
 
     // Creates a DeclarationNode
-    static MemoryPtr<DeclarationNode> createDeclaration(MemoryPtr<VariableNode> variable, const std::string& rawType = "None", MemoryPtr<ASTNode> value = nullptr, bool isNullable = false) {
-        return makeMemoryPtr<DeclarationNode>(std::move(variable), rawType, std::move(value), isNullable);
+    static MemoryPtr<DeclarationNode> createDeclaration(MemoryPtr<VariableNode> variable, MemoryPtr<RawTypeNode> rawType = nullptr, MemoryPtr<ASTNode> value = nullptr, bool isNullable = false, bool isTypeInference = false, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
+        return makeMemoryPtr<DeclarationNode>(std::move(variable), std::move(rawType), std::move(value), isNullable, isTypeInference, std::move(decorators), std::move(modifiers));
     }
 
     // Creates an AssignmentNode
@@ -101,23 +101,18 @@ struct ASTBuilder {
     }
 
     // Creates an ArrayNode
-    static MemoryPtr<ArrayNode> createArray(std::vector<MemoryPtr<ASTNode>> elements, MemoryPtr<ASTNode> typeHint = nullptr) {
-        return makeMemoryPtr<ArrayNode>(std::move(elements), std::move(typeHint));
+    static MemoryPtr<ArrayNode> createArray(std::vector<MemoryPtr<ASTNode>> elements/*, MemoryPtr<ASTNode> typeHint = nullptr*/) {
+        return makeMemoryPtr<ArrayNode>(std::move(elements)/*, std::move(typeHint)*/);
     }
 
     // Creates a SetNode
-    static MemoryPtr<SetNode> createSet(std::vector<MemoryPtr<ASTNode>> elements, MemoryPtr<ASTNode> typeHint = nullptr) {
-        return makeMemoryPtr<SetNode>(std::move(elements), std::move(typeHint));
+    static MemoryPtr<SetNode> createSet(std::vector<MemoryPtr<ASTNode>> elements/*, MemoryPtr<ASTNode> typeHint = nullptr*/) {
+        return makeMemoryPtr<SetNode>(std::move(elements)/*, std::move(typeHint)*/);
     }
 
     // Creates a DictNode
-    static MemoryPtr<DictNode> createDict(std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>> elements, std::array<std::string, 2> types={"none", "none"}) {
-        return makeMemoryPtr<DictNode>(std::move(elements), std::move(types));
-    }
-
-    // Creates a VoidNode
-    static MemoryPtr<VoidNode> createVoid() {
-        return makeMemoryPtr<VoidNode>();
+    static MemoryPtr<DictNode> createDict(std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>> elements/*, std::array<std::string, 2> types={"none", "none"}*/) {
+        return makeMemoryPtr<DictNode>(std::move(elements)/*, std::move(types)*/);
     }
 
     // Creates a ResultNode
@@ -126,8 +121,8 @@ struct ASTBuilder {
     }
 
     // Creates a ParameterNode
-    static MemoryPtr<ParameterNode> createParameter(const std::string& parameterName, const std::string& parameterRawType = "none", MemoryPtr<ASTNode> defaultValue = nullptr) {
-        return makeMemoryPtr<ParameterNode>(parameterName, parameterRawType, std::move(defaultValue));
+    static MemoryPtr<ParameterNode> createParameter(const std::string& parameterName, MemoryPtr<RawTypeNode> parameterRawType = nullptr, MemoryPtr<ASTNode> defaultValue = nullptr) {
+        return makeMemoryPtr<ParameterNode>(parameterName, std::move(parameterRawType), std::move(defaultValue));
     }
 
     // Creates a ModifierNode
@@ -151,8 +146,8 @@ struct ASTBuilder {
     }
 
     // Creates an InterfaceFieldNode
-    static MemoryPtr<InterfaceFieldNode> createInterfaceField(const std::string& name, const std::string& type, bool isNullable = false, bool isFunction = false, std::vector<MemoryPtr<ParameterNode>> parameters = {}, MemoryPtr<VariableNode> returnType = nullptr) {
-        return makeMemoryPtr<InterfaceFieldNode>(name, type, isNullable, isFunction, std::move(parameters), std::move(returnType));
+    static MemoryPtr<InterfaceFieldNode> createInterfaceField(const std::string& name, MemoryPtr<RawTypeNode> type, bool isNullable = false, bool isFunction = false, std::vector<MemoryPtr<ParameterNode>> parameters = {}, MemoryPtr<VariableNode> returnType = nullptr) {
+        return makeMemoryPtr<InterfaceFieldNode>(name, std::move(type), isNullable, isFunction, std::move(parameters), std::move(returnType));
     }
 
     // Creates an InterfaceNode
@@ -166,7 +161,7 @@ struct ASTBuilder {
     }
 
     // Creates a FunctionNode
-    static MemoryPtr<FunctionNode> createFunction(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<VariableNode> returnType, MemoryPtr<BlockNode> body,std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
+    static MemoryPtr<FunctionNode> createFunction(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<RawTypeNode> returnType, MemoryPtr<BlockNode> body, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
         return makeMemoryPtr<FunctionNode>(name, std::move(parameters), std::move(returnType), std::move(body), std::move(decorators), std::move(modifiers));
     }
 
@@ -190,20 +185,16 @@ struct ASTBuilder {
         return makeMemoryPtr<PreprocessorDirectiveNode>(directive, value);
     }
 
+    // Creates a RawTypeNode
+    static MemoryPtr<RawTypeNode> createRawType(MemoryPtr<VariableNode> varType, MemoryPtr<ASTNode> varSize = nullptr) {
+        return makeMemoryPtr<RawTypeNode>(std::move(varType), std::move(varSize));
+    }
+
     // Creates a ModuleNode
     static MemoryPtr<ModuleNode> createModule(const std::string& name, std::vector<MemoryPtr<ASTNode>> body = {}) {
         auto mod = makeMemoryPtr<ModuleNode>(name);
         mod->body = std::move(body);
         return mod;
     }
-
-    // Creates a ProgramNode
-    static MemoryPtr<ProgramNode> createProgram(std::vector<ModuleNode> body = {}) {
-        auto prog = makeMemoryPtr<ProgramNode>();
-        prog->body = std::move(body);
-        return prog;
-    }
-
-
 };
 

@@ -1,5 +1,5 @@
-#import "utils" // Utility functions
-#import "models" // Data models
+#import "more/utils" as utils // Utility functions
+#import "more/models" // Data models
 
 @entry
 fn main() {
@@ -12,7 +12,16 @@ fn main() {
     res: int = add(10, 20)
     print("10 + 20 = ${res}")
 
-    const c = (x.y) => { greet(user); }
+    // lambda functions
+    const c: void = (x.y) => { greet(user) }
+
+    // arrays, sets, dicts
+    arr: int[4] = [1, 2, 3, 3];
+    arr: str[] = ["hello", "i am dynamic size"]
+    arr := [1, 2, 3, 3];
+
+    sets: set = {5, 1, 9};
+    dictionary: dict = {"color": "red", "number": "21"};
 
     // Demonstrate control flow
     if (user.age >= 18) {
@@ -54,6 +63,4 @@ fn main() {
     fn compileTimeCheck() {
         print("This runs at compile time!")
     }
-
-    compileTimeCheck()
 }

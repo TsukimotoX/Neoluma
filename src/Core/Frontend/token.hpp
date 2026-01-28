@@ -45,7 +45,7 @@ enum class Decorators {
     Float, Entry, Unsafe, Comptime
 };
 enum class Preprocessors {
-    Import, As, Unsafe, Baremetal, Float, Macro
+    Import, Unsafe, Baremetal, Float, Macro
 };
 enum class Delimeters {
     LeftParen, RightParen, LeftBracket, RightBracket, Semicolon, Newline, Comma, Dot, LeftBraces, RightBraces, Colon

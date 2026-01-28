@@ -3,6 +3,7 @@
 #include <optional>
 #include <array>
 #include <string>
+#include <variant>
 
 #include "../../HelperFunctions.hpp"
 //#include "llvm/IR/Value.h"
@@ -13,11 +14,12 @@ enum struct ASTNodeType {
     Function, Class, 
     Parameter, Modifier,
     Switch, Case, SCDefault,
-    Module, Program, 
+    Module,
     Import, Decorator, Preprocessor, 
     BreakStatement, ContinueStatement, ThrowStatement,
     Array, Set, Dict, Void, Result, Enum, Interface, Lambda,
-    EnumMember, InterfaceField
+    EnumMember, InterfaceField,
+    RawType
 };
 
 // enum struct ASTVariableType {
@@ -59,14 +61,6 @@ struct ASTNode {
 };
 
 // All nodes available in Neoluma
-struct LiteralNode : ASTNode {
-    LiteralNode(const std::string& val = "") {
-        this->type = ASTNodeType::Literal;
-        value = val;
-    }
-
-    std::string toString(int indent) const override;
-};
 
 // This node only represents the existence of a variable (its name). Type info and initialized value are in DeclarationNode.
 struct VariableNode : ASTNode {
@@ -79,18 +73,14 @@ struct VariableNode : ASTNode {
     std::string toString(int indent) const override;
 };
 
-// Declaration node holds type info, initialization value, and other metadata about a variable.
-struct DeclarationNode : ASTNode {
-    MemoryPtr<VariableNode> variable;
-    bool isNullable = false;
-    std::string rawType; // TODO: Add multitypes like in Typescript later
-    MemoryPtr<ASTNode> value = nullptr;
-
-    DeclarationNode(MemoryPtr<VariableNode> variable, const std::string& rawType = "None", MemoryPtr<ASTNode> value = nullptr, bool isNullable = false)
-    : variable(std::move(variable)), rawType(rawType), value(std::move(value)), isNullable(isNullable) {
-        this->type = ASTNodeType::Declaration;
+struct LiteralNode : ASTNode {
+    LiteralNode(const std::string& val = "") {
+        this->type = ASTNodeType::Literal;
+        value = val;
     }
 
+    // TODO: add string statements to support inline data in strings
+    //std::optional<std::vector<MemoryPtr<VariableNode>>> stringStatements = std::nullopt;
     std::string toString(int indent) const override;
 };
 
@@ -128,6 +118,19 @@ struct BinaryOperationNode : ASTNode {
         : leftOperand(std::move(leftOp)), rightOperand(std::move(rightOp)) {
         this->type = ASTNodeType::BinaryOperation;
         value = op;
+    }
+
+    std::string toString(int indent) const override;
+};
+
+struct RawTypeNode : ASTNode {
+    MemoryPtr<VariableNode> varType;
+    // ASTNode is used only for nullptr. Be aware!
+    MemoryPtr<ASTNode> varSize;
+
+    RawTypeNode(MemoryPtr<VariableNode> varType, MemoryPtr<ASTNode> varSize = nullptr)
+    : varType(std::move(varType)), varSize(std::move(varSize)) {
+        this->type = ASTNodeType::RawType;
     }
 
     std::string toString(int indent) const override;
@@ -282,10 +285,10 @@ struct TryCatchNode : ASTNode {
 // composite data
 struct ArrayNode : ASTNode {
     std::vector<MemoryPtr<ASTNode>> elements;
-    MemoryPtr<ASTNode> typeHint;
+    /*MemoryPtr<ASTNode> typeHint;*/
 
-    ArrayNode(std::vector<MemoryPtr<ASTNode>> elements, MemoryPtr<ASTNode> typeHint=nullptr)
-        : elements(std::move(elements)), typeHint(std::move(typeHint)) {
+    ArrayNode(std::vector<MemoryPtr<ASTNode>> elements/*, MemoryPtr<ASTNode> typeHint=nullptr*/)
+        : elements(std::move(elements))/*, typeHint(std::move(typeHint))*/ {
         this->type = ASTNodeType::Array;
     }
 
@@ -295,10 +298,10 @@ struct ArrayNode : ASTNode {
 
 struct SetNode : ASTNode {
     std::vector<MemoryPtr<ASTNode>> elements;
-    MemoryPtr<ASTNode> typeHint;
+    //MemoryPtr<RawTypeNode> typeHint;
 
-    SetNode(std::vector<MemoryPtr<ASTNode>> elements, MemoryPtr<ASTNode> typeHint=nullptr)
-        : elements(std::move(elements)), typeHint(std::move(typeHint)) {
+    SetNode(std::vector<MemoryPtr<ASTNode>> elements/*, MemoryPtr<ASTNode> typeHint=nullptr*/)
+        : elements(std::move(elements))/*, typeHint(std::move(typeHint))*/ {
         this->type = ASTNodeType::Set;
     }
 
@@ -308,23 +311,15 @@ struct SetNode : ASTNode {
 
 struct DictNode : ASTNode {
     std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>> elements;
-    std::array<std::string, 2> types;
+    //std::array<MemoryPtr<RawTypeNode>, 2> types;
 
-    DictNode(std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>> elements, std::array<std::string, 2> types)
-        : elements(std::move(elements)), types(std::move(types)) {
+    DictNode(std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>> elements/*, std::array<MemoryPtr<RawTypeNode>, 2> types*/)
+        : elements(std::move(elements))/*, types(std::move(types))*/ {
         this->type = ASTNodeType::Dict;
     }
 
     // Suggested by AI. If it fails, it's his fault
     std::string toString(int indent) const override;
-};
-
-// Hold on, has this ever been used anywhere?
-struct VoidNode : ASTNode {
-    VoidNode() { this->type = ASTNodeType::Void; }
-
-    // Suggested by AI. If it fails, it's his fault
-    std::string toString(int indent = 0) const override;
 };
 
 struct ResultNode : ASTNode {
@@ -344,11 +339,11 @@ struct ResultNode : ASTNode {
 // higher structures
 struct ParameterNode : ASTNode {
     std::string parameterName;
-    std::string parameterRawType;
+    MemoryPtr<RawTypeNode> parameterRawType = nullptr;
     MemoryPtr<ASTNode> defaultValue = nullptr; // optional
 
-    ParameterNode(const std::string& parameterName, const std::string& parameterRawType, MemoryPtr<ASTNode> defaultValue)
-        : parameterName(parameterName), parameterRawType(parameterRawType), defaultValue(std::move(defaultValue)) {
+    ParameterNode(const std::string& parameterName, MemoryPtr<RawTypeNode> parameterRawType, MemoryPtr<ASTNode> defaultValue)
+        : parameterName(parameterName), parameterRawType(std::move(parameterRawType)), defaultValue(std::move(defaultValue)) {
         this->type = ASTNodeType::Parameter;
     }
 
@@ -381,7 +376,7 @@ struct CallExpressionNode : ASTNode {
 
 struct EnumMemberNode : ASTNode {
     std::string name;
-    MemoryPtr<LiteralNode> value;
+    MemoryPtr<LiteralNode> value; // TODO: Maybe allow expressions in the future that would return a number.
     EnumMemberNode(const std::string& name, MemoryPtr<LiteralNode> value = nullptr) : name(name), value(std::move(value)) {
         this->type = ASTNodeType::EnumMember;
     }
@@ -410,15 +405,15 @@ struct EnumNode : ASTNode {
 
 struct InterfaceFieldNode : ASTNode {
     std::string name;
-    std::string rawType;
+    MemoryPtr<RawTypeNode> rawType;
     bool isNullable;
 
     bool isFunction = false;
     std::vector<MemoryPtr<ParameterNode>> parameters = {};
     MemoryPtr<VariableNode> returnType = nullptr;
 
-    InterfaceFieldNode(const std::string& name, const std::string& type, bool isNullable = false, bool isFunction = false, std::vector<MemoryPtr<ParameterNode>> parameters = {}, MemoryPtr<VariableNode> returnType = nullptr)
-        : name(name), rawType(type), isNullable(isNullable), isFunction(isFunction), parameters(std::move(parameters)), returnType(std::move(returnType)) {
+    InterfaceFieldNode(const std::string& name, MemoryPtr<RawTypeNode> type, bool isNullable = false, bool isFunction = false, std::vector<MemoryPtr<ParameterNode>> parameters = {}, MemoryPtr<VariableNode> returnType = nullptr)
+        : name(name), rawType(std::move(type)), isNullable(isNullable), isFunction(isFunction), parameters(std::move(parameters)), returnType(std::move(returnType)) {
         this->type = ASTNodeType::InterfaceField;
     }
 
@@ -462,17 +457,35 @@ struct FunctionNode : ASTNode {
     std::vector<MemoryPtr<ModifierNode>> modifiers;
     std::string name;
     std::vector<MemoryPtr<ParameterNode>> parameters;
-    MemoryPtr<VariableNode> returnType = nullptr;
+    MemoryPtr<RawTypeNode> returnType = nullptr;
     MemoryPtr<BlockNode> body;
-    //MemoryPtr<ReturnStatementNode> returnStatement = nullptr; // if returnType exists
 
-    FunctionNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<VariableNode> returnType, MemoryPtr<BlockNode> body,std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
+    FunctionNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<RawTypeNode> returnType, MemoryPtr<BlockNode> body,std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
         : name(name), parameters(std::move(parameters)), body(std::move(body)), decorators(std::move(decorators)), modifiers(std::move(modifiers)), returnType(std::move(returnType)) {
         this->type = ASTNodeType::Function;
     }
 
     // Suggested by AI. If it fails, it's his fault
     std::string toString(int indent = 0) const override;
+};
+
+// Declaration node holds type info, initialization value, and other metadata about a variable.
+struct DeclarationNode : ASTNode {
+    std::vector<MemoryPtr<CallExpressionNode>> decorators;
+    std::vector<MemoryPtr<ModifierNode>> modifiers;
+
+    MemoryPtr<VariableNode> variable;
+    bool isNullable = false;
+    MemoryPtr<RawTypeNode> rawType;
+    bool isTypeInference = false;
+    MemoryPtr<ASTNode> value = nullptr;
+
+    DeclarationNode(MemoryPtr<VariableNode> variable, MemoryPtr<RawTypeNode> rawType = nullptr, MemoryPtr<ASTNode> value = nullptr, bool isNullable = false, bool isTypeInference = false, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
+    : variable(std::move(variable)), rawType(std::move(rawType)), value(std::move(value)), isNullable(isNullable), isTypeInference(isTypeInference), decorators(std::move(decorators)), modifiers(std::move(modifiers)) {
+        this->type = ASTNodeType::Declaration;
+    }
+
+    std::string toString(int indent) const override;
 };
 
 struct ClassNode : ASTNode {
@@ -544,14 +557,6 @@ struct ModuleNode : ASTNode {
     ModuleNode(const std::string& name) : moduleName(name) {
         this->type = ASTNodeType::Module;
     }
-
-    // Suggested by AI. If it fails, it's his fault
-    std::string toString(int indent = 0) const override;
-};
-
-struct ProgramNode : ASTNode {
-    std::vector<ModuleNode> body;
-    ProgramNode() { this->type = ASTNodeType::Program; }
 
     // Suggested by AI. If it fails, it's his fault
     std::string toString(int indent = 0) const override;

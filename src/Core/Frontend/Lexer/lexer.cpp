@@ -15,7 +15,7 @@ std::vector<Token> Lexer::tokenize(const std::string& filePath, const std::strin
     tokens.clear();
     this->source = source;
     this->filePath = filePath;
-    pos = 0;
+    pos = 0; line = 1; column = 1;
 
     while (!isAtEnd()) {
         char c = curChar();

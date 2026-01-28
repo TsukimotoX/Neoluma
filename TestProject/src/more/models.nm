@@ -41,4 +41,5 @@ enum UserRole {
 // Interface example
 interface Displayable {
     fn display()
+    x: int
 }

@@ -37,7 +37,7 @@ const EDecorator decoratorMap[] {
 };
 
 const EPreprocessor preprocessorMap[] {
-    {"import", Preprocessors::Import}, {"as", Preprocessors::As}, {"unsafe", Preprocessors::Unsafe}, {"baremetal", Preprocessors::Baremetal}, {"float", Preprocessors::Float}, {"macro", Preprocessors::Macro},
+    {"import", Preprocessors::Import},  {"unsafe", Preprocessors::Unsafe}, {"baremetal", Preprocessors::Baremetal}, {"float", Preprocessors::Float}, {"macro", Preprocessors::Macro},
 };
 
 const EDelimeter delimeterMap[] {

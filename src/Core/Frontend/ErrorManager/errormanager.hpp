@@ -28,31 +28,31 @@ enum struct SyntaxErrors {
 // NAnE{x}
 enum struct AnalysisErrors {
     // Variables & Scope
-    UndefinedVariable,
-    RedefinedVariable,
-    UninitializedVariable,
-    ConstantReassignment,
+    UndefinedVariable,      // TODO: TO BE IMPLEMENTED
+    RedefinedVariable,      // TODO: TO BE IMPLEMENTED
+    UninitializedVariable,  // TODO: TO BE IMPLEMENTED
+    ConstantReassignment,   // TODO: TO BE IMPLEMENTED
     VariableOutOfScope,
     ShadowedVariable,
 
     // Functions
-    FunctionMismatch,
+    FunctionMismatch,        // TODO: TO BE IMPLEMENTED
     UndefinedFunction,
-    WrongArgumentCount,
+    WrongArgumentCount,      // TODO: TO BE IMPLEMENTED
     MissingRequiredParameter,
     DuplicateParameterName,
     InvalidParameterOrder,
-    MissingReturnStatement,
-    ReturnInVoidFunction,
+    MissingReturnStatement,  // TODO: TO BE IMPLEMENTED
+    ReturnInVoidFunction,    // TODO: TO BE IMPLEMENTED
 
     // Classes & OOP
-    UndefinedMember,
-    CircularInheritance,
-    InvalidSuperClass,
+    UndefinedMember,         // TODO: TO BE IMPLEMENTED
+    CircularInheritance,     // TODO: TO BE IMPLEMENTED
+    InvalidConstructor,      // TODO: TO BE IMPLEMENTED
     MissingSuperCall,
     InvalidSuperCall,
     AccessViolation,
-    InvalidOverride,
+    InvalidOverride,         // TODO: TO BE IMPLEMENTED
     OverrideSignatureMismatch,
 
     // Modifiers & Decorators
@@ -62,14 +62,14 @@ enum struct AnalysisErrors {
     UndefinedDecorator,
     DecoratorOnInvalidTarget,
     DecoratorArgumentMismatch,
-    MultipleEntryPoints,
+    MultipleEntryPoints,       // TODO: TO BE IMPLEMENTED
 
     // Control Flow
-    BreakOutsideLoop,
-    ContinueOutsideLoop,
-    UnreachableCode,
-    DuplicateCaseValue,
-    CaseTypeMismatch,
+    BreakOutsideLoop,          // TODO: TO BE IMPLEMENTED
+    ContinueOutsideLoop,       // TODO: TO BE IMPLEMENTED
+    UnreachableCode,           // TODO: TO BE IMPLEMENTED
+    DuplicateCaseValue,        // TODO: TO BE IMPLEMENTED
+    CaseTypeMismatch,          // TODO: TO BE IMPLEMENTED
 
     // Interfaces & Enums
     InterfaceNotImplemented,
@@ -88,24 +88,25 @@ enum struct AnalysisErrors {
     AssignmentToNonLValue,
 
     // Core Type Errors
-    TypeMismatch,
-    UnknownType,
+    TypeMismatch,       // TODO: TO BE IMPLEMENTED
+    UnknownType,        // TODO: TO BE IMPLEMENTED
     InvalidCast,
     LiteralOverflow,
 
     // Operations
     AssignmentTypeMismatch,
-    BinaryOperationTypeMismatch,
+    BinaryOperationTypeMismatch, // TODO: TO BE IMPLEMENTED
     UnaryOperationTypeMismatch,
-    ReturnTypeMismatch,
-    ArgumentTypeMismatch,
+    ReturnTypeMismatch,          // TODO: TO BE IMPLEMENTED
+    ArgumentTypeMismatch,        // TODO: TO BE IMPLEMENTED
 
     // Nullable
-    NullAssignmentToNonNullable,
-    NullableAccessWithoutCheck,
+    NullAssignmentToNonNullable, // TODO: TO BE IMPLEMENTED
+    NullableAccessWithoutCheck,  // TODO: TO BE IMPLEMENTED
 
     // Collections
     ArrayElementTypeMismatch,
+    SetDuplicateValue,
     DictKeyTypeMismatch,
     DictValueTypeMismatch,
     InvalidIndexType,
@@ -126,7 +127,7 @@ enum struct AnalysisErrors {
 // NPrE{x}
 enum struct PreprocessorErrors {
     // Import
-    ImportNotFound,
+    ImportNotFound,          // TODO: TO BE IMPLEMENTED
     CircularImport,
     ImportAliasConflict,
     InvalidImportPath,
