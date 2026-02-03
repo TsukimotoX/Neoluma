@@ -1,9 +1,9 @@
 #pragma once
-#include "../token.hpp"
+#include "../Token.hpp"
 #include <vector>
 #include <variant>
 
-#include "Core/Frontend/nodes.hpp"
+#include "Core/Frontend/Nodes.hpp"
 
 enum struct ErrorType {
     Syntax,
@@ -63,6 +63,7 @@ enum struct AnalysisErrors {
     DecoratorOnInvalidTarget,
     DecoratorArgumentMismatch,
     MultipleEntryPoints,       // TODO: TO BE IMPLEMENTED
+    NoEntryPoints,
 
     // Control Flow
     BreakOutsideLoop,          // TODO: TO BE IMPLEMENTED
@@ -170,7 +171,8 @@ enum struct RuntimeErrors {
 
 struct ErrorSpan {
     std::string filePath;
-    int line, column, len = 0;
+    int line, column = 1;
+    int len = 0;
     ErrorSpan(const std::string& filePath, const std::string& value, int line, int column): filePath(filePath), len((int)value.length()), line(line), column(column) {};
 };
 

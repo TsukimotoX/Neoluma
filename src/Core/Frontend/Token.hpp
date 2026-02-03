@@ -13,8 +13,7 @@ struct Token {
     std::string value;
     std::string toStr() const;
     std::string filePath;
-    int line;
-    int column;
+    int line, column;
 };
 
 // Enums

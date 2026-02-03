@@ -5,13 +5,13 @@
 #include <sstream>
 #include <fstream>
 #include <filesystem>
-#include "../Libraries/toml/toml.hpp"
-#include "../Libraries/asker/asker.hpp"
-#include "../Libraries/color/color.hpp"
-#include "../Libraries/localization/localization.hpp"
-#include "../Core/Extras/ProjectManager/projectmanager.hpp"
+#include "../Libraries/Toml/Toml.hpp"
+#include "../Libraries/Asker/Asker.hpp"
+#include "../Libraries/Color/Color.hpp"
+#include "../Libraries/Localization/Localization.hpp"
+#include "../Core/Extras/ProjectManager/ProjectManager.hpp"
 #include "../HelperFunctions.hpp"
-#include "Core/compiler.hpp"
+#include "Core/Compiler.hpp"
 
 // ==== Helping functions
 

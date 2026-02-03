@@ -4,7 +4,7 @@
 */
 #include <iostream>
 #include <print>
-#include "../color/color.hpp"
+#include "../Color/Color.hpp"
 #include "../../CLI/cli.hpp"
 enum Key { NONE, UP, DOWN, ENTER, BACKSPACE };
 

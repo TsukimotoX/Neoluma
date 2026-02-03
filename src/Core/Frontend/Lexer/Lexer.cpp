@@ -1,6 +1,6 @@
-#include <Core/compiler.hpp>
-#include "lexer.hpp"
-#include "../token.hpp"
+#include "Core/Compiler.hpp"
+#include "Lexer.hpp"
+#include "../Token.hpp"
 
 #include <iostream>
 #include <unordered_map>
@@ -8,7 +8,7 @@
 #include <print>
 
 #include "HelperFunctions.hpp"
-#include "Libraries/localization/localization.hpp"
+#include "Libraries/Localization/Localization.hpp"
 
 // ==== Main ====
 std::vector<Token> Lexer::tokenize(const std::string& filePath, const std::string& source) {

@@ -20,9 +20,14 @@ MemoryPtr<T> makeSharedPtr(Args&&... args) {
 
 template<typename T, typename U>
 MemoryPtr<T> as(MemoryPtr<U> ptr) {
-    if constexpr (std::is_polymorphic_v<U> && std::is_base_of_v<T, U>) {
-        T* casted = dynamic_cast<T*>(ptr.release());
-        return MemoryPtr<T>(casted);
+    static_assert(std::is_base_of_v<U, T>, "[Neoluma/HelperFunctions] as<T>(ptr): T must derive from U");
+
+    if constexpr (std::is_polymorphic_v<U>) {
+        if (T* casted = dynamic_cast<T*>(ptr.get())) {
+            ptr.release();
+            return MemoryPtr<T>(casted);
+        }
+        return nullptr;
     } else {
         return MemoryPtr<T>(static_cast<T*>(ptr.release()));
     }

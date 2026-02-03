@@ -2,9 +2,9 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include "../Core/Extras/ProjectManager/projectmanager.hpp"
+#include "../Core/Extras/ProjectManager/ProjectManager.hpp"
 #include <chrono>
-#include "../Libraries/toml/toml.hpp"
+#include "../Libraries/Toml/Toml.hpp"
 
 // CLIArgs is a struct that allows me to parse CLI arguments
 struct CLIArgs {

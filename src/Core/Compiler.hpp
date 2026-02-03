@@ -1,9 +1,13 @@
 #pragma once
-#include "Frontend/Lexer/lexer.hpp"
-#include "Frontend/Parser/parser.hpp"
-#include "Extras/ProjectManager/projectmanager.hpp"
-#include "Frontend/ErrorManager/errormanager.hpp"
-#include "Frontend/SemanticAnalysis/SemanticAnalysis.hpp"
+#include "Frontend/Lexer/Lexer.hpp"
+#include "Frontend/Parser/Parser.hpp"
+#include "Extras/ProjectManager/ProjectManager.hpp"
+#include "Frontend/ErrorManager/ErrorManager.hpp"
+//#include "Frontend/SemanticAnalysis/SemanticAnalysis.hpp"
+
+#include "Frontend/Orchestrator/Orchestrator.hpp"
+#include "Libraries/Color/Color.hpp"
+#include "Libraries/Localization/Localization.hpp"
 
 struct Compiler {
     // All parts of compiler
@@ -13,6 +17,7 @@ struct Compiler {
 
     ProjectManager projectManager;
     ErrorManager errorManager;
+    Orchestrator orchestrator;
 
     // Constructor
     Compiler(ProjectConfig& config);

@@ -95,4 +95,9 @@ struct ProjectManager {
 
     // Access to ProjectConfig
     ProjectConfig& getConfig();
+
+    // helper functions
+    std::string normalizeSlashes(std::string s);
+    bool endsWith(const std::string& s, const std::string& suf);
+    std::string filePathToKey(const std::string& filePath);
 };

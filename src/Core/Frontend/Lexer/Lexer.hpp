@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "../token.hpp"
+#include "../Token.hpp"
 
 struct Compiler; // forward declaration cuz f##k c++ ig
 

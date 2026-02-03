@@ -7,7 +7,7 @@
  * Note: this code is AI-generated. I didn't want to repetitively sit for hours trying to make a
  * nice debug output tree. Nobody's gonna use this anyway unless for dev purposes like me, who cares?!
 */
-#include "nodes.hpp"
+#include "Nodes.hpp"
 
 #include <format>
 #include <string>

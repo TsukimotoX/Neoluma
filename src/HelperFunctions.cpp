@@ -1,5 +1,5 @@
 #include "HelperFunctions.hpp"
-#include "Libraries/color/color.hpp"
+#include "Libraries/Color/Color.hpp"
 #include <print>
 #include <fstream>
 #include <sstream>
@@ -41,5 +41,5 @@ std::string readFile(const std::string& filePath) {
 
 // Extracts the file name from a given file path
 std::string getFileName(const std::string& filePath) {
-    return std::filesystem::path(filePath).filename().string();
+    return std::filesystem::path(filePath).filename().replace_extension("").string();
 }

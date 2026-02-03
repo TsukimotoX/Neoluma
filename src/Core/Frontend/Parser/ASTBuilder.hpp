@@ -1,6 +1,6 @@
 #pragma once
 #include "../../../HelperFunctions.hpp"
-#include "../nodes.hpp"
+#include "../Nodes.hpp"
 
 struct ASTBuilder {
     // Creates a LiteralNode

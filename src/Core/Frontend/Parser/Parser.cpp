@@ -1,6 +1,6 @@
-#include "../nodes.hpp"
-#include "parser.hpp"
-#include "../token.hpp"
+#include "../Nodes.hpp"
+#include "Parser.hpp"
+#include "../Token.hpp"
 #include "../../../HelperFunctions.hpp"
 #include "ASTBuilder.hpp"
 #include <iostream>
@@ -8,9 +8,9 @@
 #include <print>
 #include <typeinfo>
 
-#include "Core/compiler.hpp"
-#include "Libraries/color/color.hpp"
-#include "Libraries/localization/localization.hpp"
+#include "Core/Compiler.hpp"
+#include "Libraries/Color/Color.hpp"
+#include "Libraries/Localization/Localization.hpp"
 
 // TODO: Clean up the token saving at the start of every function (the one used for errors)
 
@@ -30,6 +30,7 @@ void Parser::parseModule(const std::vector<Token>& tok, const std::string& name)
     this->moduleSource = nullptr; this->tokens = tok; this->moduleName = name; this->pos = 0;
 
     auto moduleNode = ASTBuilder::createModule(moduleName);
+    moduleNode->line = 0; moduleNode->column = 0; moduleNode->filePath = curToken().filePath;
     auto dn = getDelimeterNames();
 
     while (!isAtEnd()) {
@@ -1155,9 +1156,13 @@ MemoryPtr<ASTNode> Parser::parsePreprocessor() {
         next();
         if (match(TokenType::Keyword, kn[Keywords::As])) {
             next();
+            if (!match(TokenType::Identifier)) {
+                std::println("[Neoluma/Parser][{}] Expected identifier to use as an alias (L{}:{})", __func__, "", curToken().line, curToken().column);
+                return nullptr;
+            }
             alias = curToken().value;
+            next();
         }
-        next();
         node = ASTBuilder::createImport(moduleStr, alias, importType);
     }
     else if (match(TokenType::Preprocessor, pn[Preprocessors::Macro])) {

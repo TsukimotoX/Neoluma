@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../Lexer/lexer.hpp"
-#include "../nodes.hpp"
-#include "../token.hpp"
+#include "../Lexer/Lexer.hpp"
+#include "../Nodes.hpp"
+#include "../Token.hpp"
 #include <iostream>
 
-struct Compiler; // forward declaration cuz f##k c++ ig
+struct Compiler;
 
 // to make math order
 int getOperatorPrecedence(const std::string& op);

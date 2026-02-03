@@ -1,4 +1,4 @@
-#include "token.hpp"
+#include "Token.hpp"
 
 #include <iostream>
 #include <vector>

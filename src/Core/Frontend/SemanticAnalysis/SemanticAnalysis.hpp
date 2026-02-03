@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <vector>
 #include <print>
-#include "Core/Frontend/nodes.hpp"
+#include "Core/Frontend/Nodes.hpp"
 
 struct SemanticAnalysis {
 

@@ -1,11 +1,20 @@
-#include "errormanager.hpp"
-#include "../../../Libraries/color/color.hpp"
+#include "ErrorManager.hpp"
+#include "../../../Libraries/Color/Color.hpp"
 #include <print>
 #include <sstream>
 #include <format>
 
 #include "HelperFunctions.hpp"
-#include "Libraries/localization/localization.hpp"
+#include "Libraries/Localization/Localization.hpp"
+
+static int normalizeLine(int line) {
+    if (line <= 0) return 0;
+    return line;
+}
+
+static int normalizeColumn(int col) {
+    return (col < 0) ? 0 : col;
+}
 
 void ErrorManager::printErrors() {
     if (errors.empty()) return;
@@ -26,15 +35,16 @@ void ErrorManager::printErrors() {
         }
 
         std::istringstream srcStream(readFile(e.span.filePath));
-        std::string prevLine;
-        std::string line; //temp to read those
-        std::string nextLine;
-        std::string errorLine;
+        std::string prevLine, line, errorLine, nextLine;
+        int line1 = std::max(1, e.span.line);     // force 1-based for display + lookup
+        int col1  = std::max(1, e.span.column);   // force 1-based for display
+        int col0  = col1 - 1;                     // 0-based for spacing
+
         int lineNum = 1;
         while (std::getline(srcStream, line)) {
-            if (lineNum == e.span.line) {
+            if (lineNum == line1) {
                 errorLine = line;
-                std::getline(srcStream, nextLine);
+                if (!std::getline(srcStream, nextLine)) nextLine.clear();
                 break;
             }
             prevLine = line;
@@ -49,15 +59,12 @@ void ErrorManager::printErrors() {
         }
 
         auto msg = e.message + (e.contextKey.has_value() ? formatStr(": {}", e.contextKey.value()) : "");
-        std::println("{}[{}]  ❌  {}{}", typeColor, formatErrorType(e.detailedType),
-            msg,
-            Color::Reset);
-        std::println("➡️  {}:{}:{}", e.span.filePath, e.span.line, e.span.column);
-        std::println("{:>3} | {}", e.span.line-1, prevLine);
-        std::println("{:>3} | {}", e.span.line, errorLine);
-        auto tmp = std::string(std::to_string(e.span.line).length()+1, ' ');
-        std::println("{} | {}{} {}", tmp, std::string(e.span.column-1, ' '), std::string(e.span.len+2, '^'), msg);
-        std::println("{:>3} | {}", e.span.line+1, nextLine);
+        std::println("{}[{}]  ❌  {}{}", typeColor, formatErrorType(e.detailedType), msg, Color::Reset);
+        std::println("➡️  {}:{}:{}", e.span.filePath, line1, col1);
+        if (line1 > 1) std::println("{:>3} | {}", line1 - 1, prevLine);
+        std::println("{:>3} | {}", line1, errorLine);
+        std::println("{} | {}{} {}", std::string(std::to_string(line1).length() + 1, ' '), std::string((size_t)col0, ' '), std::string((size_t)e.span.len + 2, '^'), msg);
+        if (!nextLine.empty()) std::println("{:>3} | {}", line1 + 1, nextLine);
         if (!e.hint.empty()) std::println(std::cout, "{}", formatStr(Localization::translate("Compiler.Core.ErrorManager.hint"), hintColor, e.hint, Color::Reset));
 
         count++;

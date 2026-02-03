@@ -4,10 +4,10 @@
 #include <filesystem>
 
 #include "CLI/cli.hpp"
-#include "Libraries/color/color.hpp"
-#include "Core/Frontend/Lexer/lexer.hpp"
+#include "Libraries/Color/Color.hpp"
+#include "Core/Frontend/Lexer/Lexer.hpp"
 #include "HelperFunctions.hpp"
-#include "Libraries/localization/localization.hpp"
+#include "Libraries/Localization/Localization.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
