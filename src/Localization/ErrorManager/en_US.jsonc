@@ -1,0 +1,50 @@
+{
+	"hint": "💡  Hint: {}",
+	// safetyGuard triggers in Parser only.
+	"safetyGuard": "❌😵‍💫 Recovery guard triggered! Stopping parsing to avoid infinite loop. If you see this message somehow, report this to the developers. \n\n Information: \n Function: {},\n File {},\n Happened at Line {}:{}\n\nThank you!\n",
+	"ErrorType": {
+		"Syntax": {
+			"UnexpectedToken": {
+				"message": "Unexpected Token",
+				"context": {
+					"default": {
+						"message": "'{}'"
+					}
+				},
+				"hint": "Clear it, or make sure you typed it correctly."
+			},
+			"MissingToken": {
+				"message": "Missing Token",
+				"context": {
+					"novariableafter": {
+						"message": "Missing variable after '{}'",
+						"hint": "Fix it by providing the variable after '{}'."
+					}
+				}
+			},
+			"InvalidStatement": {
+				"message": "Invalid Statement"
+			},
+			"InvalidPreprocessorDirective": "Invalid Preprocessor Directive",
+			"UnterminatedString": "Unterminated String",
+			"UnterminatedComment": {
+				"message": "Unterminated Comment",
+				"hint": "Close the comment via '*/'"
+			},
+			"InvalidNumberFormat": "Invalid Number Format",
+			"UnexpectedEndOfFile": "Unexpected End Of File",
+			"MismatchedBrackets": "Mismatched Brackets"
+		},
+		"Preprocessor": {
+			"InvalidDirective": {
+				"message": "Invalid directive",
+				"context": {
+					"default": {
+						"message": "{}"
+					}
+				},
+				"hint": "Check out Neoluma documentation to see what directives are available."
+			}
+		}
+	}
+}

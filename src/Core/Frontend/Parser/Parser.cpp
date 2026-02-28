@@ -67,8 +67,7 @@ void Parser::parseModule(const std::vector<Token>& tok, const std::string& name)
             if (pos == startPos && !isAtEnd()) next();
 
             if (guard >= 100) {
-                //std::println(std::cerr, "{}", formatStr(Localization::translate("Compiler.Core.ErrorManager.safetyGuard"), Color::TextHex("#ff5050"), __func__, curToken().filePath, curToken().line, curToken().column, Color::Reset));
-                std::println(std::cerr, "{} ❌😵‍💫 Recovery guard triggered! Stopping parsing to avoid infinite loop. If you see this message somehow, report this to the developers. \n\n Information: \n Function: {},\n File {},\n Happened at Line {}:{}\n\nThank you!\n{}", Color::TextHex("#ff5050"), __func__, curToken().filePath, curToken().line, curToken().column, Color::Reset);
+                std::println(std::cerr, "{}{}{}", Color::TextHex("#ff5050"), formatStr(Localization::translate("Compiler.Core.ErrorManager.safetyGuard"), __func__, curToken().filePath, curToken().line, curToken().column), Color::Reset);
                 break;
             }
 

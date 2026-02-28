@@ -44,6 +44,6 @@ void Compiler::check() {
 
     if (errorManager.hasErrors()) {
         errorManager.printErrors();
-        std::println(std::cout, "{}", formatStr(Localization::translate("Compiler.CLI.check.failed"), Color::TextHex("#ff5050"), Color::Reset));
-    } else std::println(std::cout, "{}", formatStr(Localization::translate("Compiler.CLI.check.complete"), Color::TextHex("#75ff87"), Color::Reset));
+        std::println(std::cout, "{}{}{}", Color::TextHex("#ff5050"), Localization::translate("Compiler.CLI.check.failed"), Color::Reset);
+    } else std::println(std::cout, "{}{}{}", Color::TextHex("#75ff87"), Localization::translate("Compiler.CLI.check.complete"), Color::Reset);
 }

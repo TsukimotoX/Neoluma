@@ -8,6 +8,7 @@
 #include "Core/Frontend/Lexer/Lexer.hpp"
 #include "HelperFunctions.hpp"
 #include "Libraries/Localization/Localization.hpp"
+//#include "Libraries/Paths/Paths.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -68,6 +69,7 @@ int main(int argc, char** argv) {
         std::println("{}Neoluma v1.0{}", Color::TextHex("#ff28e6"), Color::Reset);
     } else {
         printHelp();
+        //std::println(std::cout, "Current installed path: {}", Paths{}.executableDir());
     }
 
     return 0;

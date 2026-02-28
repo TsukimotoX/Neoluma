@@ -193,28 +193,28 @@ std::string outputID(PTOutputType type) {
 
 License parseLicense(std::string license) {
     if (license == "mit") return License::MIT;
-    else if (license == "apache") return License::Apache;
-    else if (license == "gpl3") return License::GPL3;
-    else if (license == "bsd2") return License::BSD2;
-    else if (license == "bsd3") return License::BSD3;
-    else if (license == "boost") return License::Boost;
-    else if (license == "cc0") return License::CC0;
-    else if (license == "eclipse") return License::Eclipse;
-    else if (license == "agpl") return License::AGPL;
-    else if (license == "gpl2") return License::GPL2;
-    else if (license == "lgpl") return License::LGPL;
-    else if (license == "mozilla") return License::Mozilla;
-    else if (license == "unlicense") return License::Unlicense;
-    else return License::Custom;
+    if (license == "apache") return License::Apache;
+    if (license == "gpl3") return License::GPL3;
+    if (license == "bsd2") return License::BSD2;
+    if (license == "bsd3") return License::BSD3;
+    if (license == "boost") return License::Boost;
+    if (license == "cc0") return License::CC0;
+    if (license == "eclipse") return License::Eclipse;
+    if (license == "agpl") return License::AGPL;
+    if (license == "gpl2") return License::GPL2;
+    if (license == "lgpl") return License::LGPL;
+    if (license == "mozilla") return License::Mozilla;
+    if (license == "unlicense") return License::Unlicense;
+    return License::Custom;
 }
 
 PTOutputType parseOutput(std::string outputType) {
     if (outputType == "exe") return PTOutputType::Executable;
-    else if (outputType == "ir") return PTOutputType::IntermediateRepresentation;
-    else if (outputType == "obj") return PTOutputType::Object;
-    else if (outputType == "sharedlib") return PTOutputType::SharedLibrary;
-    else if (outputType == "staticlib") return PTOutputType::StaticLibrary;
-    else std::println(std::cerr, "{}[NeolumaCLI/IDtoOutput] {}", Color::TextHex("#ff5050"), Localization::translate("Compiler.CLI.parseProjectFile.parseOutputError"));
+    if (outputType == "ir") return PTOutputType::IntermediateRepresentation;
+    if (outputType == "obj") return PTOutputType::Object;
+    if (outputType == "sharedlib") return PTOutputType::SharedLibrary;
+    if (outputType == "staticlib") return PTOutputType::StaticLibrary;
+    std::println(std::cerr, "{}[NeolumaCLI/IDtoOutput] {}", Color::TextHex("#ff5050"), Localization::translate("Compiler.CLI.parseProjectFile.parseOutputError"));
     return PTOutputType::None;
 }
 
@@ -223,28 +223,27 @@ PTOutputType parseOutput(std::string outputType) {
 void build(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
     std::println("{} {}", Localization::translate("Compiler.CLI.build.initialization"), config.name);
-    // todo: вызов компилятора, генерация .exe
+    // todo: compiler call, executable generation
 }
 
 void run(const std::string& nlpFile) {
     build(nlpFile);
     std::println("{}\n", Localization::translate("Compiler.CLI.run.initialization"));
-    // todo: запускаем с помощью std::system или CreateProcess
+    // todo: launch the file using std::system or CreateProcess
 }
 
 void check(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
     std::string name = config.name;
     Compiler compiler = Compiler(config);
-    std::println("{}", formatStr(Localization::translate("Compiler.CLI.check.initialization"), Color::TextHex("#75ff87"), name, Color::Reset));
+    std::println("{}{}{}", Color::TextHex("#75ff87"), formatStr(Localization::translate("Compiler.CLI.check.initialization"), name), Color::Reset);
     compiler.check();
-    // todo: only lexer, parser and semantic analysis
 }
 
 void createProject() {
     ProjectConfig config;
     int steps = 5; int step = 0;
-    std::string title = std::format("{} ", Localization::translate("Compiler.CLI.createProject.initialization"));
+    std::string title = formatStr("{} ", Localization::translate("Compiler.CLI.createProject.initialization"));
 
     clearScreen();
     showProgressBar(title, step++, steps);
@@ -280,8 +279,10 @@ void createProject() {
     
     clearScreen();
     showProgressBar(title, step++, steps);
-    bool confirmation = asker::confirm(formatStr(Localization::translate("Compiler.CLI.createProject.confirmation"),
-        Color::TextHex("#FF8C75"), config.name, config.version, authorList, license, Color::TextHex("#96fcbd"), Color::Reset));
+    bool confirmation = asker::confirm(formatStr("{}{}{}", Color::TextHex("#FF8C75"),
+        formatStr(Localization::translate("Compiler.CLI.createProject.confirmation"), config.name,
+        config.version, authorList, license, Color::TextHex("#96fcbd")),
+        Color::Reset));
     if (confirmation) {
         createProject(config);
         clearScreen();

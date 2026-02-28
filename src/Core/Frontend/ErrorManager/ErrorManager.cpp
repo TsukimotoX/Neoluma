@@ -65,12 +65,12 @@ void ErrorManager::printErrors() {
         std::println("{:>3} | {}", line1, errorLine);
         std::println("{} | {}{} {}", std::string(std::to_string(line1).length() + 1, ' '), std::string((size_t)col0, ' '), std::string((size_t)e.span.len + 2, '^'), msg);
         if (!nextLine.empty()) std::println("{:>3} | {}", line1 + 1, nextLine);
-        if (!e.hint.empty()) std::println(std::cout, "{}", formatStr(Localization::translate("Compiler.Core.ErrorManager.hint"), hintColor, e.hint, Color::Reset));
+        if (!e.hint.empty()) std::println(std::cout, "{}{}{}", hintColor, formatStr(Localization::translate("Compiler.Core.ErrorManager.hint"), e.hint), Color::Reset);
 
         count++;
     }
 
-    std::println(std::cout, "{}{} errors found!{}", Color::TextHex("#ff5050"), errors.size(), Color::Reset);
+    std::println(std::cout, "{}{} error(s) found!{}", Color::TextHex("#ff5050"), errors.size(), Color::Reset);
 }
 
 std::string ErrorManager::formatErrorType(std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType){
@@ -79,5 +79,5 @@ std::string ErrorManager::formatErrorType(std::variant<SyntaxErrors, AnalysisErr
     if (std::holds_alternative<PreprocessorErrors>(detailedType)) return std::format("NPrE{}", (int)std::get<PreprocessorErrors>(detailedType)+1);
     if (std::holds_alternative<CodegenErrors>(detailedType)) return std::format("NCoE{}", (int)std::get<CodegenErrors>(detailedType)+1);
     if (std::holds_alternative<RuntimeErrors>(detailedType)) return std::format("NRuE{}", (int)std::get<RuntimeErrors>(detailedType)+1);
-    return "[ErrorManager/formatErrorType] No error type detected";
+    return "N??E?";
 }
