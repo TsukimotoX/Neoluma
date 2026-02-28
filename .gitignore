@@ -1,4 +1,3 @@
 .build/
 .vscode/
-filetree.py
-filetree_output.txt
+.idea/

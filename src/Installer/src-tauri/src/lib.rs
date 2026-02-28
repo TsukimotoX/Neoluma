@@ -1,7 +1,6 @@
 mod installer;
 
-use tauri::{Emitter, Manager};
-use tauri::path::BaseDirectory;
+use tauri::{Emitter};
 
 // ==== DTOs ====
 
@@ -53,27 +52,8 @@ fn restart_as_admin(app: tauri::AppHandle, args: InstallArgs) -> Result<(), Stri
 #[tauri::command]
 fn install(app: tauri::AppHandle, args: InstallArgs) -> Result<(), String> {
     // ==== payload.zip location ====
-    let mut zip_path = app
-        .path()
-        .resolve("payload.zip", BaseDirectory::Resource)
-        .map_err(|e| format!("[NeolumaInstaller] resolve payload.zip failed: {e}"))?;
-
-    if !zip_path.exists() {
-        let alt = app
-            .path()
-            .resource_dir()
-            .map_err(|e| format!("[NeolumaInstaller] resource_dir failed: {e}"))?
-            .join("resources")
-            .join("payload.zip");
-
-        if alt.exists() {
-            zip_path = alt;
-        }
-    }
-
-    if !zip_path.exists() {
-        return Err(format!("[NeolumaInstaller] payload.zip not found at {:?}", zip_path));
-    }
+    let zip_path = installer::write_embedded_payload(&app)
+        .map_err(|e| format!("[NeolumaInstaller] write embedded payload failed: {e:#}"))?;
 
     // ==== destination ====
     let destination = match args.destination.as_deref().filter(|s| !s.trim().is_empty()) {
@@ -97,29 +77,33 @@ fn install(app: tauri::AppHandle, args: InstallArgs) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn should_autoinstall() -> bool {
+    installer::parse_autoinstall_args().is_some()
+}
+
+#[tauri::command]
+fn start_autoinstall(app: tauri::AppHandle) -> Result<(), String> {
+    let handle = app.clone();
+    tauri::async_runtime::spawn(async move {
+        if let Err(e) = installer::autoinstall(handle.clone()).await {
+            let _ = handle.emit("install://error", format!("{:#}", e));
+        }
+    });
+    Ok(())
+}
+
 // ==== Entrypoint ====
 
 pub fn run() {
     tauri::Builder::default()
-        .setup(|app| {
-            // if the app is launched with --neoluma-install=1, it starts installation immediately
-            if installer::parse_autoinstall_args().is_some() {
-                if let Some(w) = app.get_webview_window("main") {
-                    let _ = w.emit("install://autostart", ());
-                }
-
-                let handle = app.handle().clone();
-                let handle2 = handle.clone();
-
-                tauri::async_runtime::spawn(async move {
-                    if let Err(e) = installer::autoinstall(handle2).await {
-                        let _ = handle.emit("install://error", format!("{:#}", e));
-                    }
-                });
-            }
-            Ok(())
-        })
-        .invoke_handler(tauri::generate_handler![get_install_defaults, install, restart_as_admin])
+        .invoke_handler(tauri::generate_handler![
+            get_install_defaults,
+            install,
+            restart_as_admin,
+            should_autoinstall,
+            start_autoinstall
+        ])
         .run(tauri::generate_context!())
         .expect("[NeolumaInstaller] Error while running tauri application:");
 }

@@ -33,11 +33,32 @@ add_library(NeolumaCore ${CORE_FILES})
 add_library(NeolumaCLI ${CLI_FILES})
 add_library(NeolumaLibs ${LIB_FILES})
 
+set(NEOLUMA_ICON_RC "")
+if(WIN32)
+    set(NEOLUMA_ICON_RC "${CMAKE_SOURCE_DIR}/resources/app.rc")
+endif()
+
 add_executable(neoluma
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/HelperFunctions.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/HelperFunctions.cpp
+    ${NEOLUMA_ICON_RC}
 )
+
+if(APPLE)
+    set_target_properties(neoluma PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_ICON_FILE "app.icns"
+    )
+
+    set(APP_ICON_MACOS "${CMAKE_SOURCE_DIR}/resources/app.icns")
+    set_source_files_properties(${APP_ICON_MACOS} PROPERTIES
+        MACOSX_PACKAGE_LOCATION "Resources"
+    )
+
+    target_sources(neoluma PRIVATE ${APP_ICON_MACOS})
+endif()
+
 
 # ---- Include dirs (target-based) ----
 target_include_directories(NeolumaCore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -101,11 +122,30 @@ if(CMAKE_CONFIGURATION_TYPES)
     set(NEOLUMA_INSTALL_CONFIG_ARG --config $<CONFIG>)
 endif()
 
+# uninstaller creation
+if(WIN32)
+    add_executable(uninstaller
+        ${CMAKE_SOURCE_DIR}/src/uninstaller.cpp
+    )
+    target_compile_features(uninstaller PRIVATE cxx_std_23)
+
+    install(TARGETS uninstaller
+        RUNTIME DESTINATION "${NEOLUMA_STAGE_DIR}"
+    )
+else()
+    # Put uninstaller.sh into payload (root of install prefix, or change to bin if you prefer)
+    install(PROGRAMS "${CMAKE_SOURCE_DIR}/resources/uninstaller.sh"
+        DESTINATION "${NEOLUMA_STAGE_DIR}"
+        RENAME "uninstaller.sh"
+    )
+endif()
+
 add_custom_command(
     OUTPUT "${NEOLUMA_PAYLOAD_ZIP}"
 
     # important: ensure Neoluma is built before we install+package
     DEPENDS neoluma
+    DEPENDS uninstaller
 
     # clean stage folder
     COMMAND ${CMAKE_COMMAND} -E rm -rf "${NEOLUMA_STAGE_DIR}"
