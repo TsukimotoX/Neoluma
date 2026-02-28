@@ -41,7 +41,7 @@ std::string Paths::executablePath(){
     return out;
 #else
     char resolvedPath[PATH_MAX];
-    ssize_t len = readlink("/proc/self/exe", resolvedPath, sizeof(buf)-1);
+    ssize_t len = readlink("/proc/self/exe", resolvedPath, sizeof(resolvedPath)-1);
     if (len <= 0) throw std::runtime_error("Paths::executablePath(): readlink failed");
     resolvedPath[len] = '\0';
     return std::string(resolvedPath);
