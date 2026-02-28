@@ -43,6 +43,7 @@ fn get_install_defaults(app: tauri::AppHandle) -> Result<InstallDefaults, String
     })
 }
 
+#[cfg(windows)]
 #[tauri::command]
 fn restart_as_admin(app: tauri::AppHandle, args: InstallArgs) -> Result<(), String> {
     installer::restart_as_admin(&app, args)
@@ -96,25 +97,27 @@ fn start_autoinstall(app: tauri::AppHandle) -> Result<(), String> {
 // ==== Entrypoint ====
 
 pub fn run() {
+    // just don't ask me. it's rust. lmao
     #[cfg(windows)]
-    let handler = tauri::generate_handler![
-        get_install_defaults,
-        install,
-        restart_as_admin,
-        should_autoinstall,
-        start_autoinstall
-    ];
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![
+            get_install_defaults,
+            install,
+            restart_as_admin,
+            should_autoinstall,
+            start_autoinstall
+        ])
+        .run(tauri::generate_context!())
+        .expect("[NeolumaInstaller] Error while running tauri application:");
 
     #[cfg(not(windows))]
-    let handler = tauri::generate_handler![
-        get_install_defaults,
-        install,
-        should_autoinstall,
-        start_autoinstall
-    ];
-
     tauri::Builder::default()
-        .invoke_handler(handler)
+        .invoke_handler(tauri::generate_handler![
+            get_install_defaults,
+            install,
+            should_autoinstall,
+            start_autoinstall
+        ])
         .run(tauri::generate_context!())
         .expect("[NeolumaInstaller] Error while running tauri application:");
 }
