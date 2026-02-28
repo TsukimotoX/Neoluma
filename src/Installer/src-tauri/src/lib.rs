@@ -96,14 +96,25 @@ fn start_autoinstall(app: tauri::AppHandle) -> Result<(), String> {
 // ==== Entrypoint ====
 
 pub fn run() {
+    #[cfg(windows)]
+    let handler = tauri::generate_handler![
+        get_install_defaults,
+        install,
+        restart_as_admin,
+        should_autoinstall,
+        start_autoinstall
+    ];
+
+    #[cfg(not(windows))]
+    let handler = tauri::generate_handler![
+        get_install_defaults,
+        install,
+        should_autoinstall,
+        start_autoinstall
+    ];
+
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![
-            get_install_defaults,
-            install,
-            restart_as_admin,
-            should_autoinstall,
-            start_autoinstall
-        ])
+        .invoke_handler(handler)
         .run(tauri::generate_context!())
         .expect("[NeolumaInstaller] Error while running tauri application:");
 }
