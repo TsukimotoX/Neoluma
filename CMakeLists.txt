@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 4.0)
 set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
 
 # ---- Project Setup ----
-project(neoluma LANGUAGES CXX)
+project(neoluma LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

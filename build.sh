@@ -1,7 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# lowkey don't know about bash
+# ============================================================
+# Neoluma Build Script (Linux)
+#
+# Usage:
+#   ./build.sh [release|debug] [target] [--no-install]
+#
+# Modes:
+#   release (default)
+#   debug
+#
+# Targets:
+#   neoluma    - build compiler only
+#   payload    - build CMake payload target
+#   installer  - build payload + tauri installer
+#   all        - same as installer
+#
+# Flags:
+#   --no-install  - do NOT auto-install missing packages
+#
+# Examples:
+#   ./build.sh
+#   ./build.sh release neoluma
+#   ./build.sh debug payload
+#   ./build.sh release installer --no-install
+#
+# ============================================================
 
 # ---- Colors ----
 ESC=$'\033'
@@ -13,6 +38,13 @@ DONE="${ESC}[38;2;117;255;135m[DONE]${ESC}[0m"
 MODE="${1:-release}"
 TARGET="${2:-neoluma}"
 
+AUTO_INSTALL=1
+for arg in "$@"; do
+  if [[ "$arg" == "--no-install" ]]; then
+    AUTO_INSTALL=0
+  fi
+done
+
 CFG_PRESET="release-ninja"
 BUILD_PRESET="release"
 CONFIG="Release"
@@ -23,151 +55,130 @@ if [[ "${MODE,,}" == "debug" ]]; then
   CONFIG="Debug"
 fi
 
-echo "${INFO} Configure preset: ${CFG_PRESET}"
-echo "${INFO} Build preset: ${BUILD_PRESET}"
-echo "${INFO} Target: ${TARGET}"
+# ---- Force Clang + libc++ (needed for <print> / std::println) ----
+export CC="clang-22"
+export CXX="clang++-22"
+export CXXFLAGS="-stdlib=libc++"
+export LDFLAGS="-stdlib=libc++"
 
-echo "${INFO} Configuring..."
-cmake --preset "${CFG_PRESET}"
+have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
-copy_installer_artifact() {
-  local config="$1"
-  local installer_dir="src/Installer"
-
-  local dest_dir=".build/.executables/${config}"
-  mkdir -p "${dest_dir}"
-
-  # Typical Tauri output locations (v1 & v2-ish)
-  # We'll pick the newest matching artifact.
-  local candidates=(
-    "${installer_dir}/src-tauri/target/release/bundle"
-    "${installer_dir}/src-tauri/target/debug/bundle"
-    "${installer_dir}/src-tauri/target/release"
-    "${installer_dir}/src-tauri/target/debug"
-  )
-
-  # Find likely artifacts:
-  # - Linux: .AppImage, .deb, .rpm
-  # - macOS: .dmg, .app
-  # - fallback: any file containing "installer" or "neoluma" (not dirs)
-  local found=""
-  local newest_mtime=0
-
-  for base in "${candidates[@]}"; do
-    [[ -e "$base" ]] || continue
-
-    while IFS= read -r -d '' f; do
-      # Skip debug symbols / irrelevant stuff
-      [[ -f "$f" ]] || continue
-
-      local bn
-      bn="$(basename "$f")"
-
-      # prefer installer-like names and common bundle extensions
-      if [[ "$bn" =~ neoluma|installer ]]; then
-        :
-      fi
-
-      local ext="${bn##*.}"
-      local score=0
-      case "$bn" in
-        *.AppImage) score=90 ;;
-        *.deb|*.rpm) score=80 ;;
-        *.dmg) score=80 ;;
-        *.app) score=70 ;; # .app is usually dir, but keep just in case
-        *) score=10 ;;
-      esac
-
-      # mtime (GNU stat vs BSD stat)
-      local mt=0
-      if stat --version >/dev/null 2>&1; then
-        mt="$(stat -c %Y "$f" 2>/dev/null || echo 0)"
-      else
-        mt="$(stat -f %m "$f" 2>/dev/null || echo 0)"
-      fi
-
-      # choose newest with decent score
-      if (( mt > newest_mtime )) && (( score >= 10 )); then
-        newest_mtime=$mt
-        found="$f"
-      fi
-    done < <(find "$base" -maxdepth 6 -type f \( \
-        -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.dmg" -o \
-        -iname "*neoluma*" -o -iname "*installer*" \
-      \) -print0 2>/dev/null || true)
-  done
-
-  if [[ -z "$found" ]]; then
-    echo "${ERR} Couldn't find installer artifact in Tauri output."
-    echo "${ERR} Looked in:"
-    for c in "${candidates[@]}"; do echo "  - $c"; done
-    return 1
-  fi
-
-  local out_name
-  out_name="$(basename "$found")"
-
-  echo "${INFO} Found installer artifact: ${found}"
-  cp -f "$found" "${dest_dir}/${out_name}"
-  echo "${OK} Installer copied to ${dest_dir}/${out_name}"
+is_debian_like() {
+  [[ -f /etc/debian_version ]] && have_cmd apt-get
 }
 
-do_neoluma() {
+pkg_installed() {
+  dpkg-query -W -f='${Status}\n' "$1" 2>/dev/null | grep -q "install ok installed"
+}
+
+install_packages() {
+  local pkgs=("$@")
+
+  if (( AUTO_INSTALL == 0 )); then
+    echo "${ERR} Missing packages:"
+    printf "   %s\n" "${pkgs[@]}"
+    echo "${ERR} Install them manually or remove --no-install."
+    exit 1
+  fi
+
+  if ! is_debian_like; then
+    echo "${ERR} Auto-install supported only on Debian/Ubuntu."
+    echo "Install manually:"
+    printf "   %s\n" "${pkgs[@]}"
+    exit 1
+  fi
+
+  echo "${INFO} Installing missing packages..."
+  sudo apt-get update
+  sudo apt-get install -y "${pkgs[@]}"
+}
+
+ensure_deps() {
+
+  REQUIRED_PKGS=(
+    ninja-build
+    build-essential
+    pkg-config
+    clang-22
+    lld-22
+    llvm-22-dev
+    libc++-22-dev
+    libc++abi-22-dev
+    zlib1g-dev
+    libzstd-dev
+    libcurl4-openssl-dev
+    libedit-dev
+    libxml2-dev
+  )
+
+  MISSING=()
+
+  for pkg in "${REQUIRED_PKGS[@]}"; do
+    if ! pkg_installed "$pkg"; then
+      MISSING+=("$pkg")
+    fi
+  done
+
+  if (( ${#MISSING[@]} > 0 )); then
+    install_packages "${MISSING[@]}"
+  fi
+
+  for tool in clang-22 clang++-22 cmake ninja; do
+    if ! have_cmd "$tool"; then
+      echo "${ERR} Required tool missing: $tool"
+      exit 1
+    fi
+  done
+}
+
+build_neoluma() {
   echo "${INFO} Building neoluma..."
   cmake --build --preset "${BUILD_PRESET}" --target neoluma
 
-  local exe=".build/.executables/${CONFIG}/neoluma"
-  # If your CMake outputs different name/location on unix, adjust here.
-  if [[ -f "$exe" ]]; then
-    echo "${OK} Built: ${exe}"
+  OUT=".build/.executables/${CONFIG}/neoluma"
+  if [[ -f "$OUT" ]]; then
+    echo "${OK} Built: $OUT"
   else
-    # fallback search
-    local f
-    f="$(find ".build/.executables/${CONFIG}" -maxdepth 2 -type f -iname "neoluma*" -print -quit 2>/dev/null || true)"
-    if [[ -n "$f" ]]; then
-      echo "${OK} Built: ${f}"
-    else
-      echo "${ERR} Can't find built neoluma in .build/.executables/${CONFIG}"
-      return 1
-    fi
+    echo "${ERR} neoluma binary not found."
+    exit 1
   fi
 }
 
-do_payload() {
+build_payload() {
   echo "${INFO} Building payload..."
   cmake --build --preset "${BUILD_PRESET}" --target payload
 }
 
-do_tauri() {
+build_installer() {
   echo "${INFO} Building Tauri installer..."
-  pushd "src/Installer" >/dev/null
-
-  # npm must exist; using npm run tauri build like your .bat
+  pushd src/Installer >/dev/null
   npm run tauri build
-
   popd >/dev/null
-
-  copy_installer_artifact "${CONFIG}"
 }
+
+# ---- Start ----
+echo "${INFO} Mode: ${MODE}"
+echo "${INFO} Target: ${TARGET}"
+
+ensure_deps
+
+echo "${INFO} Configuring..."
+cmake --preset "${CFG_PRESET}"
 
 case "${TARGET,,}" in
   neoluma)
-    do_neoluma
+    build_neoluma
     ;;
   payload)
-    do_payload
+    build_payload
     ;;
-  installer)
-    do_payload
-    do_tauri
-    ;;
-  all)
-    do_payload
-    do_tauri
+  installer|all)
+    build_payload
+    build_installer
     ;;
   *)
     echo "${ERR} Unknown target: ${TARGET}"
-    echo "   valid targets: neoluma, payload, installer, all"
+    echo "Valid: neoluma, payload, installer, all"
     exit 1
     ;;
 esac

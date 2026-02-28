@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <filesystem>
+#include <type_traits>
 
 template<typename T>
 using MemoryPtr = std::unique_ptr<T>;
