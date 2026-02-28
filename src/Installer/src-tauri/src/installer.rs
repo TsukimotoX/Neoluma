@@ -13,11 +13,13 @@ use tauri::{
 
 use crate::InstallScope;
 
+const PAYLOAD_ZIP: &[u8] = include_bytes!("../resources/payload.zip");
+
 // ==== UI events payload ====
 
 #[derive(Serialize, Clone)]
 pub struct InstallProgress {
-    pub stage: String,   // "preparing" | "extracting" | "path" | "done" | "error"
+    pub stage: String,   // "preparing" | "extracting" | "path" | "add_windows_registry" | "done" | "error"
     pub percent: f64,    // 0..100
     pub current: String, // filename / message
 }
@@ -307,7 +309,7 @@ pub fn install_payload_zip(
 
     // ==== PATH ====
     if add_to_path {
-        emit_progress(&app, "path", 99.0, "Updating PATH…");
+        emit_progress(&app, "path", 95.0, "Updating PATH…");
 
         let bin_dir = guess_bin_dir(&destination);
 
@@ -322,12 +324,96 @@ pub fn install_payload_zip(
         }
     }
 
+    #[cfg(windows)]
+    {
+        register_windows_uninstall_entry(scope, &destination).context("Register uninstall entry failed")?;
+        emit_progress(&app, "add_windows_registry", 99.0, "Adding Neoluma compiler to registry")
+    }
+
     emit_progress(&app, "done", 100.0, "Done");
     emit_done(&app);
     Ok(())
 }
 
+pub async fn autoinstall(app: tauri::AppHandle) -> anyhow::Result<()> {
+    let req = parse_autoinstall_args().expect("autoinstall called without args");
+
+    // payload.zip location
+    let zip_path = write_embedded_payload(&app)
+        .context("write embedded payload failed")?;
+
+    anyhow::ensure!(zip_path.exists(), "payload.zip not found at {:?}", zip_path);
+
+    let destination = match req.destination.as_deref().filter(|s| !s.trim().is_empty()) {
+        Some(custom) => std::path::PathBuf::from(custom),
+        None => default_install_dir(&app, req.scope)?,
+    };
+
+    install_payload_zip(app, zip_path, destination.clone(), req.scope, req.add_to_path)?;
+    #[cfg(windows)] {
+        register_windows_uninstall_entry(req.scope, &destination).context("Registering windows uninstall entry failed")?;
+    }
+    Ok(())
+}
+
+#[cfg(windows)]
+fn register_windows_uninstall_entry(
+    scope: crate::InstallScope,
+    install_dir: &std::path::Path,
+) -> anyhow::Result<()> {
+    use winreg::{enums::*, RegKey};
+
+    let app_id = "org.astrahelm.neoluma";
+    let display_name = "Neoluma";
+    let publisher = "Astrahelm Project";
+    let version = env!("CARGO_PKG_VERSION");
+    let icon_path = install_dir.join("bin").join("neoluma.exe");
+    let uninstaller_path = install_dir.join("uninstaller.exe");
+
+    let root = match scope {
+        crate::InstallScope::User => RegKey::predef(HKEY_CURRENT_USER),
+        crate::InstallScope::System => RegKey::predef(HKEY_LOCAL_MACHINE),
+    };
+
+    let subkey = format!(r"Software\Microsoft\Windows\CurrentVersion\Uninstall\{}", app_id);
+    let (key, _) = root.create_subkey(&subkey).with_context(|| format!("Create/Open uninstall key failed: {}", subkey))?;
+
+    let install_dir_s = install_dir.to_string_lossy().to_string();
+    let icon_s = icon_path.to_string_lossy().to_string();
+    let uninstaller_s = uninstaller_path.to_string_lossy().to_string();
+
+    let uninstall_string = format!("\"{}\"", uninstaller_s);
+
+    key.set_value("DisplayName", &display_name)?;
+    key.set_value("DisplayVersion", &version)?;
+    key.set_value("Publisher", &publisher)?;
+    key.set_value("InstallLocation", &install_dir_s)?;
+    key.set_value("DisplayIcon", &icon_s)?;
+    key.set_value("UninstallString", &uninstall_string)?;
+    key.set_value("NoModify", &1u32)?;
+    key.set_value("NoRepair", &1u32)?;
+
+    Ok(())
+}
+
 // ==== helpers ====
+
+pub fn write_embedded_payload(app: &tauri::AppHandle) -> anyhow::Result<PathBuf> {
+    use tauri::path::BaseDirectory;
+    use anyhow::Context;
+
+    let dir = app
+        .path()
+        .resolve("neoluma-installer", BaseDirectory::AppCache)
+        .context("resolve AppCache failed")?;
+
+    fs::create_dir_all(&dir).context("create cache dir failed")?;
+
+    let zip_path = dir.join("payload.zip");
+    fs::write(&zip_path, PAYLOAD_ZIP).context("write embedded payload.zip failed")?;
+
+    Ok(zip_path)
+}
 
 fn zip_total_bytes(zip_path: &Path) -> Result<u64> {
     let file = File::open(zip_path).with_context(|| format!("Open {:?} failed", zip_path))?;
@@ -429,39 +515,4 @@ pub fn parse_autoinstall_args() -> Option<AutoInstallRequest> {
         destination: dest,
         add_to_path: add_to_path.unwrap_or(true),
     })
-}
-
-pub async fn autoinstall(app: tauri::AppHandle) -> anyhow::Result<()> {
-    use tauri::path::BaseDirectory;
-
-    let req = parse_autoinstall_args().expect("autoinstall called without args");
-
-    // payload.zip location
-    let mut zip_path = app
-        .path()
-        .resolve("payload.zip", BaseDirectory::Resource)
-        .context("resolve payload.zip failed")?;
-
-    if !zip_path.exists() {
-        let alt = app
-            .path()
-            .resource_dir()
-            .context("resource_dir failed")?
-            .join("resources")
-            .join("payload.zip");
-
-        if alt.exists() {
-            zip_path = alt;
-        }
-    }
-
-    anyhow::ensure!(zip_path.exists(), "payload.zip not found at {:?}", zip_path);
-
-    let destination = match req.destination.as_deref().filter(|s| !s.trim().is_empty()) {
-        Some(custom) => std::path::PathBuf::from(custom),
-        None => default_install_dir(&app, req.scope)?,
-    };
-
-    install_payload_zip(app, zip_path, destination, req.scope, req.add_to_path)?;
-    Ok(())
 }
