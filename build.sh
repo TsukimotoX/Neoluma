@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+trap 'echo -e "\n${ERR} Failed at line ${LINENO}: ${BASH_COMMAND}"' ERR
 
 ESC=$'\033'
 INFO="${ESC}[38;2;232;75;133m[INFO]${ESC}[0m"
@@ -58,13 +59,21 @@ detect_pm() {
 pkg_installed() {
   local pkg="$1"
   case "$PM" in
-    apt) dpkg-query -W -f='${Status}\n' "$pkg" 2>/dev/null | grep -q "install ok installed" ;;
-    dnf|zypper) rpm -q "$pkg" >/dev/null 2>&1 ;;
-    pacman) pacman -Q "$pkg" >/dev/null 2>&1 ;;
+    apt)
+      have_cmd dpkg-query || return 1
+      dpkg-query -W -f='${Status}\n' "$pkg" 2>/dev/null | grep -q "install ok installed"
+      ;;
+    dnf|zypper)
+      have_cmd rpm || return 1
+      rpm -q "$pkg" >/dev/null 2>&1
+      ;;
+    pacman)
+      have_cmd pacman || return 1
+      pacman -Q "$pkg" >/dev/null 2>&1
+      ;;
     *) return 1 ;;
   esac
 }
-
 pm_install() {
   local pkgs=("$@")
   if (( AUTO_INSTALL == 0 )); then
@@ -101,13 +110,17 @@ pm_install() {
 ensure_pkgs() {
   local desired=("$@")
   local missing=()
+
   for p in "${desired[@]}"; do
     [[ -z "$p" ]] && continue
     if ! pkg_installed "$p"; then
       missing+=("$p")
     fi
   done
-  (( ${#missing[@]} > 0 )) && pm_install "${missing[@]}"
+
+  if (( ${#missing[@]} > 0 )); then
+    pm_install "${missing[@]}"
+  fi
 }
 
 pkgs_cpp_for_pm() {
