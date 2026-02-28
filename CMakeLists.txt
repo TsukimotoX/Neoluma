@@ -142,9 +142,8 @@ endif()
 add_custom_command(
     OUTPUT "${NEOLUMA_PAYLOAD_ZIP}"
 
-    # important: ensure Neoluma is built before we install+package
     DEPENDS neoluma
-    DEPENDS uninstaller
+    $<$<PLATFORM_ID:Windows>:uninstaller>
 
     # clean stage folder
     COMMAND ${CMAKE_COMMAND} -E rm -rf "${NEOLUMA_STAGE_DIR}"
