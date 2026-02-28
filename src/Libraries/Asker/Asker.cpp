@@ -38,9 +38,9 @@ Key getKey() {
     if (c == 127) return BACKSPACE;
     if (c == 27) {
         char sequence[2];
-        if (read(STDIN_FILENO, sequence, 2) == 2 && seq[0] == '[') {
-            if (seq[1] == 'A') return UP;
-            if (seq[1] == 'B') return DOWN;
+        if (read(STDIN_FILENO, sequence, 2) == 2 && sequence[0] == '[') {
+            if (sequence[1] == 'A') return UP;
+            if (sequence[1] == 'B') return DOWN;
         }
     }
     return NONE;
