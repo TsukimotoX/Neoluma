@@ -80,8 +80,8 @@ llvm_map_components_to_libnames(LLVM_LIBS
 
 target_link_libraries(neoluma PRIVATE
     ${LLVM_LIBS}
-    NeolumaCore
     NeolumaCLI
+    NeolumaCore
     NeolumaLibs
 )
 
