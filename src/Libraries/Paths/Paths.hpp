@@ -7,7 +7,12 @@
 #include <string>
 
 struct Paths {
+    ~Paths(){}
     static std::string executablePath();
-    static std::string executableDir();
+
+    static std::string rootDir();
+    static std::string dataDir();
+    static std::string userDataDir();
+
     static std::string join(const std::string& a, const std::string& b);
 };
