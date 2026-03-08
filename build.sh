@@ -284,8 +284,8 @@ ensure_deps() {
 
 build_neoluma() {
   echo "${INFO} Building neoluma..."
-  cmake --build --preset "${BUILD_PRESET}" --target neoluma
-  local out=".build/.executables/${CONFIG}/neoluma"
+  cmake --build --preset "${BUILD_PRESET}" --target install
+  local out=".build/.runtime/${CONFIG}/bin/neoluma"
   [[ -f "$out" ]] && echo "${OK} Built: $out" || true
 }
 

@@ -3,6 +3,10 @@
 #include <filesystem>
 #include <print>
 #include <iostream>
+#include <fstream>
+
+#include "Libraries/Toml/Toml.hpp"
+#include "Libraries/Paths/Paths.hpp"
 #if _WIN32
     #include <Windows.h>
 #else
@@ -10,26 +14,9 @@
 #endif
 
 namespace Localization {
-
-    // ---- Globals (defined once here) ----
-    std::unordered_map<std::string, std::string> fallbackMap;
+    Paths paths{};
     std::unordered_map<std::string, std::string> localeMap;
-
-    json::Value fallbackJson = json::Value(json::Object{});
-    std::string currentLocale = "en_US";
-
-    // ---- Internal: stringify non-string values in a stable way ----
-    static std::string valueToString(const json::Value& v) {
-        if (v.isString()) return v.asString();
-
-        // When flattening, keep it compact + no comments
-        json::StringifyOptions opt;
-        opt.pretty = false;
-        opt.emit_comments = false;
-        opt.escape_non_ascii = false;
-        opt.sort_keys = false;
-        return json::stringify(v, opt);
-    }
+    std::filesystem::path localeFolder = paths.dataDir() + "/locales/";
 
     std::string detectSystemLanguage() {
     #if _WIN32 // i hate microsoft
@@ -84,47 +71,31 @@ namespace Localization {
     #endif
     }
 
-    json::Value loadJson(const std::string& locale) {
-        // Keep your original layout
-        // TODO on return: Make multipaths support of json for convenience.
-        std::filesystem::path path =
-            std::filesystem::current_path() / "src" / "Localization" / (locale + ".jsonc");
-
-        if (!std::filesystem::exists(path)) {
-            std::println(std::cerr, "[Localization] File does not exist: {}", path.string());
-            return json::Value(json::Object{});
-        }
-
-        try {
-            json::Value root = json::parseFile(path.string());
-
-            if (!root.isObject()) {
-                std::println(std::cerr, "[Localization] JSON root is not an object in: {}", path.string());
-                return json::Value(json::Object{});
+    std::unordered_map<std::string, std::string> loadJson(const std::string& locale) {
+        std::unordered_map<std::string, std::string> map;
+        // they all must be folders. if there's one guy who messes this up in system files it's their fault
+        for (auto& folder : std::filesystem::directory_iterator(localeFolder)){
+            if (!folder.is_directory()) {
+                std::println(std::cerr, "[Localization] Not a directory: {}", folder.path().string());
+                continue;
             }
+            std::string name = folder.path().stem().string();
+            for (auto& f : std::filesystem::directory_iterator(localeFolder / name))
+            {
+                if (!f.is_regular_file() || f.path().extension() != ".jsonc") {
+                    std::println(std::cerr, "[Localization] Not a locale file found: {}", f.path().string());
+                    continue;
+                }
+                if (f.path().stem().string() != locale) continue;
 
-            return root;
+                json::Value value = json::parseFile(f.path().string());
+                pancakeJson(value, name, map);
+            }
         }
-        catch (const json::ParseError& e) {
-            std::println(
-                std::cerr,
-                "[Localization] JSON parse error in {} at line {}, col {}: {}",
-                path.string(),
-                e.line, e.col,
-                e.what()
-            );
-            return json::Value(json::Object{});
-        }
-        catch (const std::exception& e) {
-            std::println(std::cerr, "[Localization] Failed to read {}: {}", path.string(), e.what());
-            return json::Value(json::Object{});
-        }
+        return map;
     }
 
-    void pancakeJson(const json::Value& v,
-                     const std::string& prefix,
-                     std::unordered_map<std::string, std::string>& out) {
-
+    void pancakeJson(const json::Value& v, const std::string& prefix, std::unordered_map<std::string, std::string>& out) {
         if (v.isObject()) {
             for (const auto& [k, child] : v.asObject()) {
                 std::string key = prefix.empty() ? k : (prefix + "." + k);
@@ -133,43 +104,40 @@ namespace Localization {
             return;
         }
 
-        // Arrays are valid too — flatten them as JSON text
-        out[prefix] = valueToString(v);
+        if (!v.isString()) {
+            std::println(std::cerr, "[Localization] Non-string value at key: {}", prefix);
+            return;
+        }
+
+        out[prefix] = v.asString();
     }
 
     void init() {
-        // Load fallback first
-        fallbackJson = loadJson("en_US");
-        fallbackMap.clear();
-        pancakeJson(fallbackJson, "", fallbackMap);
+        if (!std::filesystem::exists(localeFolder)) {
+            std::println(std::cerr, "Neoluma's localization module detected that you have no localization folder. We highly suggest you repairing the installation via your installer. \nNeoluma can't run without the localization.");
+            // TODO: Implement a fallback system for people who ever will to delete locale configs.
+            return;
+        }
+        localeMap = loadJson("en_US");
+        std::filesystem::path configPath = paths.userDataDir() + "/config.jsonc";
+        if (!std::filesystem::exists(configPath)){
+            std::filesystem::create_directory(configPath.parent_path());
+            std::string locale = detectSystemLanguage();
+            json::Value cfg = json::parse("{//Locale is used to determine your language Neoluma will use.\n//Please do not modify this option unless you're familiar with languages Neoluma supports.\n\"language\": \"" + detectSystemLanguage() + "\"}");
+            json::writeFile(configPath.string(), cfg);
+        }
 
-        // Load system locale
-        std::string sys = detectSystemLanguage();
-        currentLocale = sys;
+        json::Value cfg = json::parseFile(configPath.string());
+        std::unordered_map<std::string, std::string> userLanguage = loadJson(cfg["language"].asString());
+        for (const auto& [k, v] : userLanguage) localeMap[k] = v;
 
-        localeMap.clear();
-        json::Value j = loadJson(sys);
-        pancakeJson(j, "", localeMap);
-    }
-
-    void setLanguage(const std::string& language) {
-        currentLocale = language;
-        localeMap.clear();
-        json::Value j = loadJson(currentLocale);
-        pancakeJson(j, "", localeMap);
+        //for (const auto& [k, v] : localeMap) std::println(std::cerr, "{}: {}", k, v);
     }
 
     std::string translate(const std::string& key) {
-        if (auto it = localeMap.find(key); it != localeMap.end())
-            return it->second;
-
+        if (auto it = localeMap.find(key); it != localeMap.end()) return it->second;
         std::println(std::cerr, "[Localization] Couldn't translate key '{}'", key);
-
-        if (auto fb = fallbackMap.find(key); fb != fallbackMap.end())
-            return fb->second;
-
-        std::println(std::cerr, "[Localization] Missing key: '{}'", key);
         return key;
     }
 
-} // namespace Localization
+}

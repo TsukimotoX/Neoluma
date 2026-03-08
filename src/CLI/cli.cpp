@@ -214,7 +214,7 @@ PTOutputType parseOutput(std::string outputType) {
     if (outputType == "obj") return PTOutputType::Object;
     if (outputType == "sharedlib") return PTOutputType::SharedLibrary;
     if (outputType == "staticlib") return PTOutputType::StaticLibrary;
-    std::println(std::cerr, "{}[NeolumaCLI/IDtoOutput] {}", Color::TextHex("#ff5050"), Localization::translate("Compiler.CLI.parseProjectFile.parseOutputError"));
+    std::println(std::cerr, "{}[NeolumaCLI/IDtoOutput] {}", Color::TextHex("#ff5050"), Localization::translate("CLI.parseProjectFile.parseOutputError"));
     return PTOutputType::None;
 }
 
@@ -222,13 +222,13 @@ PTOutputType parseOutput(std::string outputType) {
 
 void build(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
-    std::println("{} {}", Localization::translate("Compiler.CLI.build.initialization"), config.name);
+    std::println("{} {}", Localization::translate("CLI.build.initialization"), config.name);
     // todo: compiler call, executable generation
 }
 
 void run(const std::string& nlpFile) {
     build(nlpFile);
-    std::println("{}\n", Localization::translate("Compiler.CLI.run.initialization"));
+    std::println("{}\n", Localization::translate("CLI.run.initialization"));
     // todo: launch the file using std::system or CreateProcess
 }
 
@@ -236,31 +236,31 @@ void check(const std::string& nlpFile) {
     ProjectConfig config = parseProjectFile(nlpFile);
     std::string name = config.name;
     Compiler compiler = Compiler(config);
-    std::println("{}{}{}", Color::TextHex("#75ff87"), formatStr(Localization::translate("Compiler.CLI.check.initialization"), name), Color::Reset);
+    std::println("{}{}{}", Color::TextHex("#75ff87"), formatStr(Localization::translate("CLI.check.initialization"), name), Color::Reset);
     compiler.check();
 }
 
 void createProject() {
     ProjectConfig config;
     int steps = 5; int step = 0;
-    std::string title = formatStr("{} ", Localization::translate("Compiler.CLI.createProject.initialization"));
+    std::string title = formatStr("{} ", Localization::translate("CLI.createProject.initialization"));
 
     clearScreen();
     showProgressBar(title, step++, steps);
 
-    config.name = askQuestion(Localization::translate("Compiler.CLI.createProject.projectName"));
+    config.name = askQuestion(Localization::translate("CLI.createProject.projectName"));
     clearScreen();
     showProgressBar(title, step++, steps);
-    config.version = askQuestion(Localization::translate("Compiler.CLI.createProject.projectVersion"));
+    config.version = askQuestion(Localization::translate("CLI.createProject.projectVersion"));
     clearScreen();
     showProgressBar(title, step++, steps);
-    std::vector<std::string> authors = split(askQuestion(Localization::translate("Compiler.CLI.createProject.projectAuthors")), ',');
+    std::vector<std::string> authors = split(askQuestion(Localization::translate("CLI.createProject.projectAuthors")), ',');
     std::string authorList = listAuthors(authors);
     config.author = authors;
     clearScreen();
     showProgressBar(title, step++, steps);
     std::string licenses[14] = { "MIT", "Apache 2.0", "GNU GPL v3", "BSD 2-Clause \"Simplified\"", "BSD 3-Clause \"New\" or \"Revised\"", "Boost Software 1.0", "CC0 v1 Universal", "Eclipse", "GNU AGPL v3", "GNU GPL v2", "GNU LGPL v2.1", "Mozilla 2.0", "The Unlicense", "Custom"};
-    std::string license = asker::selectList(Localization::translate("Compiler.CLI.createProject.projectLicense"), licenses);
+    std::string license = asker::selectList(Localization::translate("CLI.createProject.projectLicense"), licenses);
 
     if (license == "MIT") config.license = License::MIT;
     else if (license == "Apache 2.0") config.license = License::Apache;
@@ -280,15 +280,15 @@ void createProject() {
     clearScreen();
     showProgressBar(title, step++, steps);
     bool confirmation = asker::confirm(formatStr("{}{}{}", Color::TextHex("#FF8C75"),
-        formatStr(Localization::translate("Compiler.CLI.createProject.confirmation"), config.name,
+        formatStr(Localization::translate("CLI.createProject.confirmation"), config.name,
         config.version, authorList, license, Color::TextHex("#96fcbd")),
         Color::Reset));
     if (confirmation) {
         createProject(config);
         clearScreen();
-        std::println(std::cout, "{}", formatStr(Localization::translate("Compiler.CLI.createProject.confirmation.yes"), Color::TextHex("#75ff87"), Color::Reset));
+        std::println(std::cout, "{}", formatStr(Localization::translate("CLI.createProject.confirmation.yes"), Color::TextHex("#75ff87"), Color::Reset));
     } else {
-        std::println(std::cout, "{}", formatStr(Localization::translate("Compiler.CLI.createProject.confirmation.no"), Color::TextHex("#ff5050"), Color::Reset));
+        std::println(std::cout, "{}", formatStr(Localization::translate("CLI.createProject.confirmation.no"), Color::TextHex("#ff5050"), Color::Reset));
     }
     std::println(Color::Reset);
 }
@@ -299,7 +299,7 @@ void createProject(ProjectConfig config) {
     std::filesystem::create_directory(projectPath / "src");
 
     std::ofstream mainFile(projectPath / "src/main.nm");
-    mainFile << std::format("// {} \n@entry\nfn main() {{\n    print(\"{}\");\n}}", Localization::translate("Compiler.CLI.createProject.template.main.comment"), Localization::translate("Compiler.CLI.createProject.template.main.printmsg"));
+    mainFile << std::format("// {} \n@entry\nfn main() {{\n    print(\"{}\");\n}}", Localization::translate("CLI.createProject.template.main.comment"), Localization::translate("CLI.createProject.template.main.printmsg"));
     mainFile.close();
 
     Toml::Table table;
@@ -335,6 +335,6 @@ void createProject(ProjectConfig config) {
 }
 
 void printHelp() {
-    std::println(std::cout, "{}", Localization::translate("Compiler.CLI.helpMessage"));
+    std::println(std::cout, "{}", Localization::translate("CLI.helpMessage"));
 }
 

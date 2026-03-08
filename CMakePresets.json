@@ -7,6 +7,7 @@
 			"binaryDir": "${sourceDir}/.build/cmake-debug",
 			"cacheVariables": {
 				"CMAKE_BUILD_TYPE": "Debug",
+				"CMAKE_INSTALL_PREFIX": "${sourceDir}/.build/.runtime/Debug",
 				"NEOLUMA_PORTABLE": "ON"
 			}
 		},
@@ -16,6 +17,7 @@
 			"binaryDir": "${sourceDir}/.build/cmake-release",
 			"cacheVariables": {
 				"CMAKE_BUILD_TYPE": "Release",
+				"CMAKE_INSTALL_PREFIX": "${sourceDir}/.build/.runtime/Release",
 				"NEOLUMA_PORTABLE": "OFF"
 			}
 		}

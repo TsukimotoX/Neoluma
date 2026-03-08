@@ -8,7 +8,7 @@
 #include "Core/Frontend/Lexer/Lexer.hpp"
 #include "HelperFunctions.hpp"
 #include "Libraries/Localization/Localization.hpp"
-//#include "Libraries/Paths/Paths.hpp"
+#include "Libraries/Paths/Paths.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -28,7 +28,6 @@ int main(int argc, char** argv) {
     SetConsoleOutputCP(CP_UTF8);
     #endif
     Localization::init();
-    //Localization::setLanguage("ru_RU");
     CLIArgs args = parseArgs(argc, argv);
 
     if (args.command == "new") {
@@ -69,7 +68,7 @@ int main(int argc, char** argv) {
         std::println("{}Neoluma Alpha Release v0.1{}", Color::TextHex("#ff28e6"), Color::Reset);
     } else {
         printHelp();
-        //std::println(std::cout, "Current installed path: {}", Paths{}.executableDir());
+        //std::println(std::cout, "Current installed path: {}", Paths{}.rootDir());
     }
 
     return 0;

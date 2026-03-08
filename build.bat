@@ -37,7 +37,7 @@ exit /b 1
 
 :do_neoluma
 echo %ESC%[38;2;232;75;133m[INFO]%ESC%[0m Building neoluma...
-cmake --build --preset "%BUILD_PRESET%" --target neoluma
+cmake --build --preset "%BUILD_PRESET%" --target install
 if errorlevel 1 goto :build_fail
 goto :after_build
 
@@ -91,10 +91,17 @@ goto :done
 
 :after_build
 set "EXE=.build\.executables\%CONFIG%\neoluma.exe"
+set "RUNTIME=.build\.runtime\%CONFIG%\"
 if exist "%EXE%" (
   echo %ESC%[38;2;117;255;135m[SUCCESS]%ESC%[0m Built: %EXE%
 ) else (
   echo %ESC%[38;2;255;80;80m[ERROR]%ESC%[0m Can't find built exe at: %EXE%
+  exit /b 1
+)
+if exist "%RUNTIME%" (
+  echo %ESC%[38;2;117;255;135m[SUCCESS]%ESC%[0m Runtime built at: %RUNTIME%
+) else (
+  echo %ESC%[38;2;255;80;80m[ERROR]%ESC%[0m Can't find built runtime at: %RUNTIME%
   exit /b 1
 )
 goto :done

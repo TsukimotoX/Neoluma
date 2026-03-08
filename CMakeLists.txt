@@ -6,6 +6,7 @@ project(neoluma LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Options
 option(NEOLUMA_PORTABLE "Portable layout (resources near executable)" ON)
@@ -102,8 +103,7 @@ install(TARGETS neoluma
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-# locales (when i will make a folder)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/Localization/ DESTINATION ${CMAKE_INSTALL_DATADIR}/configs/locales)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/Localization/ DESTINATION ${CMAKE_INSTALL_DATADIR}/locales)
 
 # ---- Payload creation. ----
 # payload is bundled into installer resources.
