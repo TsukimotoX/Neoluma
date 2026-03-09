@@ -81,7 +81,7 @@ Neoluma is in early development. Contributions and feedback are welcome!
 
 Neoluma can be built from cloned source via building scripts.
 - [Windows](./build.bat)
-- [Unix](./build.sh)
+- [Unix](./build.sh) (may require `chmod +x build.sh`)
 
 It doesn't require much input aside from just running the script.
 Usage:
