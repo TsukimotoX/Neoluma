@@ -19,4 +19,5 @@ namespace Localization {
 	void pancakeJson(const json::Value& v, const std::string& prefix, std::unordered_map<std::string, std::string>& out);
 
 	std::string translate(const std::string& key);
+	std::string translatef(const std::string& key, const std::vector<std::string>& args);
 }

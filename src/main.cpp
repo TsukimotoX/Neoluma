@@ -14,13 +14,13 @@
 #include <windows.h>
 #endif
 
-std::string findProjectFile(const std::string& folder) {
+std::filesystem::path findProjectFile(const std::filesystem::path& folder) {
     for (const auto& entry : std::filesystem::directory_iterator(folder)) {
         if (entry.is_regular_file() && entry.path().extension() == ".nlp") {
-            return entry.path().string();
+            return entry.path();
         }
     }
-    return "";
+    return {};
 }
 
 int main(int argc, char** argv) {
@@ -51,24 +51,28 @@ int main(int argc, char** argv) {
     } else if (args.command == "run") {
         // run
     } else if (args.command == "check") {
-        std::string projectFilePath;
-        if (args.options.count("project")) projectFilePath = args.options.at("project");
-        else {
-            projectFilePath = findProjectFile(std::filesystem::current_path().string());
+        std::filesystem::path projectFilePath;
+
+        if (args.options.count("project")) {
+            std::filesystem::path input = args.options.at("project");
+
+            if (std::filesystem::exists(input)) {
+                if (std::filesystem::is_directory(input)) projectFilePath = findProjectFile(input);
+                else projectFilePath = input;
+            }
         }
+        else projectFilePath = findProjectFile(std::filesystem::current_path());
 
         if (projectFilePath.empty()) {
-            // translate later
             std::println("{}[Neoluma/Check] Project file was not found!{}", Color::TextHex("#ff5050"), Color::Reset);
             return 2;
         }
-        
-        check(projectFilePath);
+
+        check(projectFilePath.string());
     } else if (args.command == "version") {
         std::println("{}Neoluma Alpha Release v0.1{}", Color::TextHex("#ff28e6"), Color::Reset);
     } else {
         printHelp();
-        //std::println(std::cout, "Current installed path: {}", Paths{}.rootDir());
     }
 
     return 0;

@@ -180,16 +180,17 @@ struct Error {
     ErrorType type;
     std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType;
     ErrorSpan span;
-    std::string message; // Message that contains main error + context error
-    std::string hint;  // Hint to fix the error
 
-    std::optional<std::string> contextKey; // a text to refer to on context. like "expected '{}' after x"
+    std::string messageKey; // Message explaining what's wrong, takes localization key
+    std::vector<std::string> messageArgs; // Arguments to make message more precise
+    std::string hintKey; // Hint to fix the error, takes localization key
+    std::vector<std::string> hintArgs;// Arguments to make hints more precise
 };
 
 struct ErrorManager {
     std::vector<Error> errors;
 
-    void addError(ErrorType type, std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType, const ErrorSpan& span, const std::string& msg, const std::string& hint = "", const std::optional<std::string>& contextKey = std::nullopt) { errors.push_back(Error{type, detailedType, span, msg, hint, contextKey}); }
+    void addError(ErrorType type, std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType, const ErrorSpan& span, const std::string& messageKey, std::vector<std::string> messageArgs = {}, const std::string& hintKey = "", std::vector<std::string> hintArgs = {}) { errors.push_back(Error{type, detailedType, span, messageKey, messageArgs, hintKey, hintArgs}); }
     void printErrors();
     [[nodiscard]] bool hasErrors() const { return !errors.empty(); }
 

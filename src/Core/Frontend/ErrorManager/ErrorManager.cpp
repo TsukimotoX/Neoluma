@@ -58,14 +58,14 @@ void ErrorManager::printErrors() {
             fppos += 1;
         }
 
-        auto msg = e.message + (e.contextKey.has_value() ? formatStr(": {}", e.contextKey.value()) : "");
+        auto msg = Localization::translatef(e.messageKey, e.messageArgs);
         std::println("{}[{}]  ❌  {}{}", typeColor, formatErrorType(e.detailedType), msg, Color::Reset);
         std::println("➡️  {}:{}:{}", e.span.filePath, line1, col1);
         if (line1 > 1) std::println("{:>3} | {}", line1 - 1, prevLine);
         std::println("{:>3} | {}", line1, errorLine);
         std::println("{} | {}{} {}", std::string(std::to_string(line1).length() + 1, ' '), std::string((size_t)col0, ' '), std::string((size_t)e.span.len + 2, '^'), msg);
         if (!nextLine.empty()) std::println("{:>3} | {}", line1 + 1, nextLine);
-        if (!e.hint.empty()) std::println(std::cout, "{}{}{}", hintColor, formatStr(Localization::translate("Compiler.Core.ErrorManager.hint"), e.hint), Color::Reset);
+        if (!e.hintKey.empty()) std::println(std::cout, "{}{}{}", hintColor, formatStr(Localization::translate("ErrorManager.hint"), Localization::translatef(e.hintKey, e.hintArgs)), Color::Reset);
 
         count++;
     }

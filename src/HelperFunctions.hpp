@@ -67,13 +67,40 @@ std::string formatStr(std::string_view fmt, Args&&... args)
             if (i + 1 >= fmt.size()) throw std::runtime_error("[HelperFunctions/formatStr] Invalid '{'");
             char next = fmt[i + 1];
             if (next == '{') { out += '{'; i++; }
-            else if (next == '}')
-            {
-                if (argCount >= collectedArgs.size()) throw std::runtime_error("[HelperFunctions/formatStr] Not enough format arguments");
-                out += collectedArgs[argCount++];
-                i++;
+            else {
+                size_t j = i + 1;
+
+                // {} case
+                if (fmt[j] == '}') {
+                    if (argCount >= collectedArgs.size())
+                        throw std::runtime_error("[HelperFunctions/formatStr] Not enough format arguments");
+
+                    out += collectedArgs[argCount++];
+                    i = j;
+                }
+                // {number} case
+                else if (std::isdigit(fmt[j])) {
+
+                    size_t index = 0;
+
+                    while (j < fmt.size() && std::isdigit(fmt[j])) {
+                        index = index * 10 + (fmt[j] - '0');
+                        j++;
+                    }
+
+                    if (j >= fmt.size() || fmt[j] != '}')
+                        throw std::runtime_error("[HelperFunctions/formatStr] Invalid positional format");
+
+                    if (index >= collectedArgs.size())
+                        throw std::runtime_error("[HelperFunctions/formatStr] Positional argument out of range");
+
+                    out += collectedArgs[index];
+                    i = j;
+                }
+                else {
+                    throw std::runtime_error("[HelperFunctions/formatStr] Invalid '{'");
+                }
             }
-            else throw std::runtime_error("[HelperFunctions/formatStr] Invalid '{'");
         }
         else if (c == '}')
         {
