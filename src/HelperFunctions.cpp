@@ -2,7 +2,6 @@
 #include "Libraries/Color/Color.hpp"
 #include <print>
 #include <fstream>
-#include <span>
 #include <sstream>
 
 std::string trim(const std::string& s) {
