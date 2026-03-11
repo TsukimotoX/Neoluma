@@ -1,6 +1,5 @@
 #import "more/utils" as utils // Utility functions
 #import "more/models" // Data models
-#console "neptunia"
 
 @entry
 fn main() {
