@@ -185,6 +185,8 @@ void Lexer::parsePreprocessor() {
     if (pm.find(word) != pm.end()) tokens.push_back(Token{TokenType::Preprocessor, word, filePath, sl, sc});
     else if (compiler->projectManager.config.enableEasterEggs) { if (word == "console") tokens.push_back(Token{TokenType::Preprocessor, word, filePath, sl, sc}); }
     else {
+        if (compiler->projectManager.config.enableEasterEggs) { if (word == "console") tokens.push_back(Token{TokenType::Preprocessor, word, filePath, sl, sc}); }
+
         compiler->errorManager.addError(
             ErrorType::Preprocessor,
             PreprocessorErrors::InvalidDirective,
