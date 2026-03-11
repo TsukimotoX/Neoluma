@@ -1,5 +1,6 @@
 {
 	"hint": "💡  Hint: {}",
+	"errorsFound": "{} error(s) found!",
 	// safetyGuard triggers in Parser only.
 	"safetyGuard": "❌😵‍💫 Recovery guard triggered! Stopping parsing to avoid infinite loop. If you see this message somehow, report this to the developers. \n\n Information: \n Function: {},\n File {},\n Happened at Line {}:{}\n\nThank you!\n",
 	"Syntax": {
@@ -9,29 +10,64 @@
 		},
 		"MissingToken": {
 			"message": "Missing Token",
-			"context": {
-				"novariableafter": {
-					"message": "Missing variable after '{}'",
-					"hint": "Fix it by providing the variable after '{}'."
-				}
+
+			"noVariableAfter": {
+				"message": "Missing variable after '{}'",
+				"hint": "Fix it by providing the variable after '{}'."
+			},
+			"missingOperandUnary": {
+				"message": "Missing an operand after unary operator",
+				"hint": "Add an operand after '{}'. Like !x, -x, etc."
+			},
+			"missingExpressionLambda": {
+				"message": "Missing expression after '{}' in lambda expression"
 			}
 		},
 		"InvalidStatement": {
-			"message": "Invalid Statement"
+			"message": "Invalid Statement",
+
+			"missedBlock": {
+				"message": "Missed a block after '{}'"
+			}
 		},
-		"UnterminatedString": "Unterminated String",
+		//"UnterminatedString": "Unterminated String",
 		"UnterminatedComment": {
 			"message": "Unterminated Comment",
 			"hint": "Close the comment via '*/'"
+		}
+		//"InvalidNumberFormat": "Invalid Number Format",
+		//"UnexpectedEndOfFile": "Unexpected End Of File",
+		//"MismatchedBrackets": "Mismatched Brackets"
+	},
+	"Analysis": {
+		"MultipleEntryPoints": {
+			"message": "Multiple entry points detected.",
+			"hint": "Keep only one function marked with @entry. First one detected at {}:{}:{}"
 		},
-		"InvalidNumberFormat": "Invalid Number Format",
-		"UnexpectedEndOfFile": "Unexpected End Of File",
-		"MismatchedBrackets": "Mismatched Brackets"
+		"NoEntryPoints": {
+			"message": "No entry points found",
+			"hint": "Add @entry to a function or define fn main()."
+		}
 	},
 	"Preprocessor": {
+		"ImportNotFound": {
+			"message": "Import not found: '{}'",
+			"hint": "Check the path or create a module file with said path",
+
+			"nativePackageNotInstalled.message": "Native package '{}' is not installed",
+			"nativePackageNotInstalled.hint": "Add it to project dependencies (.nlp) or install the package."
+		},
+		"ImportAliasConflict": {
+			"message": "Import alias conflict: '{}'",
+			"hint": "Use a different alias name."
+		},
 		"InvalidDirective": {
 			"message": "Invalid directive: {}",
 			"hint": "Check out Neoluma documentation to see what directives are available."
+		},
+		"CircularImport": {
+			"message": "Circular import detected",
+			"hint": "Remove the cycle or refactor shared code into a separate module."
 		}
 	}
 }

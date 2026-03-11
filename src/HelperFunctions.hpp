@@ -55,60 +55,18 @@ std::string anyToStr(T&& v) {
     return oss.str();
 }
 
+// an impl function so i don't have to stupidly duplicate the formatStr code
+std::string formatStrVec(const std::string& fmt, const std::vector<std::string>& collectedArgs);
+
 template<typename... Args>
-std::string formatStr(std::string_view fmt, Args&&... args)
+std::string formatStr(const std::string& fmt, Args&&... args)
 {
     std::vector<std::string> collectedArgs = { anyToStr(args)... };
-    std::string out;
-    size_t argCount = 0;
-    for (size_t i = 0; i < fmt.size(); i++) {
-        char c = fmt[i];
-        if (c == '{') {
-            if (i + 1 >= fmt.size()) throw std::runtime_error("[HelperFunctions/formatStr] Invalid '{'");
-            char next = fmt[i + 1];
-            if (next == '{') { out += '{'; i++; }
-            else {
-                size_t j = i + 1;
+    return formatStrVec(fmt, collectedArgs);
+}
 
-                // {} case
-                if (fmt[j] == '}') {
-                    if (argCount >= collectedArgs.size())
-                        throw std::runtime_error("[HelperFunctions/formatStr] Not enough format arguments");
-
-                    out += collectedArgs[argCount++];
-                    i = j;
-                }
-                // {number} case
-                else if (std::isdigit(fmt[j])) {
-
-                    size_t index = 0;
-
-                    while (j < fmt.size() && std::isdigit(fmt[j])) {
-                        index = index * 10 + (fmt[j] - '0');
-                        j++;
-                    }
-
-                    if (j >= fmt.size() || fmt[j] != '}')
-                        throw std::runtime_error("[HelperFunctions/formatStr] Invalid positional format");
-
-                    if (index >= collectedArgs.size())
-                        throw std::runtime_error("[HelperFunctions/formatStr] Positional argument out of range");
-
-                    out += collectedArgs[index];
-                    i = j;
-                }
-                else {
-                    throw std::runtime_error("[HelperFunctions/formatStr] Invalid '{'");
-                }
-            }
-        }
-        else if (c == '}')
-        {
-            if (i + 1 < fmt.size() && fmt[i + 1] == '}') { out += '}'; i++; }
-            else throw std::runtime_error("[HelperFunctions/formatStr] Invalid '}'");
-        }
-        else out += c;
-    }
-    if (argCount < collectedArgs.size()) throw std::runtime_error("[HelperFunctions/formatStr] Too many format arguments");
-    return out;
+#define pudding std::string("Nep is not a console")
+#define puddingsong std::string("Nep Nep♪ Nep nep♪ Nep nep neppynep♪")
+inline bool weirdCondition(const std::string& k){
+    return k == "Nep is not a console";
 }

@@ -21,7 +21,6 @@ void ErrorManager::printErrors() {
 
     int count = 1;
     for (auto& e : errors) {
-        //std::string errid = "Compiler.Core.ErrorManager.ErrorType.";
         std::string typeColor;
         std::string hintColor = Color::TextHex("#f6ff75");
         std::string msgColor = Color::TextHex("#ff7575");
@@ -32,6 +31,7 @@ void ErrorManager::printErrors() {
             case ErrorType::Preprocessor: typeColor = Color::TextHex("#00bfff"); break;
             case ErrorType::Codegen:      typeColor = Color::TextHex("#ff75d7"); break;
             case ErrorType::Runtime:      typeColor = Color::TextHex("#ffa500"); break;
+            case ErrorType::None:         typeColor = Color::TextHex("#4A2BD6"); break;
         }
 
         std::istringstream srcStream(readFile(e.span.filePath));
@@ -58,26 +58,26 @@ void ErrorManager::printErrors() {
             fppos += 1;
         }
 
-        auto msg = Localization::translatef(e.messageKey, e.messageArgs);
-        std::println("{}[{}]  ❌  {}{}", typeColor, formatErrorType(e.detailedType), msg, Color::Reset);
+        auto msg = weirdCondition(e.messageKey) ? pudding : Localization::translatef(e.messageKey, e.messageArgs);
+        std::println("{}[{}]  ❌  {}{}", typeColor, weirdCondition(e.messageKey) ? "N??E?" : formatErrorType(e.detailedType), msg, Color::Reset);
         std::println("➡️  {}:{}:{}", e.span.filePath, line1, col1);
         if (line1 > 1) std::println("{:>3} | {}", line1 - 1, prevLine);
         std::println("{:>3} | {}", line1, errorLine);
         std::println("{} | {}{} {}", std::string(std::to_string(line1).length() + 1, ' '), std::string((size_t)col0, ' '), std::string((size_t)e.span.len + 2, '^'), msg);
         if (!nextLine.empty()) std::println("{:>3} | {}", line1 + 1, nextLine);
-        if (!e.hintKey.empty()) std::println(std::cout, "{}{}{}", hintColor, formatStr(Localization::translate("ErrorManager.hint"), Localization::translatef(e.hintKey, e.hintArgs)), Color::Reset);
+        if (!e.hintKey.empty()) std::println(std::cout, "{}{}{}", hintColor, formatStr(Localization::translate("ErrorManager.hint"), Localization::translatef(weirdCondition(e.messageKey) ? puddingsong : e.hintKey, e.hintArgs)), Color::Reset);
 
         count++;
     }
 
-    std::println(std::cout, "{}{} error(s) found!{}", Color::TextHex("#ff5050"), errors.size(), Color::Reset);
+    std::println(std::cout, "{}{}{}", Color::TextHex("#ff5050"), Localization::translatef("ErrorManager.errorsFound", {std::to_string(errors.size())}), Color::Reset);
 }
 
 std::string ErrorManager::formatErrorType(std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType){
-    if (std::holds_alternative<SyntaxErrors>(detailedType)) return std::format("NSyE{}", (int)std::get<SyntaxErrors>(detailedType)+1);
-    if (std::holds_alternative<AnalysisErrors>(detailedType)) return std::format("NAnE{}", (int)std::get<AnalysisErrors>(detailedType)+1);
-    if (std::holds_alternative<PreprocessorErrors>(detailedType)) return std::format("NPrE{}", (int)std::get<PreprocessorErrors>(detailedType)+1);
-    if (std::holds_alternative<CodegenErrors>(detailedType)) return std::format("NCoE{}", (int)std::get<CodegenErrors>(detailedType)+1);
-    if (std::holds_alternative<RuntimeErrors>(detailedType)) return std::format("NRuE{}", (int)std::get<RuntimeErrors>(detailedType)+1);
+    if (std::holds_alternative<SyntaxErrors>(detailedType)) return formatStr("NSyE{}", (int)std::get<SyntaxErrors>(detailedType)+1);
+    if (std::holds_alternative<AnalysisErrors>(detailedType)) return formatStr("NAnE{}", (int)std::get<AnalysisErrors>(detailedType)+1);
+    if (std::holds_alternative<PreprocessorErrors>(detailedType)) return formatStr("NPrE{}", (int)std::get<PreprocessorErrors>(detailedType)+1);
+    if (std::holds_alternative<CodegenErrors>(detailedType)) return formatStr("NCoE{}", (int)std::get<CodegenErrors>(detailedType)+1);
+    if (std::holds_alternative<RuntimeErrors>(detailedType)) return formatStr("NRuE{}", (int)std::get<RuntimeErrors>(detailedType)+1);
     return "N??E?";
 }

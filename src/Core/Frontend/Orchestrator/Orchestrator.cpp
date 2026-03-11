@@ -25,16 +25,16 @@ void Orchestrator::dfsVisit( ModuleId id, const std::vector<ModuleInfo>& infos, 
                 ErrorType::Preprocessor,
                 PreprocessorErrors::CircularImport,
                 *fromSpan,
-                "Circular import detected",
-                "Remove the cycle or refactor shared code into a separate module.");
+                "ErrorManager.Preprocessor.CircularImport.message", {},
+                "ErrorManager.Preprocessor.CircularImport.hint");
         } else if (compiler){
             auto* m = infos[id].module;
             compiler->errorManager.addError(
                 ErrorType::Preprocessor,
                 PreprocessorErrors::CircularImport,
                 ErrorSpan{m->filePath, "import", m->line, m->column},
-                "Circular import detected",
-                "Remove the cycle or refactor shared code into a separate module.");
+                "ErrorManager.Preprocessor.CircularImport.message", {},
+                "ErrorManager.Preprocessor.CircularImport.hint");
         }
         return;
     }
@@ -146,8 +146,8 @@ EntryPoint Orchestrator::findEntryPoint(const std::vector<MemoryPtr<ModuleNode>>
                ErrorType::Analysis,
                AnalysisErrors::MultipleEntryPoints,
                ErrorSpan{func->filePath, func->name, func->line, func->column},
-               "Multiple entry points detected.",
-               std::format("Keep only one function marked with @entry. First one detected at {}:{}:{}", firstFn->filePath, firstFn->line, firstFn->column));
+               "ErrorManager.Analysis.MultipleEntryPoints.message", {},
+               "ErrorManager.Analysis.MultipleEntryPoints.hint", {firstFn->filePath, anyToStr(firstFn->line), anyToStr(firstFn->column)});
                 }
             }
         }
@@ -160,8 +160,8 @@ EntryPoint Orchestrator::findEntryPoint(const std::vector<MemoryPtr<ModuleNode>>
             ErrorType::Analysis,
             AnalysisErrors::NoEntryPoints,
             ErrorSpan{modules.front()->filePath, "", 1, 1},
-            "No entry points found",
-            "Add @entry to a function or define fn main().");
+            "ErrorManager.Analysis.NoEntryPoints.message", {},
+               "ErrorManager.Analysis.NoEntryPoints.hint");
 
     return {};
 }
@@ -208,8 +208,8 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
                         ErrorType::Preprocessor,
                         PreprocessorErrors::ImportNotFound,
                         ErrorSpan{imp->filePath, imp->moduleName, imp->line, imp->column},
-                        std::format("Import not found: '{}'", name),
-                        "Check the path or create a module file with said path");
+                        "ErrorManager.Preprocessor.ImportNotFound.message", {name},
+                        "ErrorManager.Preprocessor.ImportNotFound.hint");
                     continue;
                 }
 
@@ -217,14 +217,15 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
                 mi.dependencies.push_back(DependencyEdge{depId, ErrorSpan{imp->filePath, imp->moduleName, imp->line, imp->column}});
 
                 // for aliases
-                if (!imp->alias.empty()) {
+                if (!imp->alias.empty())
+                {
                     if (mi.aliasMap.count(imp->alias))
                         compiler->errorManager.addError(
                         ErrorType::Preprocessor,
                         PreprocessorErrors::ImportAliasConflict,
                         ErrorSpan{imp->filePath, imp->alias, imp->line, imp->column},
-                        std::format("Import alias conflict: '{}'", imp->alias),
-                        "Use a different alias name.");
+                         "ErrorManager.Preprocessor.ImportAliasConflict.message", {imp->alias},
+                        "ErrorManager.Preprocessor.ImportAliasConflict.hint");
 
                     else mi.aliasMap.emplace(imp->alias, depId);
                 }
@@ -246,8 +247,8 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
                         ErrorType::Preprocessor,
                         PreprocessorErrors::ImportNotFound,
                         ErrorSpan{imp->filePath, imp->moduleName, imp->line, imp->column},
-                        std::format("Native package '{}' is not installed", imp->moduleName),
-                        "Add it to project dependencies (.nlp) or install the package.");
+                        "ErrorManager.Preprocessor.ImportNotFound.nativePackageNotInstalled.message", {imp->moduleName},
+                        "ErrorManager.Preprocessor.ImportNotFound.nativePackageNotInstalled.hint");
                     }
                     else mi.nativeImports.push_back(imp->moduleName);
                 }

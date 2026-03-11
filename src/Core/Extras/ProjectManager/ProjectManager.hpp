@@ -77,6 +77,8 @@ struct ProjectConfig {
     CompilerSettings compilerSettings;
     std::vector<std::string> filesList; // List of files inside the project to feed to compiler.
     std::string sourcePath; // Absolute path to locate the project
+
+    bool enableEasterEggs = true;
 };
 
 // ProjectManager is a class that... manages... projects?

@@ -11,6 +11,7 @@ enum struct ErrorType {
     Preprocessor,
     Codegen,
     Runtime,
+    None
 };
 
 // NSyE{x}
@@ -145,6 +146,9 @@ enum struct PreprocessorErrors {
     BaremetalWithoutDirective,
     ConflictingDirectives,
     DirectiveInWrongContext,
+
+    // ???
+    InvalidConsoleArgument
 };
 
 //NCoE{x}

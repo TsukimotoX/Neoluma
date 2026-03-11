@@ -143,6 +143,6 @@ namespace Localization {
     // Translate with {} formatting
     std::string translatef(const std::string& key, const std::vector<std::string>& args)  {
         std::string result = translate(key);
-        return formatStr(result, args...);
+        return formatStrVec(result, args);
     }
 }
