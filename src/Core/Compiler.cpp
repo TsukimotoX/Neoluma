@@ -12,7 +12,7 @@ Compiler::Compiler(ProjectConfig& config) : projectManager(config) {
 
 void Compiler::check() {
     for (const auto& file : projectManager.listFiles()){
-        // Lexer: breaks code down into tokens
+        // Lexer: breaks code down into tokens.
         std::string source = readFile(file);
         std::vector<Token> tokens = lexer.tokenize(file, source);
         //lexer.printTokens(getFileName(file));
