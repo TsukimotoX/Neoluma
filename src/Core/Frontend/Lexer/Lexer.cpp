@@ -21,7 +21,7 @@ std::vector<Token> Lexer::tokenize(const std::string& filePath, const std::strin
         char c = curChar();
 
         if (c=='\n') {
-            int sl = line; int sc = column;
+            const int sl = line; const int sc = column;
             move();
             tokens.push_back(Token{TokenType::Delimeter, "\\n", filePath, sl, sc});
         }
@@ -77,7 +77,7 @@ bool Lexer::isAtEnd() const { return pos >= source.size(); }
 
 // ==== Parsing functions ====
 void Lexer::parseIK() {
-    int sl = line; int sc = column;
+    const int sl = line; const int sc = column;
     std::string word;
 
     while (!isAtEnd() && (isalnum(curChar()) || curChar() == '_')) word += move();
@@ -91,7 +91,7 @@ void Lexer::parseIK() {
     else tokens.push_back(Token{TokenType::Identifier, word, filePath, sl, sc});
 }
 void Lexer::parseNumber() {
-    int sl = line; int sc = column;
+    const int sl = line; const int sc = column;
     std::string number;
 
     while (!isAtEnd() && isdigit(curChar())) number += move();
@@ -104,7 +104,7 @@ void Lexer::parseNumber() {
     tokens.push_back(Token{TokenType::Number, number, filePath, sl, sc});
 }
 void Lexer::parseString() {
-    int sl = line; int sc = column;
+    const int sl = line; const int sc = column;
     /* hardest thing to make. strings in neoluma can be multiline,
        have f-strings (variables inside ${}) inside them and support \n \t or anything i forgor.
     */
@@ -142,7 +142,7 @@ void Lexer::parseString() {
     tokens.push_back(Token{TokenType::String, value, filePath, sl, sc});
 }
 void Lexer::parseOperator() {
-    int sl = line; int sc = column;
+    const int sl = line; const int sc = column;
     std::string op;
     op += move();
 
@@ -156,7 +156,7 @@ void Lexer::parseOperator() {
     }
 }
 void Lexer::parseDelimeter() {
-    int sl = line; int sc = column;
+    const int sl = line; const int sc = column;
     std::string delimeter;
     delimeter += move();
 
@@ -174,7 +174,7 @@ void Lexer::parseDelimeter() {
     }
 }
 void Lexer::parsePreprocessor() {
-    int sl = line; int sc = column;
+    const int sl = line; const int sc = column;
     move();
     std::string word;
 
@@ -184,17 +184,19 @@ void Lexer::parsePreprocessor() {
 
     if (pm.find(word) != pm.end()) tokens.push_back(Token{TokenType::Preprocessor, word, filePath, sl, sc});
     else {
+        if (compiler->projectManager.config.enableEasterEggs) { if (word == "console") tokens.push_back(Token{TokenType::Preprocessor, word, filePath, sl, sc}); }
+
         compiler->errorManager.addError(
             ErrorType::Preprocessor,
             PreprocessorErrors::InvalidDirective,
             ErrorSpan{filePath, '#'+word, sl, sc},
-        "ErrorManager.Preprocessor.InvalidDirective.message");
-        //std::println(std::cerr, "[Neoluma/Lexer][{}] Invalid Directive: '#{}' (L{}:{})", __func__, word, sl, sc);
+        "ErrorManager.Preprocessor.InvalidDirective.message", {"#"+word},
+        "ErrorManager.Preprocessor.InvalidDirective.hint");
         tokens.push_back(Token{TokenType::Unknown, "#" + word, filePath, sl, sc});
     }
 }
 void Lexer::parseDecorator() {
-    int sl = line; int sc = column;
+    const int sl = line; const int sc = column;
     move();
     std::string word;
 
@@ -203,7 +205,7 @@ void Lexer::parseDecorator() {
     tokens.push_back(Token{TokenType::Decorator, word, filePath, sl, sc});
 }
 void Lexer::skipComment() {
-    int sl = line; int sc = column;
+    const int sl = line; const int sc = column;
 
     // apparently if i don't do this check im gonna regret it
     if (isAtEnd()) {
@@ -236,11 +238,9 @@ void Lexer::skipComment() {
         }
         // Unterminated block comment
         compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::UnterminatedComment,
-                                        ErrorSpan{filePath, std::format("{}{}", source[pos - 2], source[pos - 1]), sl, sc},
-                                        "UnterminatedComment",
-                                        "Close with *\/");
-
-        std::println(std::cerr, "[Neoluma/Lexer][{}] Unterminated comment (L{}:{})", __func__,sl, sc);
+            ErrorSpan{filePath, formatStr("{}{}", source[pos - 2], source[pos - 1]), sl, sc},
+            "ErrorManager.Syntax.UnterminatedComment.message", {},
+            "Close with */");
         return;
     }
 

@@ -36,18 +36,9 @@ void Parser::parseModule(const std::vector<Token>& tok, const std::string& name)
     while (!isAtEnd()) {
         if (curToken().type == TokenType::Delimeter && curToken().value == dn[Delimeters::Semicolon]) { next(); continue; }
 
-        // To get the first token of the statement
-        //Token stmtStart = statementAnchor;
-
         MemoryPtr<ASTNode> stmt = parseStatement();
         if (!stmt && match(TokenType::Delimeter, dn[Delimeters::RightBraces])) { next(); continue; }
         if (!stmt) {
-            /*commented out due to obsoleteness
-             *compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::InvalidStatement,
-                ErrorSpan{statementAnchor.filePath, statementAnchor.value, statementAnchor.line, statementAnchor.column},
-                "InvalidStatement");
-            */
-            //std::println(std::cerr, "[Neoluma/Parser][{}] Invalid statement (L{}:{})", __func__, curToken().line, curToken().column);
             while (!isAtEnd() && !isNextLine()) next();
 
             size_t startPos = pos;
@@ -101,7 +92,6 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
         return parseDeclaration(std::move(decorators), std::move(modifiers));
 
     token = curToken();
-    //this->statementAnchor = token;
     // === Control Flow Keywords ===
     if (token.type == TokenType::Keyword) {
         if (km[token.value] == Keywords::If) return parseIf();
@@ -125,8 +115,8 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
                 compiler->errorManager.addError(
                     ErrorType::Syntax, SyntaxErrors::MissingToken,
                     ErrorSpan{lookBack().filePath, lookBack().value, lookBack().line, lookBack().column},
-                    "Missing expression after", "",
-                    "return");
+                    "ErrorManager.Syntax.MissingToken.noVariableAfter.message", {"return"},
+                    "ErrorManager.Syntax.MissingToken.noVariableAfter.hint", {"return"});
                 return nullptr;
             }
 
@@ -142,8 +132,8 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
                 compiler->errorManager.addError(
                     ErrorType::Syntax, SyntaxErrors::MissingToken,
                     ErrorSpan{token.filePath, token.value, token.line, token.column},
-                    "Missing expression after", "",
-                    "throw");
+                    "ErrorManager.Syntax.MissingToken.noVariableAfter.message", {"throw"},
+                    "ErrorManager.Syntax.MissingToken.noVariableAfter.hint", {"throw"});
                 if (isNextLine()) next();
                 return nullptr;
             }
@@ -175,6 +165,7 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
         if (km[token.value] == Keywords::Enum) return parseEnum(std::move(decorators), std::move(modifiers));
         if (km[token.value] == Keywords::Interface) return parseInterface(std::move(decorators), std::move(modifiers));
         if (km[token.value] == Keywords::Decorator) return parseDecorator(std::move(decorators), std::move(modifiers));
+        // FIXME: why is this here?
         if (!modifiers.empty()) {
             std::println(std::cerr, "[Neoluma/Parser][{}] Unexpected modifier before {} (L{}:{})", __func__, token.value, token.line, token.column);
         }
@@ -242,9 +233,8 @@ MemoryPtr<UnaryOperationNode> Parser::parseUnary(const std::string& op) {
         compiler->errorManager.addError(
                             ErrorType::Syntax, SyntaxErrors::MissingToken,
                             ErrorSpan{lookBack().filePath, lookBack().value, lookBack().line, lookBack().column},
-                            "Missing operand after unary operator", formatStr("Add an operand after '{}'. Like !x, -x, etc.", op),
-                            op);
-        //std::println(std::cerr, "[Neoluma/Parser][{}] Missing operand after unary operator: {} (L{}:{})", __func__, op, curToken().line, curToken().column);
+                            "ErrorManager.Syntax.MissingToken.missingOperandUnary.message", {},
+                            "ErrorManager.Syntax.MissingToken.missingOperandUnary.hint", {op});
         return nullptr;
     }
     return ASTBuilder::createUnaryOperation(op, std::move(operand));
@@ -263,12 +253,12 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
             std::vector<MemoryPtr<ASTNode>> exprs;
             while (!match(TokenType::Delimeter, dn[Delimeters::RightParen])) {
                 MemoryPtr<ASTNode> expr = parseExpression();
-                if (!expr) {
+                if (!expr)
+                {
                     compiler->errorManager.addError(
                     ErrorType::Syntax, SyntaxErrors::MissingToken,
                     ErrorSpan{token.filePath, token.value, token.line, token.column},
-                    "Missing expression after '(' in lambda expression");
-                    //std::println(std::cerr, "[Neoluma/Parser][{}] Expected expression after '(' in lambda expression (L{}:{})", __func__, token.line, token.column);
+                    "ErrorManager.Syntax.MissingToken.missingExpressionLambda.message", {"("});
                     return nullptr;
                 }
                 exprs.push_back(std::move(expr));
@@ -280,8 +270,7 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
                 compiler->errorManager.addError(
                     ErrorType::Syntax, SyntaxErrors::MissingToken,
                     ErrorSpan{token.filePath, token.value, token.line, token.column},
-                    "Missing expression after ')' in lambda expression");
-                //std::println(std::cerr, "[Neoluma/Parser][{}] Expected ')' after expressions in lambda expression (L{}:{})", __func__, token.line, token.column);
+                    "ErrorManager.Syntax.MissingToken.missingExpressionLambda.message", {")"});
                 return nullptr;
             }
             next();
@@ -293,8 +282,7 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
                     compiler->errorManager.addError(
                     ErrorType::Syntax, SyntaxErrors::InvalidStatement,
                     ErrorSpan{curToken().filePath, curToken().value, curToken().line, curToken().column},
-                    "Could not find a block of code after an assignment arrow");
-                    //std::println(std::cerr, "[Neoluma/Parser][{}] Could not find a block of code after assignment arrow. (L{}:{})", __func__, token.line, token.column);
+                    "ErrorManager.Syntax.InvalidStatement.missedBlock.message");
                     return nullptr;
                 }
                 return ASTBuilder::createLambda(std::move(exprs), std::move(block));
@@ -1189,6 +1177,15 @@ MemoryPtr<ASTNode> Parser::parsePreprocessor() {
     else if (match(TokenType::Preprocessor, pn[Preprocessors::Float])) {
         next();
         node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Float);
+    }
+    else if (compiler->projectManager.config.enableEasterEggs){
+        if (match(TokenType::Preprocessor, "console")){
+            next();
+            if (match(TokenType::String, "neptunia")) compiler->errorManager.addError(
+                ErrorType::None, PreprocessorErrors::InvalidConsoleArgument, ErrorSpan{_.filePath, "neptunia", _.line, _.column},
+                "Nep is not a console", {},
+                "Nep Nep♪ Nep nep♪ Nep nep neppynep♪");
+        }
     }
     else node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::None);
     node->line = _.line; node->column = _.column; node->filePath = _.filePath;
