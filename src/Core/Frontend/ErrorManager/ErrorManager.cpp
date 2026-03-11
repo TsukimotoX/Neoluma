@@ -65,7 +65,7 @@ void ErrorManager::printErrors() {
         std::println("{:>3} | {}", line1, errorLine);
         std::println("{} | {}{} {}", std::string(std::to_string(line1).length() + 1, ' '), std::string((size_t)col0, ' '), std::string((size_t)e.span.len + 2, '^'), msg);
         if (!nextLine.empty()) std::println("{:>3} | {}", line1 + 1, nextLine);
-        if (!e.hintKey.empty()) std::println(std::cout, "{}{}{}", hintColor, formatStr(Localization::translate("ErrorManager.hint"), Localization::translatef(weirdCondition(e.messageKey) ? puddingsong : e.hintKey, e.hintArgs)), Color::Reset);
+        if (!e.hintKey.empty()) std::println(std::cout, "{}{}{}", hintColor, formatStr(Localization::translate("ErrorManager.hint"), weirdCondition(e.messageKey) ? puddingsong : Localization::translatef(e.hintKey, e.hintArgs)), Color::Reset);
 
         count++;
     }

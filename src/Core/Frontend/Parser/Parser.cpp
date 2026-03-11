@@ -1184,7 +1184,7 @@ MemoryPtr<ASTNode> Parser::parsePreprocessor() {
             compiler->errorManager.addError(
             ErrorType::None, PreprocessorErrors::InvalidConsoleArgument, ErrorSpan{_.filePath, "neptunia", _.line, _.column},
             "Nep is not a console", {},
-            "Nep Nep♪ Nep nep♪ Nep nep neppynep♪");
+            "Nep Nep♪ Nep nep♪ Nep nep neppynep♪🍮");
             next();
         } else {
             compiler->errorManager.addError(
@@ -1194,6 +1194,7 @@ MemoryPtr<ASTNode> Parser::parsePreprocessor() {
                 "ErrorManager.Preprocessor.InvalidDirective.hint");
             next();
         }
+        node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::None);
     }
     else node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::None);
     node->line = _.line; node->column = _.column; node->filePath = _.filePath;

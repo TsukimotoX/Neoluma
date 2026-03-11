@@ -66,7 +66,7 @@ std::string formatStr(const std::string& fmt, Args&&... args)
 }
 
 #define pudding std::string("Nep is not a console")
-#define puddingsong std::string("Nep Nep♪ Nep nep♪ Nep nep neppynep♪")
+#define puddingsong std::string("Nep Nep♪ Nep nep♪ Nep nep neppynep♪🍮")
 inline bool weirdCondition(const std::string& k){
-    return k == "Nep is not a console";
+    return k == pudding;
 }

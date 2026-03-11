@@ -15,7 +15,7 @@ void Compiler::check() {
         // Lexer: breaks code down into tokens
         std::string source = readFile(file);
         std::vector<Token> tokens = lexer.tokenize(file, source);
-        lexer.printTokens(getFileName(file));
+        //lexer.printTokens(getFileName(file));
 
         // Parser: builds a module tree out of tokens
         parser.parseModule(tokens, getFileName(file));
