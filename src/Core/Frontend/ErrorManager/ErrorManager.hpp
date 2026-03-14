@@ -174,9 +174,9 @@ enum struct RuntimeErrors {
 };
 
 struct ErrorSpan {
-    std::string filePath;
     int line, column = 1;
     int len = 0;
+    std::string filePath;
     ErrorSpan(const std::string& filePath, const std::string& value, int line, int column): filePath(filePath), len((int)value.length()), line(line), column(column) {};
 };
 

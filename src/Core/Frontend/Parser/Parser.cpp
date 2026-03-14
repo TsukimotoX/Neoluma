@@ -1,10 +1,4 @@
-#include "../Nodes.hpp"
-#include "Parser.hpp"
-#include "../Token.hpp"
-#include "../../../HelperFunctions.hpp"
-#include "ASTBuilder.hpp"
 #include <iostream>
-#include <unordered_set>
 #include <print>
 #include <typeinfo>
 
@@ -12,12 +6,16 @@
 #include "Libraries/Color/Color.hpp"
 #include "Libraries/Localization/Localization.hpp"
 
-// TODO: Clean up the token saving at the start of every function (the one used for errors)
+#include "../Nodes.hpp"
+#include "Parser.hpp"
+#include "../Token.hpp"
+#include "../../../HelperFunctions.hpp"
+#include "ASTBuilder.hpp"
 
 // ==== Print the parser output ====
 void Parser::printModule(int indentation) {
     if (!moduleSource) {
-        std::cerr << "[Neoluma/Parser]["<< __func__ << "] No module to print.\n";
+        std::println(std::cerr, "[Neoluma/Parser][\"{}\"] No module to print.", __func__);
         return;
     }
 
@@ -33,6 +31,7 @@ void Parser::parseModule(const std::vector<Token>& tok, const std::string& name)
     moduleNode->line = 0; moduleNode->column = 0; moduleNode->filePath = curToken().filePath;
     auto dn = getDelimeterNames();
 
+    // FIXME: Reevaluate why the fuck this duct tape method exists. Remake safety guards, since i don't remember it's purpose
     while (!isAtEnd()) {
         if (curToken().type == TokenType::Delimeter && curToken().value == dn[Delimeters::Semicolon]) { next(); continue; }
 
@@ -43,7 +42,6 @@ void Parser::parseModule(const std::vector<Token>& tok, const std::string& name)
 
             size_t startPos = pos;
             int guard = 0;
-            auto dn = getDelimeterNames();
             while (!isAtEnd() && guard++ < 100){
                 if (isNextLine()){
                     next();
@@ -72,9 +70,8 @@ void Parser::parseModule(const std::vector<Token>& tok, const std::string& name)
 
 // ==== Statement parsing ====
 MemoryPtr<ASTNode> Parser::parseStatement() {
-    while (isNextLine()) { // Skips newlines in case they ever appear
-        next();
-    }
+    while (isNextLine()) next(); // Skips newlines in case they ever appear
+
     Token token = curToken();
     auto km = getKeywordMap();
     auto dm = getDelimeterMap();
@@ -253,8 +250,7 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
             std::vector<MemoryPtr<ASTNode>> exprs;
             while (!match(TokenType::Delimeter, dn[Delimeters::RightParen])) {
                 MemoryPtr<ASTNode> expr = parseExpression();
-                if (!expr)
-                {
+                if (!expr) {
                     compiler->errorManager.addError(
                     ErrorType::Syntax, SyntaxErrors::MissingToken,
                     ErrorSpan{token.filePath, token.value, token.line, token.column},
@@ -288,13 +284,11 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
                 return ASTBuilder::createLambda(std::move(exprs), std::move(block));
             }
             // todo: change to a more safe option to move
-            return std::move(exprs[0]);
+            return std::move(exprs.front());
         }
         // Arrays
         if (token.value == dn[Delimeters::LeftBracket]) {
-            if (lookBack().type == TokenType::Identifier && (lookupNext().type == TokenType::Delimeter && lookupNext().value == dn[Delimeters::RightBracket])) {
-                next();
-            }
+            if (lookBack().type == TokenType::Identifier && (lookupNext().type == TokenType::Delimeter && lookupNext().value == dn[Delimeters::RightBracket])) next();
             else {
                 // TODO: implement the strict types for arrays, sets, dicts?
                 next();
@@ -321,7 +315,11 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
                 while (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
                     auto key = parseExpression();
                     if (!match(TokenType::Delimeter, dn[Delimeters::Colon])) {
-                        std::println(std::cerr, "[Neoluma/Parser][{}] Could not find colon after key '{}' (L{}:{})", __func__, key->value, token.line, token.column);
+                        //FIXME: This is technically undetectable, because isDict is detected EXACTLY by checking for colon.
+                        //This should be fixed by checking the type of the value.
+                        compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::MissingToken,
+                            ErrorSpan{curToken().filePath, curToken().value, curToken().line, curToken().column},
+                            "ErrorManager.Syntax.MissingToken.dictColonAfterKey.message", {key->value});
                         return nullptr;
                     }
                     next();
@@ -360,30 +358,24 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
     else if (token.type == TokenType::Identifier) {
         Token id = next();
         MemoryPtr<ASTNode> node;
-        //std::println("{}", id.value);
 
         // If function call
         if (match(TokenType::Delimeter, dn[Delimeters::LeftParen])) {
             next();
-
-            //std::println("Assuming it's a function call");
             std::vector<MemoryPtr<ASTNode>> args;
 
             while (!match(TokenType::Delimeter, dn[Delimeters::RightParen])) {
                 auto arg = parseExpression();
                 if (arg) args.push_back(std::move(arg));
-                //std::println("Parsed {}", args.back()->value);
 
                 if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
                 else break;
             }
-            //std::println("I closed the args with ')', current token: {}", curToken().value);
             if (!match(TokenType::Delimeter, dn[Delimeters::RightParen])) {
                 compiler->errorManager.addError(
                     ErrorType::Syntax, SyntaxErrors::MissingToken,
                     ErrorSpan{token.filePath, token.value, token.line, token.column},
-                    "Missing ')' after arguments");
-                //std::println(std::cerr, "[Neoluma/Parser][{}] Expected ')' after arguments (L{}:{})", __func__, token.line, token.column);
+                    "ErrorManager.Syntax.MissingToken.message", {")"});
                 return nullptr;
             }
             next();
@@ -571,7 +563,7 @@ MemoryPtr<IfNode> Parser::parseIf() {
 }
 
 MemoryPtr<SwitchNode> Parser::parseSwitch() {
-    auto _ = curToken();
+    auto token = curToken();
     next();
     auto dm = getDelimeterNames();
     auto km = getKeywordNames();
@@ -650,12 +642,12 @@ MemoryPtr<SwitchNode> Parser::parseSwitch() {
     }
     next();
     auto node = ASTBuilder::createSwitch(std::move(expr), std::move(cases), std::move(defaultCase));
-    node->line = _.line; node->column = _.column; node->filePath = _.filePath;
+    node->line = token.line; node->column = token.column; node->filePath = token.filePath;
     return node;
 };
 
 MemoryPtr<TryCatchNode> Parser::parseTryCatch() {
-    auto _ = curToken();
+    auto token = curToken();
     next();
     auto km = getKeywordNames();
     auto dn = getDelimeterNames();
@@ -699,12 +691,12 @@ MemoryPtr<TryCatchNode> Parser::parseTryCatch() {
     }
 
     auto node = ASTBuilder::createTryCatch(std::move(tryBlock), std::move(exception), std::move(catchBlock));
-    node->line = _.line; node->column = _.column; node->filePath = _.filePath;
+    node->line = token.line; node->column = token.column; node->filePath = token.filePath;
     return node;
 }
 
 MemoryPtr<ForLoopNode> Parser::parseFor() {
-    auto _ = curToken();
+    auto token = curToken();
     next();
     auto dm = getDelimeterNames();
 
@@ -748,12 +740,12 @@ MemoryPtr<ForLoopNode> Parser::parseFor() {
     }
 
     auto node = ASTBuilder::createForLoop(std::move(varNode), std::move(iterable), std::move(body));
-    node->line = _.line; node->column = _.column; node->filePath = _.filePath;
+    node->line = token.line; node->column = token.column; node->filePath = token.filePath;
     return node;
 }
 
 MemoryPtr<WhileLoopNode> Parser::parseWhile() {
-    auto _ = curToken();
+    auto token = curToken();
     next();
     auto dm = getDelimeterNames();
 
@@ -780,7 +772,7 @@ MemoryPtr<WhileLoopNode> Parser::parseWhile() {
     }
 
     auto node = ASTBuilder::createWhileLoop(std::move(condition), std::move(body));
-    node->line = _.line; node->column = _.column; node->filePath = _.filePath;
+    node->line = token.line; node->column = token.column; node->filePath = token.filePath;
     return node;
 }
 
@@ -955,7 +947,6 @@ MemoryPtr<BlockNode> Parser::parseBlock() {
 
             size_t startPos = pos;
             int guard = 0;
-            auto dn = getDelimeterNames();
             while (!isAtEnd() && guard++ < 100){
                 if (isNextLine()){ next(); break; }
                 if (match(TokenType::Delimeter, dn[Delimeters::RightBraces])){ break; }
@@ -1122,7 +1113,7 @@ std::vector<MemoryPtr<ModifierNode>> Parser::parseModifiers() {
 }
 
 MemoryPtr<ASTNode> Parser::parsePreprocessor() {
-    Token _ = curToken();
+    Token token = curToken();
     auto pn = getPreprocessorNames();
     auto kn = getKeywordNames();
     MemoryPtr<ASTNode> node;
@@ -1182,14 +1173,14 @@ MemoryPtr<ASTNode> Parser::parsePreprocessor() {
         next();
         if (match(TokenType::String, "neptunia")){
             compiler->errorManager.addError(
-            ErrorType::None, PreprocessorErrors::InvalidConsoleArgument, ErrorSpan{_.filePath, "neptunia", _.line, _.column},
+            ErrorType::None, PreprocessorErrors::InvalidConsoleArgument, ErrorSpan{token.filePath, "neptunia", token.line, token.column},
             "Nep is not a console", {},
             "Nep Nep♪ Nep nep♪ Nep nep neppynep♪🍮");
             next();
         } else {
             compiler->errorManager.addError(
                 ErrorType::Preprocessor, PreprocessorErrors::InvalidDirective,
-                ErrorSpan{_.filePath, "console", _.line, _.column},
+                ErrorSpan{token.filePath, "console", token.line, token.column},
                 "ErrorManager.Preprocessor.InvalidDirective.message", {"console"},
                 "ErrorManager.Preprocessor.InvalidDirective.hint");
             next();
@@ -1197,7 +1188,7 @@ MemoryPtr<ASTNode> Parser::parsePreprocessor() {
         node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::None);
     }
     else node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::None);
-    node->line = _.line; node->column = _.column; node->filePath = _.filePath;
+    node->line = token.line; node->column = token.column; node->filePath = token.filePath;
     return node;
 }
 

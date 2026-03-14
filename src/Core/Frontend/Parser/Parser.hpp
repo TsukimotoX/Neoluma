@@ -3,7 +3,7 @@
 #include "../Lexer/Lexer.hpp"
 #include "../Nodes.hpp"
 #include "../Token.hpp"
-#include <iostream>
+
 
 struct Compiler;
 
@@ -86,6 +86,4 @@ struct Parser {
     bool isNextLine();
     // Lookahead helper to check if upcoming tokens form an assignable lvalue followed by an assignment operator
     bool isAssignableAhead(size_t offset = 0);
-
-    //Token statementAnchor; // statementAnchor allows errorManager to refer to the statement itself instead of decorators and modifiers for it. Example: function, class, etc.
 };

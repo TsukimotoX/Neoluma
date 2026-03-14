@@ -9,7 +9,7 @@
 			"hint": "Clear it, or make sure you typed it correctly."
 		},
 		"MissingToken": {
-			"message": "Missing Token",
+			"message": "Missing Token: '{}'",
 
 			"noVariableAfter": {
 				"message": "Missing variable after '{}'",
@@ -21,6 +21,9 @@
 			},
 			"missingExpressionLambda": {
 				"message": "Missing expression after '{}' in lambda expression"
+			},
+			"dictColonAfterKey": {
+				"message": "Could not find colon after key '{}'"
 			}
 		},
 		"InvalidStatement": {
