@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4096 1024" width="4096" height="1024" role="img" aria-label="Neoluma wordmark">
+  <defs>
+    <linearGradient id="gLogoNeo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A2BD6"/>
+      <stop offset="100%" stop-color="#7B5BFF"/>
+    </linearGradient>
+    <linearGradient id="gLogoLumen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(-912.5,0)">
+    <!-- N -->
+    <path d="M1200,704
+    L1200,320
+    M1200,320
+    L1584,704
+    M1584,704
+    L1584,320
+    M1584,320
+    Z" fill="none" stroke="url(#gLogoNeo)" stroke-width="100" stroke-linecap="round" />
+
+    <!-- e -->
+    <path d="M1760,512
+    L2134,512
+    M2134,512
+    A 192 192 0 1 0 2050 672
+    " fill="none" stroke="url(#gLogoNeo)" stroke-width="100" stroke-linecap="round" />
+
+    <!-- o -->
+    <circle r="192" fill="none" cx="2470" cy="512" stroke="url(#gLogoNeo)" stroke-width="100" stroke-linecap="round" />
+
+    <!-- L -->
+    <path d="M2850,320
+    L2850,704
+    M2850,704
+    L3106,704
+    " fill="none" stroke="url(#gLogoLumen)" stroke-width="100" stroke-linecap="round" />
+
+    <!-- u -->
+    <path d="M3248,320
+    L3248,548
+    M3248,548
+    A 128 118 0 1 0 3604,548
+    M3604,548
+    L3604,320
+    " fill="none" stroke="url(#gLogoLumen)" stroke-width="100" stroke-linecap="round" />
+
+    <!-- M -->
+    <path d="M3750,704
+    L3858,320
+    M3858,320
+    L3966,704
+    M3966,704
+    L4075,320
+    M4075,320
+    L4184,704
+    M4184,704
+    Z" fill="none" stroke="url(#gLogoLumen)" stroke-width="100" stroke-linecap="round" />
+
+    <!-- A -->
+    <path d="M4325,704
+    L4529,320
+    M4529,320
+    L4721,704
+    M4432,558
+    L4645,558
+    " fill="none" stroke="url(#gLogoLumen)" stroke-width="100" stroke-linecap="round" />
+  </g>
+</svg>
