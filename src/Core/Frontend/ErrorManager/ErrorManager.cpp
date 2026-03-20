@@ -7,15 +7,6 @@
 #include "HelperFunctions.hpp"
 #include "Libraries/Localization/Localization.hpp"
 
-static int normalizeLine(int line) {
-    if (line <= 0) return 0;
-    return line;
-}
-
-static int normalizeColumn(int col) {
-    return (col < 0) ? 0 : col;
-}
-
 void ErrorManager::printErrors() {
     if (errors.empty()) return;
 
