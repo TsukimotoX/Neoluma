@@ -315,8 +315,6 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
                 while (!match(TokenType::Delimeter, dn[Delimeters::RightBraces])) {
                     auto key = parseExpression();
                     if (!match(TokenType::Delimeter, dn[Delimeters::Colon])) {
-                        //FIXME: This is technically undetectable, because isDict is detected EXACTLY by checking for colon.
-                        //This should be fixed by checking the type of the value.
                         compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::MissingToken,
                             ErrorSpan{curToken().filePath, curToken().value, curToken().line, curToken().column},
                             "ErrorManager.Syntax.MissingToken.dictColonAfterKey.message", {key->value});
