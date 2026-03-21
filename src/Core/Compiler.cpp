@@ -1,4 +1,5 @@
 #include "Compiler.hpp"
+#include "Libraries/Color/Color.hpp"
 
 Compiler::Compiler(ProjectConfig& config) : projectManager(config) {
     for (const auto& file : std:: filesystem::recursive_directory_iterator(std::filesystem::path(config.sourcePath) / config.sourceFolder, std::filesystem::directory_options::skip_permission_denied)) {
@@ -8,6 +9,7 @@ Compiler::Compiler(ProjectConfig& config) : projectManager(config) {
     lexer.setCompiler(this);
     parser.setCompiler(this);
     orchestrator.setCompiler(this);
+    analysis.setCompiler(this);
 }
 
 void Compiler::check() {

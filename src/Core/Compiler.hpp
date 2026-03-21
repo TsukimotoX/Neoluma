@@ -3,17 +3,16 @@
 #include "Frontend/Parser/Parser.hpp"
 #include "Extras/ProjectManager/ProjectManager.hpp"
 #include "Frontend/ErrorManager/ErrorManager.hpp"
-//#include "Frontend/SemanticAnalysis/SemanticAnalysis.hpp"
+#include "Frontend/SemanticAnalysis/SemanticAnalysis.hpp"
 
 #include "Frontend/Orchestrator/Orchestrator.hpp"
-#include "Libraries/Color/Color.hpp"
 #include "Libraries/Localization/Localization.hpp"
 
 struct Compiler {
     // All parts of compiler
     Lexer lexer;
     Parser parser;
-    //SemanticAnalysis analysis;
+    SemanticAnalysis analysis;
 
     ProjectManager projectManager;
     ErrorManager errorManager;

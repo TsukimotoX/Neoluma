@@ -1,306 +1,204 @@
-/*
- *#include "SemanticAnalysis.hpp"
+#include "SemanticAnalysis.hpp"
 
-// this is ai-generated for now, i will fix it later i swear
-
-void SemanticAnalysis::pushScope() {
-    scopes.emplace_back();
+// ==== Main function ====
+void SemanticAnalysis::analyzeProgram(const ProgramUnit& program, const std::vector<ModuleInfo>& infos){
+    for (ModuleId id : program.order)
+        analyzeModule(infos[id].module);
 }
 
-void SemanticAnalysis::popScope() {
-    if (!scopes.empty()) scopes.pop_back();
+/* Module analysis usually breaks down into two passes
+ * 1. Declaration - we get all the symbols used in code, before checking their work logic
+ * 2. Analysis - we pass through the whole module body, calling each analyze* for each part
+ */
+void SemanticAnalysis::analyzeModule(ModuleNode* module) {
+    pushScope();
+
+    // Declaration pass
+    for (const auto& statement : module->body){
+        if (match(statement.get(), ASTNodeType::Function)) {
+            auto* node = static_cast<FunctionNode*>(statement.get());
+            bool isConst = false;
+            for (auto& modifier : node->modifiers) if (modifier.get()->modifier == ASTModifierType::Const) isConst = true;
+            declareName(node->name, Symbol{Symbol::Kind::Function, isConst, node->filePath, node->line, node->column}, node);
+        }
+        else if (match(statement.get(), ASTNodeType::Class)) {
+            auto* node = static_cast<ClassNode*>(statement.get());
+            bool isConst = false;
+            for (auto& modifier : node->modifiers) if (modifier.get()->modifier == ASTModifierType::Const) isConst = true;
+            declareName(node->name, Symbol{Symbol::Kind::Class, isConst, node->filePath, node->line, node->column}, node);
+        }
+        else if (match(statement.get(), ASTNodeType::Enum)) {
+            auto* node = static_cast<EnumNode*>(statement.get());
+            bool isConst = false;
+            for (auto& modifier : node->modifiers) if (modifier.get()->modifier == ASTModifierType::Const) isConst = true;
+            declareName(node->name, Symbol{Symbol::Kind::Enum, isConst, node->filePath, node->line, node->column}, node);
+        }
+        else if (match(statement.get(), ASTNodeType::Interface)) {
+            auto* node = static_cast<InterfaceNode*>(statement.get());
+            bool isConst = false;
+            for (auto& modifier : node->modifiers) if (modifier.get()->modifier == ASTModifierType::Const) isConst = true;
+            declareName(node->name, Symbol{Symbol::Kind::Interface, isConst, node->filePath, node->line, node->column}, node);
+        }
+        else if (match(statement.get(), ASTNodeType::Decorator)) {
+            auto* node = static_cast<DecoratorNode*>(statement.get());
+            bool isConst = false;
+            for (auto& modifier : node->modifiers) if (modifier.get()->modifier == ASTModifierType::Const) isConst = true;
+            declareName(node->name, Symbol{Symbol::Kind::Decorator, isConst, node->filePath, node->line, node->column}, node);
+        }
+    }
+
+    // Analysis pass
+    for (const auto& statement : module->body)
+        analyzeStatement(statement.get());
+
+    popScope();
 }
 
-void SemanticAnalysis::report(ASTNode* at, const std::string& msg) {
-    errorCount++;
-    if (at) {
-        std::println("[Semantic] {} at {}:{} in {}", msg, at->line, at->column, at->filePath);
-    } else {
-        std::println("[Semantic] {}", msg);
+void SemanticAnalysis::analyzeFunction(FunctionNode* node) {
+    pushScope();
+    functionDepth++;
+
+    for (const auto& parameter : node->parameters) {
+        if (findName(parameter->parameterName)) {
+            compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::DuplicateParameterName,
+                ErrorSpan{parameter->filePath, parameter->parameterName, parameter->line, parameter->column},
+                "ErrorManager.Analysis.DuplicateParameterName.message", {parameter->parameterName, node->name},
+                "ErrorManager.Analysis.DuplicateParameterName.hint");
+            return;
+        }
+
+        //FIXME: Right now parameters do not support const. this must be addressed.
+        declareName(parameter->parameterName, Symbol{Symbol::Kind::Parameter, false, node->filePath, node->line, node->column}, parameter.get());
+
+        if (parameter->defaultValue) analyzeExpression(parameter->defaultValue.get());
+    }
+
+    analyzeBlock(node->body.get());
+    functionDepth--;
+    popScope();
+}
+
+void SemanticAnalysis::analyzeBlock(BlockNode* node) {
+    pushScope();
+
+    for (const auto& statement : node->statements)
+        analyzeStatement(statement.get());
+
+    popScope();
+}
+
+void SemanticAnalysis::analyzeStatement(ASTNode* statement) {
+    switch (statement->type) {
+        case ASTNodeType::Block: analyzeBlock(static_cast<BlockNode*>(statement)); break;
+        case ASTNodeType::Declaration: analyzeDeclaration(static_cast<DeclarationNode*>(statement)); break;
+        case ASTNodeType::Assignment: analyzeAssignment(static_cast<AssignmentNode*>(statement)); break;
+        case ASTNodeType::Function: analyzeFunction(static_cast<FunctionNode*>(statement)); break;
+        case ASTNodeType::Class: analyzeClass(static_cast<ClassNode*>(statement)); break;
+        case ASTNodeType::Enum: analyzeEnum(static_cast<EnumNode*>(statement)); break;
+        case ASTNodeType::Interface: analyzeInterface(static_cast<InterfaceNode*>(statement)); break;
+        case ASTNodeType::CallExpression: analyzeCallExpression(static_cast<CallExpressionNode*>(statement)); break;
+        case ASTNodeType::Decorator: analyzeDecorator(static_cast<DecoratorNode*>(statement)); break;
+        case ASTNodeType::IfStatement: analyzeIf(static_cast<IfNode*>(statement)); break;
+        case ASTNodeType::Switch: analyzeSwitch(static_cast<SwitchNode*>(statement)); break;
+        case ASTNodeType::WhileLoop: analyzeWhile(static_cast<WhileLoopNode*>(statement)); break;
+        case ASTNodeType::ForLoop: analyzeFor(static_cast<ForLoopNode*>(statement)); break;
+        case ASTNodeType::TryCatch: analyzeTryCatch(static_cast<TryCatchNode*>(statement)); break;
+        case ASTNodeType::ReturnStatement: analyzeReturn(static_cast<ReturnStatementNode*>(statement)); break;
+        case ASTNodeType::ThrowStatement: analyzeThrow(static_cast<ThrowStatementNode*>(statement)); break;
+        case ASTNodeType::BreakStatement: analyzeBreak(static_cast<BreakStatementNode*>(statement)); break;
+        case ASTNodeType::ContinueStatement: analyzeContinue(static_cast<ContinueStatementNode*>(statement)); break;
+        case ASTNodeType::Lambda: analyzeLambda(static_cast<LambdaNode*>(statement)); break;
+        case ASTNodeType::Import: break; // Imports are already resolved by the Orchestrator
+        default: analyzeExpression(statement); break;
     }
 }
 
-bool SemanticAnalysis::declareName(const std::string& name, Symbol sym, ASTNode* where) {
-    if (scopes.empty()) pushScope();
-    auto& top = scopes.back();
+void SemanticAnalysis::analyzeDeclaration(DeclarationNode* node) {
+    // at first you make sure what the value is to not screw up with x := x being undefined
+    if (node->value) analyzeExpression(node->value.get());
 
-    if (top.contains(name)) {
-        report(where, std::format("Redefined name '{}'", name));
+    if (node->isTypeInference == true && node->rawType) {
+        auto type = resolveType(node->rawType.get());
+        if (type == ResolvedType::Unknown)
+            compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::UnknownType,
+        ErrorSpan{node->rawType->filePath, node->rawType->varType->varName, node->rawType->line, node->rawType->column},
+        "ErrorManager.Analysis.UnknownType.message", {node->rawType->varType->varName, node->variable->varName},
+        "ErrorManager.Analysis.UnknownType.hint");
+    }
+
+    bool isConst = false;
+    for (auto& modifier : node->modifiers) if (modifier.get()->modifier == ASTModifierType::Const) isConst = true;
+    declareName(node->variable->varName, Symbol{Symbol::Kind::Variable, isConst, node->filePath, node->line, node->column}, node);
+}
+
+// analyzeAssignment next and etc.
+
+ResolvedType SemanticAnalysis::resolveType(RawTypeNode* type) {
+    auto varType = type->varType.get()->varName;
+    auto tm = getTypeMap();
+
+    // first check built-ins
+    if (tm.contains(varType)) return tm.find(varType)->second;
+
+    // well, perhaps it's user-defined?
+    auto* userDefined = findName(varType);
+    if (userDefined && (userDefined->kind == Symbol::Kind::Class || userDefined->kind == Symbol::Kind::Enum || userDefined->kind == Symbol::Kind::Interface)) return ResolvedType::UserDefined;
+
+    // The type is unknown. Error message context is added at parent call.
+    return ResolvedType::Unknown;
+}
+
+// ==== Helpers ====
+
+void SemanticAnalysis::pushScope() { scopes.emplace_back(); }
+
+void SemanticAnalysis::popScope() { if (!scopes.empty()) scopes.pop_back(); }
+
+bool SemanticAnalysis::declareName(const std::string& name, Symbol symbol, ASTNode* node)
+{
+    if (scopes.empty()) pushScope();
+    auto& parent = scopes.back();
+
+    if (parent.contains(name)){
+        compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::RedefinedVariable,
+            ErrorSpan{node->filePath, node->value, node->line, node->column},
+            "ErrorManager.Analysis.RedefinedVariable.message", {node->value},
+            "ErrorManager.Analysis.RedefinedVariable.hint");
         return false;
     }
 
-    if (where) {
-        sym.file = where->filePath;
-        sym.line = where->line;
-        sym.col  = where->column;
-    }
+    symbol.filePath = node->filePath;
+    symbol.line = node->line;
+    symbol.column = node->column;
 
-    top.emplace(name, std::move(sym));
+    parent.emplace(name, symbol);
     return true;
 }
 
 SemanticAnalysis::Symbol* SemanticAnalysis::findName(const std::string& name) {
-    for (int i = (int)scopes.size() - 1; i >= 0; --i) {
-        auto it = scopes[i].find(name);
-        if (it != scopes[i].end()) return &it->second;
+    for (int i = (int)scopes.size()-1; i >= 0; i--){
+        if (scopes[i].contains(name))
+            return &scopes[i].find(name)->second;
     }
     return nullptr;
 }
 
-void SemanticAnalysis::visit(ASTNode* node) {
-    if (!node) return;
+const EResolvedType typesMap[] = {
+    { ResolvedType::Int8, "int8" }, { ResolvedType::Int16, "int16" }, { ResolvedType::Int, "int" }, { ResolvedType::Int64, "int64" },
+    { ResolvedType::Int128, "int128" }, { ResolvedType::UInt8, "uint8" }, { ResolvedType::UInt16, "uint16" }, { ResolvedType::UInt, "uint" },
+    { ResolvedType::UInt64, "uint64" }, { ResolvedType::UInt128, "uint128" }, { ResolvedType::Float32, "float32" }, { ResolvedType::Float64, "float64" },
+    { ResolvedType::Number, "number" }, { ResolvedType::Bool, "bool" }, { ResolvedType::String, "string" }, { ResolvedType::Array, "array" },
+    { ResolvedType::Dict, "dict" }, { ResolvedType::Set, "set" }, { ResolvedType::Result, "result" }, { ResolvedType::Void, "void" },
+};
 
-    switch (node->type) {
-        case ASTNodeType::Module:
-            visitModule(static_cast<ModuleNode*>(node));
-            break;
-
-        case ASTNodeType::Block:
-            visitBlock(static_cast<BlockNode*>(node));
-            break;
-
-        case ASTNodeType::Declaration:
-            visitDeclaration(static_cast<DeclarationNode*>(node));
-            break;
-
-        case ASTNodeType::Variable:
-            visitVariable(static_cast<VariableNode*>(node));
-            break;
-
-        case ASTNodeType::Assignment:
-            visitAssignment(static_cast<AssignmentNode*>(node));
-            break;
-
-        case ASTNodeType::Function:
-            visitFunction(static_cast<FunctionNode*>(node));
-            break;
-
-        case ASTNodeType::CallExpression:
-            visitCall(static_cast<CallExpressionNode*>(node));
-            break;
-
-        case ASTNodeType::IfStatement:
-            visitIf(static_cast<IfNode*>(node));
-            break;
-
-        case ASTNodeType::WhileLoop:
-            visitWhile(static_cast<WhileLoopNode*>(node));
-            break;
-
-        case ASTNodeType::ForLoop:
-            visitFor(static_cast<ForLoopNode*>(node));
-            break;
-
-        case ASTNodeType::ReturnStatement:
-            visitReturn(static_cast<ReturnStatementNode*>(node));
-            break;
-
-        case ASTNodeType::BreakStatement:
-            visitBreak(static_cast<BreakStatementNode*>(node));
-            break;
-
-        case ASTNodeType::ContinueStatement:
-            visitContinue(static_cast<ContinueStatementNode*>(node));
-            break;
-
-        // expressions that contain children:
-        case ASTNodeType::BinaryOperation: {
-            auto* b = static_cast<BinaryOperationNode*>(node);
-            visit(b->leftOperand.get());
-            visit(b->rightOperand.get());
-            break;
-        }
-        case ASTNodeType::UnaryOperation: {
-            auto* u = static_cast<UnaryOperationNode*>(node);
-            visit(u->operand.get());
-            break;
-        }
-        case ASTNodeType::MemberAccess: {
-            auto* m = static_cast<MemberAccessNode*>(node);
-            visit(m->parent.get());
-            visit(m->val.get());
-            break;
-        }
-
-        default:
-            // Literal / Array / Set / Dict / Class / etc — пока можно не трогать
-            break;
-    }
+const std::unordered_map<std::string, ResolvedType>& getTypeMap() {
+    static std::unordered_map<std::string, ResolvedType> map;
+    if (map.empty()) for (auto& k : typesMap) map[k.name] = k.type;
+    return map;
 }
 
-// ====== top-level ======
-void SemanticAnalysis::visitModule(ModuleNode* module) {
-    if (!module) return;
-
-    // module scope
-    pushScope();
-
-    // Pass 1: predeclare top-level functions (чтобы можно было вызывать до определения)
-    for (auto& st : module->body) {
-        if (!st) continue;
-        if (st->type == ASTNodeType::Function) {
-            auto* fn = static_cast<FunctionNode*>(st.get());
-            declareName(fn->name, Symbol{SymbolKind::Function}, fn);
-        }
-    }
-
-    // Pass 2: walk everything
-    for (auto& st : module->body) {
-        visit(st.get());
-    }
-
-    popScope();
+const std::unordered_map<ResolvedType, std::string>& getTypeNames() {
+    static std::unordered_map<ResolvedType, std::string> map;
+    if (map.empty()) for (auto& k : typesMap) map[k.type] = k.name;
+    return map;
 }
-
-// ====== blocks / vars ======
-void SemanticAnalysis::visitBlock(BlockNode* block) {
-    if (!block) return;
-
-    pushScope();
-    for (auto& st : block->statements) {
-        visit(st.get());
-    }
-    popScope();
-}
-
-void SemanticAnalysis::visitDeclaration(DeclarationNode* declaration) {
-    if (!declaration) return;
-
-    // initializer first: var x = x  -> UndefinedVariable
-    visit(declaration->value.get());
-
-    if (!declaration->variable) return;
-    const std::string name = declaration->variable->varName;
-
-    Symbol s{SymbolKind::Variable};
-    s.rawType = declaration->rawType;
-    declareName(name, s, declaration);
-}
-
-void SemanticAnalysis::visitVariable(VariableNode* variable) {
-    if (!variable) return;
-
-    if (!findName(variable->varName)) {
-        report(variable, std::format("Undefined variable '{}'", variable->varName));
-    }
-}
-
-void SemanticAnalysis::visitAssignment(AssignmentNode* assignment) {
-    if (!assignment) return;
-
-    // RHS
-    visit(assignment->value.get());
-
-    // LHS must be lvalue: Variable or MemberAccess
-    if (!assignment->variable) return;
-
-    auto t = assignment->variable->type;
-    if (!(t == ASTNodeType::Variable || t == ASTNodeType::MemberAccess)) {
-        report(assignment, "Assignment to non-lvalue");
-        return;
-    }
-
-    // ensure the lvalue is valid (for Variable it checks declared)
-    visit(assignment->variable.get());
-}
-
-// ====== functions / control flow ======
-void SemanticAnalysis::visitFunction(FunctionNode* function) {
-    if (!function) return;
-
-    functionDepth++;
-    pushScope();
-
-    // params as locals + duplicate check
-    std::unordered_map<std::string, bool> seen;
-    for (auto& p : function->parameters) {
-        if (!p) continue;
-
-        if (seen.contains(p->parameterName)) {
-            report(p.get(), std::format("Duplicate parameter '{}'", p->parameterName));
-        } else {
-            seen[p->parameterName] = true;
-            Symbol s{SymbolKind::Parameter};
-            s.rawType = p->parameterRawType;
-            declareName(p->parameterName, s, p.get());
-        }
-
-        visit(p->defaultValue.get());
-    }
-
-    visit(function->body.get());
-
-    popScope();
-    functionDepth--;
-}
-
-void SemanticAnalysis::visitCall(CallExpressionNode* call) {
-    if (!call) return;
-
-    visit(call->callee.get());
-    for (auto& a : call->arguments) visit(a.get());
-
-    // If callee is VariableNode => must exist and be function
-    if (call->callee && call->callee->type == ASTNodeType::Variable) {
-        auto* v = static_cast<VariableNode*>(call->callee.get());
-        auto* sym = findName(v->varName);
-        if (!sym) {
-            report(call, std::format("Undefined function '{}'", v->varName));
-        } else if (sym->kind != SymbolKind::Function) {
-            report(call, std::format("'{}' is not a function", v->varName));
-        }
-    }
-}
-
-void SemanticAnalysis::visitIf(IfNode* node) {
-    if (!node) return;
-    visit(node->condition.get());
-    visit(node->thenBlock.get());
-    visit(node->elseBlock.get());
-}
-
-void SemanticAnalysis::visitWhile(WhileLoopNode* node) {
-    if (!node) return;
-    visit(node->condition.get());
-    loopDepth++;
-    visit(node->body.get());
-    loopDepth--;
-}
-
-void SemanticAnalysis::visitFor(ForLoopNode* node) {
-    if (!node) return;
-
-    visit(node->iterable.get());
-
-    loopDepth++;
-    pushScope();
-
-    // for-loop variable exists inside loop scope
-    if (node->variable) {
-        declareName(node->variable->varName, Symbol{SymbolKind::Variable}, node->variable.get());
-    }
-    visit(node->body.get());
-
-    popScope();
-    loopDepth--;
-}
-
-void SemanticAnalysis::visitReturn(ReturnStatementNode* node) {
-    if (!node) return;
-
-    if (functionDepth <= 0) {
-        report(node, "Return outside function");
-    }
-    visit(node->expression.get());
-}
-
-void SemanticAnalysis::visitBreak(BreakStatementNode* node) {
-    if (!node) return;
-    if (loopDepth <= 0) report(node, "Break outside loop");
-}
-
-void SemanticAnalysis::visitContinue(ContinueStatementNode* node) {
-    if (!node) return;
-    if (loopDepth <= 0) report(node, "Continue outside loop");
-}
-*/

@@ -2,71 +2,80 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <print>
-#include "Core/Frontend/Nodes.hpp"
+#include "Core/Compiler.hpp"
 
+// ResolvedType is an enum of types Neoluma compiler internally supports by default.
+enum class ResolvedType {
+    Int8, Int16, Int, Int64, Int128,
+    UInt8, UInt16, UInt, UInt64, UInt128,
+    Float32, Float64,
+    Number, Bool, String,
+    Array, Dict, Set, Result,
+    Void, UserDefined, Unknown
+};
+struct EResolvedType {
+    ResolvedType type;
+    std::string name;
+};
+const std::unordered_map<std::string, ResolvedType>& getTypeMap();
+const std::unordered_map<ResolvedType, std::string>& getTypeNames();
+
+// Semantic Analysis is a part of Frontend in Compiler responsible for logical part of the code.
 struct SemanticAnalysis {
+    Compiler* compiler = nullptr;
+    void setCompiler(Compiler* comp) { compiler = comp; }
 
-    // Main function
-    void visitModule(ModuleNode* module);
+    // Main entry
+    void analyzeProgram(const ProgramUnit& program, const std::vector<ModuleInfo>& infos);
 
-    // Visitors
-    void visitBlock(BlockNode* block);
-    void visitDeclaration(DeclarationNode* declaration);
-    void visitVariable(VariableNode* variable);
-    void visitAssignment(AssignmentNode* assignment);
-    void visitFunction(FunctionNode* function);
+    // Per-node analyzers
+    void analyzeModule(ModuleNode* module);
+    void analyzeBlock(BlockNode* block);
+    void analyzeDeclaration(DeclarationNode* node);
+    void analyzeAssignment(AssignmentNode* node);
+    void analyzeFunction(FunctionNode* node);
+    void analyzeClass(ClassNode* node);
+    void analyzeEnum(EnumNode* node);
+    void analyzeInterface(InterfaceNode* node);
+    void analyzeCallExpression(CallExpressionNode* node);
+    void analyzeDecorator(DecoratorNode* node);
+    void analyzeIf(IfNode* node);
+    void analyzeSwitch(SwitchNode* node);
+    void analyzeWhile(WhileLoopNode* node);
+    void analyzeFor(ForLoopNode* node);
+    void analyzeTryCatch(TryCatchNode* node);
+    void analyzeReturn(ReturnStatementNode* node);
+    void analyzeThrow(ThrowStatementNode* node);
+    void analyzeBreak(BreakStatementNode* node);
+    void analyzeContinue(ContinueStatementNode* node);
+    void analyzeLambda(LambdaNode* node);
+    void analyzeExpression(ASTNode* node); // dispatcher for expressions only
 
-    // Helper visitors
-    void visitCall(CallExpressionNode* call);
-    void visitIf(IfNode* node);
-    void visitWhile(WhileLoopNode* node);
-    void visitFor(ForLoopNode* node);
-    void visitReturn(ReturnStatementNode* node);
-    void visitBreak(BreakStatementNode* node);
-    void visitContinue(ContinueStatementNode* node);
+    void analyzeStatement(ASTNode* node);
+    ResolvedType resolveType(RawTypeNode* type);
 
 private:
-    enum class SymbolKind { Variable, Function, Parameter, Class, Enum, Interface, Decorator };
-
     struct Symbol {
-        SymbolKind kind;
-        std::string rawType = "None";
+        enum class Kind { Variable, Function, Parameter, Class, Enum, Interface, Decorator };
+        Kind kind;
         bool isConst = false;
-
-        std::string file;
-        int line = 0;
-        int col = 0;
+        std::string filePath;
+        int line = 0, column = 0;
     };
 
-    // Table of variables, basically
     std::vector<std::unordered_map<std::string, Symbol>> scopes;
-
     int loopDepth = 0;
     int functionDepth = 0;
-    int errorCount = 0;
 
-    // helpers
+    // Scope helpers
     void pushScope();
     void popScope();
-
-    bool declareName(const std::string& name, Symbol sym, ASTNode* where);
+    bool declareName(const std::string& name, Symbol symbol, ASTNode* node);
     Symbol* findName(const std::string& name);
 
-    // one dispatcher to walk any node
-    void visit(ASTNode* node);
-
-    // report
-    void report(ASTNode* at, const std::string& msg);
+    // just helpers
+    bool match(ASTNode* node, ASTNodeType type) {
+        if (node->type == type) return true;
+        return false;
+    }
 };
-
-// ## **Implementation Suggestions**
-//
-// For your semantic analyzer, you'll need:
-//
-// 1. **Symbol Table** - Track variables, functions, classes in scopes
-// 2. **Type Checker** - Validate type compatibility across operations
-// 3. **Scope Manager** - Handle nested scopes for blocks, functions, classes
-// 4. **Control Flow Analyzer** - Track reachability and proper break/continue usage
-// 5. **AST Walker** - Traverse your AST nodes systematically
-
