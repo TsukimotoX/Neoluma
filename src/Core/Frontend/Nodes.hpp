@@ -4,7 +4,7 @@
 #include <variant>
 
 #include "../../HelperFunctions.hpp"
-//#include "llvm/IR/Value.h"
+#include <llvm/IR/Value.h>
 
 enum struct ASTNodeType {
     Literal, Variable, MemberAccess, Declaration, Assignment, BinaryOperation, UnaryOperation, CallExpression,
@@ -55,7 +55,7 @@ struct ASTNode {
 
     virtual ~ASTNode();
     virtual std::string toString(int indent) const = 0;
-    //virtual llvm::LLVMContext generateCode(); // for the compiler to generate code from this AST node
+    virtual llvm::Value* generateCode(); // for the compiler to generate code from this AST node
 };
 
 // All nodes available in Neoluma
