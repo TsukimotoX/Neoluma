@@ -23,8 +23,6 @@ void SemanticAnalysis::analyzeProgram(const ProgramUnit& program, const std::vec
  * 2. Analysis - we pass through the whole module body, calling each analyze* for each part
  */
 void SemanticAnalysis::analyzeModule(ModuleNode* module) {
-    pushScope();
-
     // Declaration pass
     for (const auto& statement : module->body){
         if (match(statement.get(), ASTNodeType::Function)) {
@@ -58,8 +56,6 @@ void SemanticAnalysis::analyzeModule(ModuleNode* module) {
     // Analysis pass
     for (const auto& statement : module->body)
         analyzeStatement(statement.get());
-
-    popScope();
 }
 
 void SemanticAnalysis::analyzeExpression(ASTNode* node) {
@@ -103,14 +99,7 @@ void SemanticAnalysis::analyzeExpression(ASTNode* node) {
             }
             break;
         case ASTNodeType::Lambda: {
-            auto* lambda = static_cast<LambdaNode*>(node);
-            pushScope();
-
-            for (const auto& param : lambda->params) analyzeExpression(param.get());
-                analyzeStatement(lambda->body.get());
-
-            popScope();
-            break;
+            analyzeLambda(static_cast<LambdaNode*>(node)); break;
         }
         default:
             break;
@@ -122,7 +111,7 @@ void SemanticAnalysis::analyzeFunction(FunctionNode* node) {
     functionDepth++;
 
     for (const auto& parameter : node->parameters) {
-        if (findName(parameter->parameterName)) {
+        if (scopes.back().contains((parameter->parameterName))) {
             compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::DuplicateParameterName,
                 ErrorSpan{parameter->filePath, parameter->parameterName, parameter->line, parameter->column},
                 "ErrorManager.Analysis.DuplicateParameterName.message", {parameter->parameterName, node->name},
@@ -236,7 +225,7 @@ void SemanticAnalysis::analyzeCallExpression(CallExpressionNode* node) {
                 ErrorSpan{node->filePath, varName, node->line, node->column},
                 "ErrorManager.Analysis.DecoratorMisuse.message", {varName},
                 "ErrorManager.Analysis.DecoratorMisuse.hint");
-        else if (sym && !node->isDecoratorCall && sym->kind != Symbol::Kind::Function)
+        else if (sym && !node->isDecoratorCall && sym->kind != Symbol::Kind::Function && sym->kind != Symbol::Kind::Class)
             compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::FunctionMismatch,
                 ErrorSpan{node->filePath, varName, node->line, node->column},
                 "ErrorManager.Analysis.FunctionMismatch.message", {varName},
@@ -276,7 +265,7 @@ void SemanticAnalysis::analyzeFor(ForLoopNode* node) {
     pushScope();
 
     // FIXME: Find out how to get if it's the constant.
-    declareName(node->variable.get()->varName, Symbol{Symbol::Kind::Variable, false, node->variable->filePath, node->variable->line, node->variable->column}, node);
+    declareName(node->variable.get()->varName, Symbol{Symbol::Kind::Variable, false, node->variable->filePath, node->variable->line, node->variable->column}, node->variable.get());
     for (const auto& stmt : node->body->statements)
         analyzeStatement(stmt.get());
 
@@ -319,17 +308,20 @@ void SemanticAnalysis::analyzeThrow(ThrowStatementNode* node) {
 void SemanticAnalysis::analyzeClass(ClassNode* node) {
     pushScope();
 
+    // self и super are available inside the whole class
+    declareName("self", Symbol{Symbol::Kind::Variable, false, node->filePath, node->line, node->column}, node);
+    if (node->super) declareName("super", Symbol{Symbol::Kind::Function, false, node->filePath, node->line, node->column}, node);
+
+
     // declaration of methods
     for (const auto& method : node->methods) {
         bool isConst = false;
-        for (auto& modifier : node->modifiers) if (modifier.get()->modifier == ASTModifierType::Const) isConst = true;
+        for (auto& modifier : method->modifiers) if (modifier.get()->modifier == ASTModifierType::Const) isConst = true;
         declareName(method->name, Symbol{Symbol::Kind::Function, isConst, node->filePath, node->line, node->column}, node);
     }
 
     for (const auto& field : node->fields) analyzeDeclaration(field.get());
-
     if (node->constructor) analyzeFunction(node->constructor.get());
-
     // implementation of methods
     for (const auto& method : node->methods) analyzeFunction(method.get());
 
@@ -360,13 +352,12 @@ void SemanticAnalysis::analyzeEnum(EnumNode* node) {
     pushScope();
 
     for (const auto& element : node->elements) {
-        auto* symbol = findName(element->name);
-        if (!symbol) declareName(element->name, Symbol{Symbol::Kind::Variable, false, node->filePath, node->line, node->column}, node);
-        else compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::DuplicateEnumMember,
+        if (scopes.back().contains(element->name)) compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::DuplicateEnumMember,
             ErrorSpan{node->filePath, element->name, node->line, node->column},
             "ErrorManager.Analysis.DuplicateEnumMember.message", {element->name, node->name},
             "ErrorManager.Analysis.DuplicateEnumMember.hint"
         );
+        else declareName(element->name, Symbol{Symbol::Kind::Variable, false, node->filePath, node->line, node->column}, node);
     }
 
     popScope();
@@ -397,7 +388,13 @@ void SemanticAnalysis::analyzeLambda(LambdaNode* node) {
     pushScope();
     functionDepth++;
 
-    for (const auto& param : node->params)analyzeExpression(param.get());
+    for (const auto& param : node->params) {
+        if (match(param.get(), ASTNodeType::Variable)) {
+            auto* v = static_cast<VariableNode*>(param.get());
+            declareName(v->varName, Symbol{Symbol::Kind::Parameter, false, v->filePath, v->line, v->column}, param.get());
+        }
+    }
+
     analyzeStatement(node->body.get());
 
     functionDepth--;

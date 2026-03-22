@@ -13,12 +13,10 @@ fn main() {
     print("10 + 20 = ${res}")
 
     // lambda functions
-    const c: void = (x.y) => { greet(user) }
+    const c: void = (x, y) => { greet(user) }
 
     // arrays, sets, dicts
     arr: int[4] = [1, 2, 3, 3];
-    arr: str[] = ["hello", "i am dynamic size"]
-    arr := [1, 2, 3, 3];
 
     sets: set = {5, 1, 9};
     dictionary: dict = {"color": "red", "number": "21"};
@@ -64,5 +62,3 @@ fn main() {
         print("This runs at compile time!")
     }
 }
-
-return;

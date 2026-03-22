@@ -982,8 +982,9 @@ MemoryPtr<FunctionNode> Parser::parseFunction(std::vector<MemoryPtr<CallExpressi
                 return nullptr;
             }
         }
-        params.push_back(ASTBuilder::createParameter(paramName.value, std::move(type), std::move(defaultValue)));
-
+        auto param = ASTBuilder::createParameter(paramName.value, std::move(type), std::move(defaultValue));
+        param->line = paramName.line; param->column = paramName.column; param->filePath = paramName.filePath;
+        params.push_back(std::move(param));
         if (match(TokenType::Delimeter, dn[Delimeters::Comma])) next();
         else break;
     }
@@ -1070,6 +1071,7 @@ MemoryPtr<ClassNode> Parser::parseClass(std::vector<MemoryPtr<CallExpressionNode
         if (match(TokenType::Identifier, className)) {
             // Moving it back by one to make sure it doesn't screw up
             pos--;
+            auto cfilePath = curToken().filePath; auto cLine = curToken().line; auto cColumn = curToken().column;
             constructor = parseFunction(std::move(decs), std::move(modifs));
             if (!constructor) {
                 compiler->errorManager.addError(
