@@ -2,8 +2,18 @@
 
 // ==== Main function ====
 void SemanticAnalysis::analyzeProgram(const ProgramUnit& program, const std::vector<ModuleInfo>& infos){
+    pushScope();
+
+    // Defines all built-in decorators.
+    auto& dm = getDecoratorMap();
+    for (const auto& [name, _] : dm) {
+        declareName(name, Symbol{Symbol::Kind::Decorator, false, "", 0, 0}, nullptr);
+    }
+
     for (ModuleId id : program.order)
         analyzeModule(infos[id].module);
+
+    popScope();
 }
 
 /* Module analysis usually breaks down into two passes
@@ -12,12 +22,6 @@ void SemanticAnalysis::analyzeProgram(const ProgramUnit& program, const std::vec
  */
 void SemanticAnalysis::analyzeModule(ModuleNode* module) {
     pushScope();
-
-    // Defines all built-in decorators.
-    auto& dm = getDecoratorMap();
-    for (const auto& [name, _] : dm) {
-        declareName(name, Symbol{Symbol::Kind::Decorator, false, "", 0, 0}, nullptr);
-    }
 
     // Declaration pass
     for (const auto& statement : module->body){
@@ -174,7 +178,7 @@ void SemanticAnalysis::analyzeDeclaration(DeclarationNode* node) {
     // at first you make sure what the value is to not screw up with x := x being undefined
     if (node->value) analyzeExpression(node->value.get());
 
-    if (node->isTypeInference == true && node->rawType) {
+    if (!node->isTypeInference && node->rawType) {
         auto type = resolveType(node->rawType.get());
         if (type == ResolvedType::Unknown)
             compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::UnknownType,
@@ -188,12 +192,11 @@ void SemanticAnalysis::analyzeDeclaration(DeclarationNode* node) {
     declareName(node->variable->varName, Symbol{Symbol::Kind::Variable, isConst, node->filePath, node->line, node->column}, node);
 }
 
-// analyzeAssignment next and etc.
 void SemanticAnalysis::analyzeAssignment(AssignmentNode* node) {
     analyzeExpression(node->value.get());
 
     auto* variable = getRootVariable(node->variable.get());
-    if (match(node, ASTNodeType::Variable)) {
+    if (variable && match(variable, ASTNodeType::Variable)) {
         auto* var = static_cast<VariableNode*>(variable);
         auto* symbol = findName(var->varName);
         if (!symbol) compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::UndefinedVariable,
@@ -272,8 +275,8 @@ void SemanticAnalysis::analyzeFor(ForLoopNode* node) {
 
     // FIXME: Find out how to get if it's the constant.
     declareName(node->variable.get()->varName, Symbol{Symbol::Kind::Variable, false, node->variable->filePath, node->variable->line, node->variable->column}, node);
-
-    analyzeBlock(node->body.get());
+    for (const auto& stmt : node->body->statements)
+        analyzeStatement(stmt.get());
 
     popScope();
     loopDepth--;
@@ -433,9 +436,11 @@ bool SemanticAnalysis::declareName(const std::string& name, Symbol symbol, ASTNo
         return false;
     }
 
-    symbol.filePath = node->filePath;
-    symbol.line = node->line;
-    symbol.column = node->column;
+    if (node) {
+        symbol.filePath = node->filePath;
+        symbol.line = node->line;
+        symbol.column = node->column;
+    }
 
     parent.emplace(name, symbol);
     return true;
