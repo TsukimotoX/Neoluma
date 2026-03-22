@@ -13,7 +13,7 @@ enum class ResolvedType {
     Int8, Int16, Int, Int64, Int128,
     UInt8, UInt16, UInt, UInt64, UInt128,
     Float32, Float64,
-    Number, Bool, String,
+    Number, Bool, Str,
     Array, Dict, Set, Result,
     Void, UserDefined, Unknown
 };

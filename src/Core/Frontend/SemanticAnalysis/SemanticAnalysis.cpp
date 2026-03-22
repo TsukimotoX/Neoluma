@@ -430,10 +430,10 @@ bool SemanticAnalysis::declareName(const std::string& name, Symbol symbol, ASTNo
     if (scopes.empty()) pushScope();
     auto& parent = scopes.back();
 
-    if (parent.contains(name)){
+    if (parent.contains(name)) {
         compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::RedefinedVariable,
-            ErrorSpan{node->filePath, node->value, node->line, node->column},
-            "ErrorManager.Analysis.RedefinedVariable.message", {node->value},
+            ErrorSpan{node ? node->filePath : "", name, node ? node->line : 0, node ? node->column : 0},
+            "ErrorManager.Analysis.RedefinedVariable.message", {name},
             "ErrorManager.Analysis.RedefinedVariable.hint");
         return false;
     }
@@ -460,7 +460,7 @@ const EResolvedType typesMap[] = {
     { ResolvedType::Int8, "int8" }, { ResolvedType::Int16, "int16" }, { ResolvedType::Int, "int" }, { ResolvedType::Int64, "int64" },
     { ResolvedType::Int128, "int128" }, { ResolvedType::UInt8, "uint8" }, { ResolvedType::UInt16, "uint16" }, { ResolvedType::UInt, "uint" },
     { ResolvedType::UInt64, "uint64" }, { ResolvedType::UInt128, "uint128" }, { ResolvedType::Float32, "float32" }, { ResolvedType::Float64, "float64" },
-    { ResolvedType::Number, "number" }, { ResolvedType::Bool, "bool" }, { ResolvedType::String, "string" }, { ResolvedType::Array, "array" },
+    { ResolvedType::Number, "number" }, { ResolvedType::Bool, "bool" }, { ResolvedType::Str, "str" }, { ResolvedType::Array, "array" },
     { ResolvedType::Dict, "dict" }, { ResolvedType::Set, "set" }, { ResolvedType::Result, "result" }, { ResolvedType::Void, "void" },
 };
 

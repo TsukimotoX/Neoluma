@@ -64,3 +64,5 @@ fn main() {
         print("This runs at compile time!")
     }
 }
+
+return;

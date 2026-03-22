@@ -54,10 +54,9 @@ void ErrorManager::printErrors() {
         std::println("➡️  {}:{}:{}", e.span.filePath, line1, col1);
         if (line1 > 1) std::println("{:>3} | {}", line1 - 1, prevLine);
         std::println("{:>3} | {}{}{}", line1, Color::TextHex("#ff5050"), errorLine, Color::Reset);
-        std::println("{} | {}{} {}", std::string(std::to_string(line1).length() + 2, ' '), std::string((size_t)col0, ' '), std::string((size_t)e.span.len + 2, '^'), msg);
+        std::println("{}| {}{} {}", std::string(std::to_string(line1).length() + 2, ' '), std::string((size_t)col0, ' '), std::string((size_t)e.span.len + 2, '^'), msg);
         if (!nextLine.empty()) std::println("{:>3} | {}", line1 + 1, nextLine);
-        if (!e.hintKey.empty()) std::println(std::cout, "{}{}{}", hintColor, formatStr(Localization::translate("ErrorManager.hint"), weirdCondition(e.messageKey) ? puddingsong : Localization::translatef(e.hintKey, e.hintArgs)), Color::Reset);
-
+        if (!e.hintKey.empty()) std::println(std::cout, "{}{}{}\n", hintColor, formatStr(Localization::translate("ErrorManager.hint"), weirdCondition(e.messageKey) ? puddingsong : Localization::translatef(e.hintKey, e.hintArgs)), Color::Reset);
         count++;
     }
 
