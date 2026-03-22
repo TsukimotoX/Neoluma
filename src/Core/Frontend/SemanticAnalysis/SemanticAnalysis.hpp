@@ -2,8 +2,11 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "Core/Compiler.hpp"
+
+#include "Core/Frontend/Nodes.hpp"
 #include "Core/Frontend/Orchestrator/Orchestrator.hpp"
+
+struct Compiler;
 
 // ResolvedType is an enum of types Neoluma compiler internally supports by default.
 enum class ResolvedType {

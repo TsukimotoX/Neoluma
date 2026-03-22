@@ -1,4 +1,6 @@
 #include "SemanticAnalysis.hpp"
+#include "Core/Compiler.hpp"
+#include "Core/Frontend/ErrorManager/ErrorManager.hpp"
 
 // ==== Main function ====
 void SemanticAnalysis::analyzeProgram(const ProgramUnit& program, const std::vector<ModuleInfo>& infos){
