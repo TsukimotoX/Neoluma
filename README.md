@@ -77,6 +77,19 @@ Neoluma aims to be a unified language that bridges low-level control and high-le
 
 Neoluma is in early development. Contributions and feedback are welcome!
 
+## 🔧 Building from source
+
+Neoluma can be built from cloned source via building scripts.
+- [Windows](./build.bat)
+- [Unix](./build.sh) (may require `chmod +x build.sh`)
+
+It doesn't require much input aside from just running the script.
+Usage:
+```
+./build.<ext> [release|debug] [neoluma|payload|installer|all] [--no-install (available only on Unix)]
+```
+It generates the full installation output at `./.build/.runtime/[Debug|Release]/`
+
 ## 📖 Credits
 
 **Created by [TsukimotoX](https://github.com/TsukimotoX) under [Apache License](./LICENSE)**. 

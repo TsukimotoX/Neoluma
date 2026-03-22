@@ -4,6 +4,7 @@
 #include <string>
 #include <sstream>
 #include <filesystem>
+#include <type_traits>
 
 template<typename T>
 using MemoryPtr = std::unique_ptr<T>;
@@ -20,9 +21,14 @@ MemoryPtr<T> makeSharedPtr(Args&&... args) {
 
 template<typename T, typename U>
 MemoryPtr<T> as(MemoryPtr<U> ptr) {
-    if constexpr (std::is_polymorphic_v<U> && std::is_base_of_v<T, U>) {
-        T* casted = dynamic_cast<T*>(ptr.release());
-        return MemoryPtr<T>(casted);
+    static_assert(std::is_base_of_v<U, T>, "[Neoluma/HelperFunctions] as<T>(ptr): T must derive from U");
+
+    if constexpr (std::is_polymorphic_v<U>) {
+        if (T* casted = dynamic_cast<T*>(ptr.get())) {
+            ptr.release();
+            return MemoryPtr<T>(casted);
+        }
+        return nullptr;
     } else {
         return MemoryPtr<T>(static_cast<T*>(ptr.release()));
     }
@@ -49,33 +55,18 @@ std::string anyToStr(T&& v) {
     return oss.str();
 }
 
+// an impl function so i don't have to stupidly duplicate the formatStr code
+std::string formatStrVec(const std::string& fmt, const std::vector<std::string>& collectedArgs);
+
 template<typename... Args>
-std::string formatStr(std::string_view fmt, Args&&... args)
+std::string formatStr(const std::string& fmt, Args&&... args)
 {
     std::vector<std::string> collectedArgs = { anyToStr(args)... };
-    std::string out;
-    size_t argCount = 0;
-    for (size_t i = 0; i < fmt.size(); i++) {
-        char c = fmt[i];
-        if (c == '{') {
-            if (i + 1 >= fmt.size()) throw std::runtime_error("[HelperFunctions/formatStr] Invalid '{'");
-            char next = fmt[i + 1];
-            if (next == '{') { out += '{'; i++; }
-            else if (next == '}')
-            {
-                if (argCount >= collectedArgs.size()) throw std::runtime_error("[HelperFunctions/formatStr] Not enough format arguments");
-                out += collectedArgs[argCount++];
-                i++;
-            }
-            else throw std::runtime_error("[HelperFunctions/formatStr] Invalid '{'");
-        }
-        else if (c == '}')
-        {
-            if (i + 1 < fmt.size() && fmt[i + 1] == '}') { out += '}'; i++; }
-            else throw std::runtime_error("[HelperFunctions/formatStr] Invalid '}'");
-        }
-        else out += c;
-    }
-    if (argCount < collectedArgs.size()) throw std::runtime_error("[HelperFunctions/formatStr] Too many format arguments");
-    return out;
+    return formatStrVec(fmt, collectedArgs);
+}
+
+#define pudding std::string("Nep is not a console")
+#define puddingsong std::string("Nep Nep♪ Nep nep♪ Nep nep neppynep♪🍮")
+inline bool weirdCondition(const std::string& k){
+    return k == pudding;
 }

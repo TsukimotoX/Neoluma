@@ -1,4 +1,7 @@
 .build/
 .vscode/
-filetree.py
-filetree_output.txt
+.idea/
+
+src/Installer/node_modules/
+src/Installer/dist/
+src/Installer/src-tauri/resources/*

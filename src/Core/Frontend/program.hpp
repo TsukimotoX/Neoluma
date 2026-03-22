@@ -1,7 +1,7 @@
 #ifndef PROGRAM_HPP
 #define PROGRAM_HPP
 
-#include "nodes.hpp"
+#include "Nodes.hpp"
 
 #include <iostream>
 #include <vector>

@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4840 1024" role="img" aria-label="Neoluma icon">
+  <defs>
+    <linearGradient id="gN" gradientUnits="userSpaceOnUse" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4A2BD6"/>
+      <stop offset="100%" stop-color="#7B5BFF"/>
+    </linearGradient>
+    <linearGradient id="gS" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="gO" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#122f5d"/>
+      <stop offset="100%" stop-color="#2c3f5c"/>
+    </linearGradient>
+    <linearGradient id="gLogoNeo" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A2BD6"/>
+      <stop offset="100%" stop-color="#7B5BFF"/>
+    </linearGradient>
+    <linearGradient id="gLogoLumen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <style>
+      .ray{ stroke:#06b6d4; stroke-width:20; stroke-linecap:round; opacity:.95 }
+    </style>
+  </defs>
+  
+  <!-- Octagon -->
+  <path d="M339.7,96
+  L684.3,96
+  L928,339.7
+  L928,684.3
+  L684.3,928
+  L339.7,928
+  L96,684.3
+  L96,339.7
+  Z" fill="url(#gO)" stroke="url(#gO)" stroke-width="50" stroke-linecap="round"/>
+  
+  <!-- N -->
+  <path d="M320,704
+  L320,320
+  M320,320
+  L704,704
+  M704,704
+  L704,432
+  Z" fill="none" stroke="url(#gN)" stroke-width="100" stroke-linecap="round" />
+  <g transform="translate(704,348)">
+    <circle r="60" fill="url(#gS)"/>
+    <line class="ray" x1="0" y1="-140" x2="0" y2="-100"/> <!-- straight up -->
+    <line class="ray" x1="75" y1="-120" x2="50" y2="-80"/> <!-- 45° right -->
+    <line class="ray" x1="-75" y1="-120" x2="-50" y2="-80"/> <!-- 45° left -->
+    <line class="ray" x1="120" y1="-75" x2="80" y2="-50"/> <!-- 60° right -->
+    <line class="ray" x1="-120" y1="-75" x2="-80" y2="-50"/> <!-- 60° left -->
+  </g>
+
+  <!-- Neoluma letter-by-letter -->
+  <!-- N -->
+  <path d="M1200,704
+  L1200,320
+  M1200,320
+  L1584,704
+  M1584,704
+  L1584,320
+  M1584,320
+  Z" fill="none" stroke="url(#gLogoNeo)" stroke-width="100" stroke-linecap="round" />
+
+  <!-- e -->
+  <path d="M1760,512
+  L2134,512
+  M2134,512
+  A 192 192 0 1 0 2050 672
+  " fill="none" stroke="url(#gLogoNeo)" stroke-width="100" stroke-linecap="round" />
+
+  <!-- o -->
+  <circle r="192" fill="none" cx="2470" cy="512" stroke="url(#gLogoNeo)" stroke-width="100" stroke-linecap="round" />
+
+  <!-- L -->
+  <path d="M2850,320
+  L2850,704
+  M2850,704
+  L3106,704
+  " fill="none" stroke="url(#gLogoLumen)" stroke-width="100" stroke-linecap="round" />
+
+  <!-- u -->
+  <path d="M3248,320
+  L3248,548
+  M3248,548
+  A 128 118 0 1 0 3604, 548
+  M3604,548
+  L3604,320
+  " fill="none" stroke="url(#gLogoLumen)" stroke-width="100" stroke-linecap="round" />
+
+  <!-- M -->
+  <path d="M3750,704
+  L3858,320
+  M3858,320
+  L3966,704
+  M3966,704
+  L4075,320
+  M4075,320
+  L4184,704
+  M4184,704
+  Z" fill="none" stroke="url(#gLogoLumen)" stroke-width="100" stroke-linecap="round" />
+
+  <!-- A -->
+  <path d="M4325,704
+  L4529,320
+  M4529,320
+  L4721,704
+  M4432,558
+  L4645,558
+  " fill="none" stroke="url(#gLogoLumen)" stroke-width="100" stroke-linecap="round" />
+</svg>

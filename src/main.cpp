@@ -4,22 +4,23 @@
 #include <filesystem>
 
 #include "CLI/cli.hpp"
-#include "Libraries/color/color.hpp"
-#include "Core/Frontend/Lexer/lexer.hpp"
+#include "Libraries/Color/Color.hpp"
+#include "Core/Frontend/Lexer/Lexer.hpp"
 #include "HelperFunctions.hpp"
-#include "Libraries/localization/localization.hpp"
+#include "Libraries/Localization/Localization.hpp"
+#include "Libraries/Paths/Paths.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-std::string findProjectFile(const std::string& folder) {
+std::filesystem::path findProjectFile(const std::filesystem::path& folder) {
     for (const auto& entry : std::filesystem::directory_iterator(folder)) {
         if (entry.is_regular_file() && entry.path().extension() == ".nlp") {
-            return entry.path().string();
+            return entry.path();
         }
     }
-    return "";
+    return {};
 }
 
 int main(int argc, char** argv) {
@@ -27,7 +28,6 @@ int main(int argc, char** argv) {
     SetConsoleOutputCP(CP_UTF8);
     #endif
     Localization::init();
-    Localization::setLanguage("ru_RU");
     CLIArgs args = parseArgs(argc, argv);
 
     if (args.command == "new") {
@@ -51,21 +51,26 @@ int main(int argc, char** argv) {
     } else if (args.command == "run") {
         // run
     } else if (args.command == "check") {
-        std::string projectFilePath;
-        if (args.options.count("project")) projectFilePath = args.options.at("project");
-        else {
-            projectFilePath = findProjectFile(std::filesystem::current_path().string());
+        std::filesystem::path projectFilePath;
+
+        if (args.options.count("project")) {
+            std::filesystem::path input = args.options.at("project");
+
+            if (std::filesystem::exists(input)) {
+                if (std::filesystem::is_directory(input)) projectFilePath = findProjectFile(input);
+                else projectFilePath = input;
+            }
         }
+        else projectFilePath = findProjectFile(std::filesystem::current_path());
 
         if (projectFilePath.empty()) {
-            // translate later
             std::println("{}[Neoluma/Check] Project file was not found!{}", Color::TextHex("#ff5050"), Color::Reset);
             return 2;
         }
-        
-        check(projectFilePath);
+
+        check(projectFilePath.string());
     } else if (args.command == "version") {
-        std::println("{}Neoluma v1.0{}", Color::TextHex("#ff28e6"), Color::Reset);
+        std::println("{}Neoluma Alpha Release v0.1{}", Color::TextHex("#ff28e6"), Color::Reset);
     } else {
         printHelp();
     }
