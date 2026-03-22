@@ -56,8 +56,8 @@ neoluma run main.nm #interpreted way
 
 - [x] Lexer
 - [x] Parser
-- [x] Semantic Analyzer (~10%)
-- [ ] LLVM IR Compiler
+- [x] Semantic Analyzer
+- [ ] LLVM IR Compiler [In progress]
 - [ ] CLI Toolchain
 - [ ] Cross-platform support (Linux / Windows / macOS / Android / iOS / etc.)
 - [ ] Plugin system and editor integration
