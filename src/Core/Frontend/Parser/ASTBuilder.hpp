@@ -131,8 +131,8 @@ struct ASTBuilder {
     }
 
     // Creates a CallExpressionNode
-    static MemoryPtr<CallExpressionNode> createCallExpression(MemoryPtr<ASTNode> callee, std::vector<MemoryPtr<ASTNode>> arguments) {
-        return makeMemoryPtr<CallExpressionNode>(std::move(callee), std::move(arguments));
+    static MemoryPtr<CallExpressionNode> createCallExpression(MemoryPtr<ASTNode> callee, std::vector<MemoryPtr<ASTNode>> arguments, bool isDecoratorCall = false) {
+        return makeMemoryPtr<CallExpressionNode>(std::move(callee), std::move(arguments), isDecoratorCall);
     }
 
     // Creates an EnumMemberNode

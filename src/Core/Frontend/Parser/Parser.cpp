@@ -1278,7 +1278,7 @@ MemoryPtr<ASTNode> Parser::parseDecorator(std::vector<MemoryPtr<CallExpressionNo
             }
             next();
         }
-        node = ASTBuilder::createCallExpression(ASTBuilder::createVariable(name), std::move(args));
+        node = ASTBuilder::createCallExpression(ASTBuilder::createVariable(name), std::move(args), true);
         node->line = nameToken.line; node->column = nameToken.column; node->filePath = nameToken.filePath;
     }
     return node;

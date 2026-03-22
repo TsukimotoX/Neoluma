@@ -13,6 +13,12 @@ void SemanticAnalysis::analyzeProgram(const ProgramUnit& program, const std::vec
 void SemanticAnalysis::analyzeModule(ModuleNode* module) {
     pushScope();
 
+    // Defines all built-in decorators.
+    auto& dm = getDecoratorMap();
+    for (const auto& [name, _] : dm) {
+        declareName(name, Symbol{Symbol::Kind::Decorator, false, "", 0, 0}, nullptr);
+    }
+
     // Declaration pass
     for (const auto& statement : module->body){
         if (match(statement.get(), ASTNodeType::Function)) {
@@ -29,15 +35,11 @@ void SemanticAnalysis::analyzeModule(ModuleNode* module) {
         }
         else if (match(statement.get(), ASTNodeType::Enum)) {
             auto* node = static_cast<EnumNode*>(statement.get());
-            bool isConst = false;
-            for (auto& modifier : node->modifiers) if (modifier.get()->modifier == ASTModifierType::Const) isConst = true;
-            declareName(node->name, Symbol{Symbol::Kind::Enum, isConst, node->filePath, node->line, node->column}, node);
+            declareName(node->name, Symbol{Symbol::Kind::Enum, true, node->filePath, node->line, node->column}, node);
         }
         else if (match(statement.get(), ASTNodeType::Interface)) {
             auto* node = static_cast<InterfaceNode*>(statement.get());
-            bool isConst = false;
-            for (auto& modifier : node->modifiers) if (modifier.get()->modifier == ASTModifierType::Const) isConst = true;
-            declareName(node->name, Symbol{Symbol::Kind::Interface, isConst, node->filePath, node->line, node->column}, node);
+            declareName(node->name, Symbol{Symbol::Kind::Interface, true, node->filePath, node->line, node->column}, node);
         }
         else if (match(statement.get(), ASTNodeType::Decorator)) {
             auto* node = static_cast<DecoratorNode*>(statement.get());
@@ -52,6 +54,61 @@ void SemanticAnalysis::analyzeModule(ModuleNode* module) {
         analyzeStatement(statement.get());
 
     popScope();
+}
+
+void SemanticAnalysis::analyzeExpression(ASTNode* node) {
+    if (!node) return;
+
+    switch (node->type) {
+        case ASTNodeType::Variable: {
+            auto* var = static_cast<VariableNode*>(node);
+            if (!findName(var->varName))
+                compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::UndefinedVariable,
+                    ErrorSpan{node->filePath, var->varName, node->line, node->column},
+                    "ErrorManager.Analysis.UndefinedVariable.message", {var->varName},
+                    "ErrorManager.Analysis.UndefinedVariable.hint");
+            break;
+        }
+        case ASTNodeType::CallExpression:
+            analyzeCallExpression(static_cast<CallExpressionNode*>(node)); break;
+        case ASTNodeType::BinaryOperation: {
+            auto* bin = static_cast<BinaryOperationNode*>(node);
+            analyzeExpression(bin->leftOperand.get());
+            analyzeExpression(bin->rightOperand.get());
+            break;
+        }
+        case ASTNodeType::UnaryOperation:
+            analyzeExpression(static_cast<UnaryOperationNode*>(node)->operand.get()); break;
+        case ASTNodeType::MemberAccess: {
+            auto* ma = static_cast<MemberAccessNode*>(node);
+            analyzeExpression(ma->parent.get());
+            break;
+        }
+        case ASTNodeType::Array:
+            for (const auto& el : static_cast<ArrayNode*>(node)->elements) analyzeExpression(el.get());
+            break;
+        case ASTNodeType::Set:
+            for (const auto& el : static_cast<SetNode*>(node)->elements) analyzeExpression(el.get());
+            break;
+        case ASTNodeType::Dict:
+            for (const auto& [k, v] : static_cast<DictNode*>(node)->elements) {
+                analyzeExpression(k.get());
+                analyzeExpression(v.get());
+            }
+            break;
+        case ASTNodeType::Lambda: {
+            auto* lambda = static_cast<LambdaNode*>(node);
+            pushScope();
+
+            for (const auto& param : lambda->params) analyzeExpression(param.get());
+                analyzeStatement(lambda->body.get());
+
+            popScope();
+            break;
+        }
+        default:
+            break;
+    }
 }
 
 void SemanticAnalysis::analyzeFunction(FunctionNode* node) {
@@ -132,6 +189,215 @@ void SemanticAnalysis::analyzeDeclaration(DeclarationNode* node) {
 }
 
 // analyzeAssignment next and etc.
+void SemanticAnalysis::analyzeAssignment(AssignmentNode* node) {
+    analyzeExpression(node->value.get());
+
+    auto* variable = getRootVariable(node->variable.get());
+    if (match(node, ASTNodeType::Variable)) {
+        auto* var = static_cast<VariableNode*>(variable);
+        auto* symbol = findName(var->varName);
+        if (!symbol) compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::UndefinedVariable,
+            ErrorSpan{var->filePath, var->varName, var->line, var->column},
+            "ErrorManager.Analysis.UndefinedVariable.message", {var->varName},
+            "ErrorManager.Analysis.UndefinedVariable.hint"
+            );
+        else if (symbol->isConst) compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::ConstantReassignment,
+            ErrorSpan{var->filePath, var->varName, var->line, var->column},
+            "ErrorManager.Analysis.ConstantReassignment.message", {var->varName},
+            "ErrorManager.Analysis.ConstantReassignment.hint"
+            );
+    }
+}
+
+void SemanticAnalysis::analyzeCallExpression(CallExpressionNode* node) {
+    for (const auto& arg : node->arguments) analyzeExpression(arg.get());
+
+    if (match(node->callee.get(), ASTNodeType::Variable)) {
+        auto varName = static_cast<VariableNode*>(node->callee.get())->varName;
+        auto* sym = findName(varName);
+
+        if (!sym && node->isDecoratorCall)
+            compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::UndefinedDecorator,
+                ErrorSpan{node->filePath, varName, node->line, node->column},
+                "ErrorManager.Analysis.UndefinedDecorator.message", {varName},
+                "ErrorManager.Analysis.UndefinedDecorator.hint");
+        else if (!sym && !node->isDecoratorCall)
+            compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::UndefinedFunction,
+                ErrorSpan{node->filePath, varName, node->line, node->column},
+                "ErrorManager.Analysis.UndefinedFunction.message", {varName},
+                "ErrorManager.Analysis.UndefinedFunction.hint");
+        else if (sym && node->isDecoratorCall && sym->kind != Symbol::Kind::Decorator)
+            compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::DecoratorMisuse,
+                ErrorSpan{node->filePath, varName, node->line, node->column},
+                "ErrorManager.Analysis.DecoratorMisuse.message", {varName},
+                "ErrorManager.Analysis.DecoratorMisuse.hint");
+        else if (sym && !node->isDecoratorCall && sym->kind != Symbol::Kind::Function)
+            compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::FunctionMismatch,
+                ErrorSpan{node->filePath, varName, node->line, node->column},
+                "ErrorManager.Analysis.FunctionMismatch.message", {varName},
+                "ErrorManager.Analysis.FunctionMismatch.hint");
+    }
+    else if (match(node->callee.get(), ASTNodeType::MemberAccess)) {
+        auto* root = getRootVariable(node->callee.get());
+        if (root && match(root, ASTNodeType::Variable)) {
+            auto varName = static_cast<VariableNode*>(root)->varName;
+            auto* symbol = findName(varName);
+            if (!symbol)
+                compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::UndefinedVariable,
+                    ErrorSpan{node->filePath, varName, node->line, node->column},
+                    "ErrorManager.Analysis.UndefinedVariable.message", {varName},
+                    "ErrorManager.Analysis.UndefinedVariable.hint");
+        }
+    }
+}
+
+void SemanticAnalysis::analyzeIf(IfNode* node) {
+    analyzeExpression(node->condition.get());
+    if (node->thenBlock) analyzeStatement(node->thenBlock.get());
+    if (node->elseBlock) analyzeStatement(node->elseBlock.get());
+}
+
+void SemanticAnalysis::analyzeWhile(WhileLoopNode* node) {
+    analyzeExpression(node->condition.get());
+    loopDepth++;
+    analyzeBlock(node->body.get());
+    loopDepth--;
+}
+
+void SemanticAnalysis::analyzeFor(ForLoopNode* node) {
+    analyzeExpression(node->iterable.get());
+
+    loopDepth++;
+    pushScope();
+
+    // FIXME: Find out how to get if it's the constant.
+    declareName(node->variable.get()->varName, Symbol{Symbol::Kind::Variable, false, node->variable->filePath, node->variable->line, node->variable->column}, node);
+
+    analyzeBlock(node->body.get());
+
+    popScope();
+    loopDepth--;
+}
+
+void SemanticAnalysis::analyzeReturn(ReturnStatementNode* node) {
+    if (functionDepth <= 0) {
+        compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::ReturnOutsideFunction,
+            ErrorSpan{node->filePath, "return", node->line, node->column},
+            "ErrorManager.Analysis.ReturnOutsideFunction.message", {},
+            "ErrorManager.Analysis.ReturnOutsideFunction.hint");
+    }
+
+    if (node->expression) analyzeExpression(node->expression.get());
+}
+
+void SemanticAnalysis::analyzeBreak(BreakStatementNode* node) {
+    if (loopDepth <= 0)
+        compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::BreakOutsideLoop,
+            ErrorSpan{node->filePath, "break", node->line, node->column},
+            "ErrorManager.Analysis.BreakOutsideLoop.message", {},
+            "ErrorManager.Analysis.BreakOutsideLoop.hint");
+
+}
+
+void SemanticAnalysis::analyzeContinue(ContinueStatementNode* node) {
+    if (loopDepth <= 0)
+        compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::ContinueOutsideLoop,
+            ErrorSpan{node->filePath, "continue", node->line, node->column},
+            "ErrorManager.Analysis.ContinueOutsideLoop.message", {},
+            "ErrorManager.Analysis.ContinueOutsideLoop.hint");
+}
+
+void SemanticAnalysis::analyzeThrow(ThrowStatementNode* node) {
+    if (node->expression) analyzeExpression(node->expression.get());
+}
+
+void SemanticAnalysis::analyzeClass(ClassNode* node) {
+    pushScope();
+
+    // declaration of methods
+    for (const auto& method : node->methods) {
+        bool isConst = false;
+        for (auto& modifier : node->modifiers) if (modifier.get()->modifier == ASTModifierType::Const) isConst = true;
+        declareName(method->name, Symbol{Symbol::Kind::Function, isConst, node->filePath, node->line, node->column}, node);
+    }
+
+    for (const auto& field : node->fields) analyzeDeclaration(field.get());
+
+    if (node->constructor) analyzeFunction(node->constructor.get());
+
+    // implementation of methods
+    for (const auto& method : node->methods) analyzeFunction(method.get());
+
+    popScope();
+}
+
+void SemanticAnalysis::analyzeTryCatch(TryCatchNode* node) {
+    analyzeBlock(node->tryBlock.get());
+
+    pushScope(); // catch has it's own scope
+    declareName(node->exception->varName, Symbol{Symbol::Kind::Variable, false, node->exception->filePath, node->exception->line, node->exception->column}, node);
+    analyzeBlock(node->catchBlock.get());
+    popScope();
+}
+
+void SemanticAnalysis::analyzeSwitch(SwitchNode* node) {
+    analyzeExpression(node->expression.get());
+
+    for (const auto& sCase : node->cases) {
+        analyzeExpression(sCase->condition.get());
+        analyzeStatement(sCase->body.get());
+    }
+
+    if (node->defaultCase) analyzeStatement(node->defaultCase.get());
+}
+
+void SemanticAnalysis::analyzeEnum(EnumNode* node) {
+    pushScope();
+
+    for (const auto& element : node->elements) {
+        auto* symbol = findName(element->name);
+        if (!symbol) declareName(element->name, Symbol{Symbol::Kind::Variable, false, node->filePath, node->line, node->column}, node);
+        else compiler->errorManager.addError(ErrorType::Analysis, AnalysisErrors::DuplicateEnumMember,
+            ErrorSpan{node->filePath, element->name, node->line, node->column},
+            "ErrorManager.Analysis.DuplicateEnumMember.message", {element->name, node->name},
+            "ErrorManager.Analysis.DuplicateEnumMember.hint"
+        );
+    }
+
+    popScope();
+}
+
+void SemanticAnalysis::analyzeInterface(InterfaceNode* node) {
+    for (const auto& field : node->elements)
+        if (!field->isFunction && field->rawType)
+            resolveType(field->rawType.get());
+}
+
+void SemanticAnalysis::analyzeDecorator(DecoratorNode* node) {
+    pushScope();
+    functionDepth++;
+
+    for (const auto& parameter : node->parameters) {
+        if (!parameter) continue;
+        declareName(parameter->parameterName, Symbol{Symbol::Kind::Parameter, false, node->filePath, node->line, node->column}, node);
+        if (parameter->defaultValue) analyzeExpression(parameter->defaultValue.get());
+    }
+    analyzeBlock(node->body.get());
+
+    functionDepth--;
+    popScope();
+}
+
+void SemanticAnalysis::analyzeLambda(LambdaNode* node) {
+    pushScope();
+    functionDepth++;
+
+    for (const auto& param : node->params)analyzeExpression(param.get());
+    analyzeStatement(node->body.get());
+
+    functionDepth--;
+    popScope();
+}
 
 ResolvedType SemanticAnalysis::resolveType(RawTypeNode* type) {
     auto varType = type->varType.get()->varName;

@@ -362,9 +362,10 @@ struct ModifierNode : ASTNode {
 struct CallExpressionNode : ASTNode {
     MemoryPtr<ASTNode> callee;
     std::vector<MemoryPtr<ASTNode>> arguments;
+    bool isDecoratorCall = false;
 
-    CallExpressionNode(MemoryPtr<ASTNode> callee, std::vector<MemoryPtr<ASTNode>> arguments)
-        : callee(std::move(callee)), arguments(std::move(arguments)) {
+    CallExpressionNode(MemoryPtr<ASTNode> callee, std::vector<MemoryPtr<ASTNode>> arguments, bool isDecoratorCall = false)
+        : callee(std::move(callee)), arguments(std::move(arguments)), isDecoratorCall(isDecoratorCall) {
         this->type = ASTNodeType::CallExpression;
     }
 

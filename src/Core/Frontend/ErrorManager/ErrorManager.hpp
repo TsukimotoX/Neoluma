@@ -29,31 +29,31 @@ enum struct SyntaxErrors {
 // NAnE{x}
 enum struct AnalysisErrors {
     // Variables & Scope
-    UndefinedVariable,      // TODO: TO BE IMPLEMENTED
-    RedefinedVariable,      // TODO: TO BE IMPLEMENTED
-    UninitializedVariable,  // TODO: TO BE IMPLEMENTED
-    ConstantReassignment,   // TODO: TO BE IMPLEMENTED
+    UndefinedVariable, 
+    RedefinedVariable, 
+    UninitializedVariable,  
+    ConstantReassignment, 
     VariableOutOfScope,
     ShadowedVariable,
 
     // Functions
-    FunctionMismatch,        // TODO: TO BE IMPLEMENTED
+    FunctionMismatch,
     UndefinedFunction,
-    WrongArgumentCount,      // TODO: TO BE IMPLEMENTED
+    WrongArgumentCount,
     MissingRequiredParameter,
     DuplicateParameterName,
     InvalidParameterOrder,
-    MissingReturnStatement,  // TODO: TO BE IMPLEMENTED
-    ReturnInVoidFunction,    // TODO: TO BE IMPLEMENTED
+    MissingReturnStatement,
+    ReturnOutsideFunction,
 
     // Classes & OOP
-    UndefinedMember,         // TODO: TO BE IMPLEMENTED
-    CircularInheritance,     // TODO: TO BE IMPLEMENTED
-    InvalidConstructor,      // TODO: TO BE IMPLEMENTED
+    UndefinedMember,
+    CircularInheritance,
+    InvalidConstructor,
     MissingSuperCall,
     InvalidSuperCall,
     AccessViolation,
-    InvalidOverride,         // TODO: TO BE IMPLEMENTED
+    InvalidOverride,  
     OverrideSignatureMismatch,
 
     // Modifiers & Decorators
@@ -63,15 +63,15 @@ enum struct AnalysisErrors {
     UndefinedDecorator,
     DecoratorOnInvalidTarget,
     DecoratorArgumentMismatch,
-    MultipleEntryPoints,       // TODO: TO BE IMPLEMENTED
+    MultipleEntryPoints,     
     NoEntryPoints,
 
     // Control Flow
-    BreakOutsideLoop,          // TODO: TO BE IMPLEMENTED
-    ContinueOutsideLoop,       // TODO: TO BE IMPLEMENTED
-    UnreachableCode,           // TODO: TO BE IMPLEMENTED
-    DuplicateCaseValue,        // TODO: TO BE IMPLEMENTED
-    CaseTypeMismatch,          // TODO: TO BE IMPLEMENTED
+    BreakOutsideLoop,      
+    ContinueOutsideLoop,      
+    UnreachableCode,        
+    DuplicateCaseValue,   
+    CaseTypeMismatch,     
 
     // Interfaces & Enums
     InterfaceNotImplemented,
@@ -90,21 +90,21 @@ enum struct AnalysisErrors {
     AssignmentToNonLValue,
 
     // Core Type Errors
-    TypeMismatch,       // TODO: TO BE IMPLEMENTED
-    UnknownType,        // TODO: TO BE IMPLEMENTED
+    TypeMismatch, 
+    UnknownType,   
     InvalidCast,
     LiteralOverflow,
 
     // Operations
     AssignmentTypeMismatch,
-    BinaryOperationTypeMismatch, // TODO: TO BE IMPLEMENTED
+    BinaryOperationTypeMismatch, 
     UnaryOperationTypeMismatch,
-    ReturnTypeMismatch,          // TODO: TO BE IMPLEMENTED
-    ArgumentTypeMismatch,        // TODO: TO BE IMPLEMENTED
+    ReturnTypeMismatch,          
+    ArgumentTypeMismatch,        
 
     // Nullable
-    NullAssignmentToNonNullable, // TODO: TO BE IMPLEMENTED
-    NullableAccessWithoutCheck,  // TODO: TO BE IMPLEMENTED
+    NullAssignmentToNonNullable, 
+    NullableAccessWithoutCheck, 
 
     // Collections
     ArrayElementTypeMismatch,
@@ -129,7 +129,7 @@ enum struct AnalysisErrors {
 // NPrE{x}
 enum struct PreprocessorErrors {
     // Import
-    ImportNotFound,          // TODO: TO BE IMPLEMENTED
+    ImportNotFound,         
     CircularImport,
     ImportAliasConflict,
     InvalidImportPath,

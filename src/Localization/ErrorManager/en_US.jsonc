@@ -196,30 +196,47 @@
 		}
 	},
 	"Analysis": {
-		"MultipleEntryPoints":{
-			"message": "Multiple entry points detected",
-			"hint": "Keep only one function marked with @entry. First one detected at {}:{}:{}."
-		},
+		"MultipleEntryPoints.message": "Multiple entry points detected",
+		"MultipleEntryPoints.hint": "Keep only one function marked with @entry. First one detected at {}:{}:{}.",
 
-		"NoEntryPoints": {
-			"message": "No entry points found",
-			"hint": "Add @entry to a function or define fn main()."
-		},
+		"NoEntryPoints.message": "No entry points found",
+		"NoEntryPoints.hint": "Add @entry to a function or define fn main().",
 
-		"RedefinedVariable": {
-			"message": "Redefined Variable: '{}'",
-			"hint": "You can't declare the same variable twice in terms of parent scope."
-		},
+		"RedefinedVariable.message": "Redefined Variable: '{}'",
+		"RedefinedVariable.hint": "You can't declare the same variable twice in terms of parent scope.",
 
-		"DuplicateParameterName": {
-			"message": "Duplicate parameter '{}' at '{}' function",
-			"hint": "Rename or remove the parameter."
-		},
+		"DuplicateParameterName.message": "Duplicate parameter '{}' at '{}' function",
+		"DuplicateParameterName.hint": "Rename or remove the parameter.",
 
-		"UnknownType": {
-			"message": "Unknown type '{}' of '{}'",
-			"hint": "Make sure the type is defined or imported correctly"
-		}
+		"UnknownType.message": "Unknown type '{}' of '{}'",
+		"UnknownType.hint": "Make sure the type is defined or imported correctly.",
+
+		"UndefinedVariable.message": "Undefined variable '{}'",
+		"UndefinedVariable.hint": "Make sure the variable is defined or imported correctly.",
+
+		"ConstantReassignment.message": "Constant reassignment has been attempted: '{}'",
+		"ConstantReassignment.hint": "If a variable is constant, it cannot be reassigned. Fix the code.",
+
+		"UndefinedDecorator.message": "Undefined decorator '{}'",
+		"UndefinedDecorator.hint": "Make sure the decorator is defined or imported correctly.",
+
+		"UndefinedFunction.message": "Undefined function '{}'",
+		"UndefinedFunction.hint": "Make sure the function is defined or imported correctly.",
+
+		"FunctionMismatch.message": "Function mismatch: '{}'",
+		"FunctionMismatch.hint" : "Make sure you typed in the arguments correctly.",
+
+		"ReturnOutsideFunction.message": "Detected return outside of function",
+		"ReturnOutsideFunction.hint": "Yes, you can't use return outside a function. No, it will not return your ex",
+
+		"BreakOutsideLoop.message": "Detected break outside of loop",
+		"BreakOutsideLoop.hint": "I am not sure if you're trying to break the 4th wall, but... you can't.\nThis statement only works inside a loop, so move it there or remove it.",
+
+		"ContinueOutsideLoop.message": "Detected continue outside of loop",
+		"ContinueOutsideLoop.hint": "Continue what? Your code =.=? This statement only works inside a loop, so move it there or remove it.",
+
+		"DuplicateEnumMember.message": "Duplicate enum element '{}' found in '{}'.",
+		"DuplicateEnumMember.hint": "Remove or rename it."
 	},
 	"Preprocessor": {
 		"ImportNotFound.message": "Import not found: '{}'",

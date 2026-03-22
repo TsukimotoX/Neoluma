@@ -78,4 +78,14 @@ private:
         if (node->type == type) return true;
         return false;
     }
+
+    // Recursively goes through MemberAccessNode until it finds the first ever parent VariableNode.
+    // if VariableNode is passed it returns it; used for analyzeAssignment().
+    ASTNode* getRootVariable(ASTNode* node) {
+        if (match(node, ASTNodeType::MemberAccess)) {
+            auto* ma = static_cast<MemberAccessNode*>(node);
+            return getRootVariable(ma->parent.get());
+        }
+        return node; // parent found
+    }
 };

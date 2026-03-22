@@ -9,7 +9,7 @@ Compiler::Compiler(ProjectConfig& config) : projectManager(config) {
     lexer.setCompiler(this);
     parser.setCompiler(this);
     orchestrator.setCompiler(this);
-    analysis.setCompiler(this);
+    semanticAnalysis.setCompiler(this);
 }
 
 void Compiler::check() {
@@ -43,6 +43,9 @@ void Compiler::check() {
     for (auto id : program.order) {
         std::println(std::cout, "    {}", id);
     }*/
+
+    // Semantic Analysis: Make sure the program runs logically correct, before turned into a machine code
+    semanticAnalysis.analyzeProgram(program, infos);
 
     if (errorManager.hasErrors()) {
         errorManager.printErrors();

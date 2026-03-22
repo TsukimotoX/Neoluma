@@ -12,7 +12,7 @@ struct Compiler {
     // All parts of compiler
     Lexer lexer;
     Parser parser;
-    SemanticAnalysis analysis;
+    SemanticAnalysis semanticAnalysis;
 
     ProjectManager projectManager;
     ErrorManager errorManager;
