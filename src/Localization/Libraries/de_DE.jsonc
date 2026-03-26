@@ -1,5 +1,5 @@
 {
-    "toml": {
-        "tableOutOfBoundsError": "Schlüssen '{}' nicht gefunden"
-    }
+	"toml": {
+		"tableOutOfBoundsError": "Key '{}' not found"
+	}
 }
