@@ -1,5 +1,5 @@
 {
-    "toml": {
-        "tableOutOfBoundsError": "المفتاح '{}' ليس موجود"
-    }
+	"toml": {
+		"tableOutOfBoundsError": "Key '{}' not found"
+	}
 }
