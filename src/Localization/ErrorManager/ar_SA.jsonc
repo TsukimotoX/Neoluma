@@ -1,5 +1,5 @@
-{
-	"hint": "💡  Hint: {}",
+}
+	"لمح": "💡 لمح: {}،"
 	"errorsFound": "{} error(s) found!",
 	// safetyGuard triggers in Parser only.
 	"safetyGuard": "❌😵‍💫 Recovery guard triggered! Stopping parsing to avoid infinite loop. If you see this message somehow, report this to the developers. \n\n Information: \n Function: {},\n File {},\n Happened at Line {}:{}\n\nThank you!\n",
