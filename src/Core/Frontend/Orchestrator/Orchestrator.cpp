@@ -21,7 +21,7 @@ void Orchestrator::dfsVisit( ModuleId id, const std::vector<ModuleInfo>& infos, 
     if (state[id] == 2) return; //done
     if (state[id] == 1) {
         if (fromSpan) {
-            compiler->errorManager.addError(
+            errorManager.addError(
                 ErrorType::Preprocessor,
                 PreprocessorErrors::CircularImport,
                 *fromSpan,
@@ -29,7 +29,7 @@ void Orchestrator::dfsVisit( ModuleId id, const std::vector<ModuleInfo>& infos, 
                 "ErrorManager.Preprocessor.CircularImport.hint");
         } else if (compiler){
             auto* m = infos[id].module;
-            compiler->errorManager.addError(
+            errorManager.addError(
                 ErrorType::Preprocessor,
                 PreprocessorErrors::CircularImport,
                 ErrorSpan{m->filePath, "import", m->line, m->column},
@@ -142,7 +142,7 @@ EntryPoint Orchestrator::findEntryPoint(const std::vector<MemoryPtr<ModuleNode>>
                     entryPoint.function = func;
                 } else {
                     auto* firstFn = entryPoint.function;
-                    compiler->errorManager.addError(
+                    errorManager.addError(
                ErrorType::Analysis,
                AnalysisErrors::MultipleEntryPoints,
                ErrorSpan{func->filePath, func->name, func->line, func->column},
@@ -156,7 +156,7 @@ EntryPoint Orchestrator::findEntryPoint(const std::vector<MemoryPtr<ModuleNode>>
 
     if (mainFallback.function) return mainFallback;
 
-    compiler->errorManager.addError(
+    errorManager.addError(
             ErrorType::Analysis,
             AnalysisErrors::NoEntryPoints,
             ErrorSpan{modules.front()->filePath, "", 1, 1},
@@ -204,7 +204,7 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
                 std::string resolvedKey = resolveRelativeKey(idToKey[mi.id], imp->moduleName);
                 auto it = keyToId.find(resolvedKey);
                 if (it == keyToId.end()){
-                    compiler->errorManager.addError(
+                    errorManager.addError(
                         ErrorType::Preprocessor,
                         PreprocessorErrors::ImportNotFound,
                         ErrorSpan{imp->filePath, imp->moduleName, imp->line, imp->column},
@@ -220,7 +220,7 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
                 if (!imp->alias.empty())
                 {
                     if (mi.aliasMap.count(imp->alias))
-                        compiler->errorManager.addError(
+                        errorManager.addError(
                         ErrorType::Preprocessor,
                         PreprocessorErrors::ImportAliasConflict,
                         ErrorSpan{imp->filePath, imp->alias, imp->line, imp->column},
@@ -243,7 +243,7 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
                 } else {
                     // is a native import
                     if (imp->moduleName != "std" && !compiler->projectManager.config.dependencies.contains(imp->moduleName)){
-                        compiler->errorManager.addError(
+                        errorManager.addError(
                         ErrorType::Preprocessor,
                         PreprocessorErrors::ImportNotFound,
                         ErrorSpan{imp->filePath, imp->moduleName, imp->line, imp->column},

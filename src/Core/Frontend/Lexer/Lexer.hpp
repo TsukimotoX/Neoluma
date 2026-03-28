@@ -3,17 +3,16 @@
 #include <string>
 #include <vector>
 #include "../Token.hpp"
+#include "Core/Extras/ErrorManager/ErrorManager.hpp"
 
-struct Compiler; // forward declaration cuz f##k c++ ig
 
 struct Lexer {
     std::vector<Token> tokenize(const std::string& filePath, const std::string& source);
     void printTokens(const std::string& filename) const; // Debug command to check tokens correctness
     std::vector<Token> tokens;
 
-    // Compiler access through a pointer
-    Compiler* compiler = nullptr;
-    void setCompiler(Compiler* comp) { this->compiler = comp; }
+    // ErrorManager is used to report errors
+    ErrorManager* errorManager = nullptr;
 
     std::string source;
     size_t pos = 0;

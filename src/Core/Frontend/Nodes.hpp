@@ -4,7 +4,6 @@
 #include <variant>
 
 #include "../../HelperFunctions.hpp"
-//#include "llvm/IR/Value.h"
 
 enum struct ASTNodeType {
     Literal, Variable, MemberAccess, Declaration, Assignment, BinaryOperation, UnaryOperation, CallExpression,
@@ -27,7 +26,8 @@ enum struct ASTNodeType {
 // };
 
 enum struct ASTModifierType {
-    Public, Private, Protected, Static, Const, Override, Async, Debug
+    Public, Private, Protected, Static, Const, Override, Async, Debug,
+    Intrinsic
 };
 
 enum struct ASTPreprocessorDirectiveType {
@@ -55,7 +55,6 @@ struct ASTNode {
 
     virtual ~ASTNode();
     virtual std::string toString(int indent) const = 0;
-    //virtual llvm::LLVMContext generateCode(); // for the compiler to generate code from this AST node
 };
 
 // All nodes available in Neoluma
@@ -458,6 +457,7 @@ struct FunctionNode : ASTNode {
     std::vector<MemoryPtr<ParameterNode>> parameters;
     MemoryPtr<RawTypeNode> returnType = nullptr;
     MemoryPtr<BlockNode> body;
+    bool isIntrinsic = false; // Is this a function that passes through an LLVM call?
 
     FunctionNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<RawTypeNode> returnType, MemoryPtr<BlockNode> body,std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
         : name(name), parameters(std::move(parameters)), body(std::move(body)), decorators(std::move(decorators)), modifiers(std::move(modifiers)), returnType(std::move(returnType)) {

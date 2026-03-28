@@ -20,6 +20,8 @@ const EKeyword keywordMap[] = {
     {"async", Keywords::Async}, {"await", Keywords::Await}, {"const", Keywords::Const}, {"static", Keywords::Static}, 
     {"debug", Keywords::Debug}, {"public", Keywords::Public}, {"protected", Keywords::Protected}, {"private", Keywords::Private},
     {"override", Keywords::Override},
+    // Internal std library keyword that allows passing through LLVM calls
+ {"intrinsic", Keywords::Intrinsic}
 };
 
 const EOperator operatorMap[] {
@@ -46,6 +48,14 @@ const EDelimeter delimeterMap[] {
     {";", Delimeters::Semicolon}, {":", Delimeters::Colon}, {"\\n", Delimeters::Newline}, {",", Delimeters::Comma},
     {".", Delimeters::Dot}, {"[", Delimeters::LeftBracket},
     {"]", Delimeters::RightBracket},
+};
+
+const EResolvedType typesMap[] = {
+    { ResolvedType::Int8, "int8" }, { ResolvedType::Int16, "int16" }, { ResolvedType::Int, "int" }, { ResolvedType::Int64, "int64" },
+    { ResolvedType::Int128, "int128" }, { ResolvedType::UInt8, "uint8" }, { ResolvedType::UInt16, "uint16" }, { ResolvedType::UInt, "uint" },
+    { ResolvedType::UInt64, "uint64" }, { ResolvedType::UInt128, "uint128" }, { ResolvedType::Float, "float" }, { ResolvedType::Float64, "float64" },
+    { ResolvedType::Number, "number" }, { ResolvedType::Bool, "bool" }, { ResolvedType::Str, "str" }, { ResolvedType::Array, "array" },
+    { ResolvedType::Dict, "dict" }, { ResolvedType::Set, "set" }, { ResolvedType::Result, "result" }, { ResolvedType::Void, "void" },
 };
 
 std::string Token::toStr() const {
@@ -105,6 +115,12 @@ const std::unordered_map<std::string, Delimeters>& getDelimeterMap() {
     return map;
 }
 
+const std::unordered_map<std::string, ResolvedType>& getTypeMap() {
+    static std::unordered_map<std::string, ResolvedType> map;
+    if (map.empty()) for (auto& k : typesMap) map[k.name] = k.type;
+    return map;
+}
+
 
 
 const std::unordered_map<Keywords, std::string>& getKeywordNames() {
@@ -143,3 +159,8 @@ const std::unordered_map<Delimeters, std::string>& getDelimeterNames() {
     return map;
 }
 
+const std::unordered_map<ResolvedType, std::string>& getTypeNames() {
+    static std::unordered_map<ResolvedType, std::string> map;
+    if (map.empty()) for (auto& k : typesMap) map[k.type] = k.name;
+    return map;
+}
