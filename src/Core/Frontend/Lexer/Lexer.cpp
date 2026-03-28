@@ -1,4 +1,3 @@
-#include "Core/Compiler.hpp"
 #include "Lexer.hpp"
 #include "../Token.hpp"
 
@@ -41,7 +40,7 @@ std::vector<Token> Lexer::tokenize(const std::string& filePath, const std::strin
             if (uc > 127) {
                 while (!isAtEnd() && (unsigned char)curChar() >= 128 && (unsigned char)curChar() < 192) move();
             }
-            compiler->errorManager.addError(
+            errorManager->addError(
                         ErrorType::Syntax,
                         SyntaxErrors::UnexpectedToken,
                         ErrorSpan{filePath, tok.value, tok.line, tok.column},
@@ -122,7 +121,7 @@ void Lexer::parseString() {
                 case '\\': value += '\\'; break;
                 case '"': value += '"'; break;
                 default:
-                    compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::UnexpectedToken,
+                    errorManager->addError(ErrorType::Syntax, SyntaxErrors::UnexpectedToken,
                         ErrorSpan{ filePath, formatStr("\\{}",c), line, column},
                         "ErrorManager.Syntax.UnexpectedToken.message", {formatStr("\\{}",c)},
                         "ErrorManager.Syntax.UnexpectedToken.hint");
@@ -164,7 +163,7 @@ void Lexer::parseDelimeter() {
 
     if (dm.find(delimeter) != dm.end()) tokens.push_back(Token{TokenType::Delimeter, delimeter, filePath, sl, sc});
     else {
-        compiler->errorManager.addError(
+        errorManager->addError(
             ErrorType::Syntax,
             SyntaxErrors::UnexpectedToken,
             ErrorSpan{filePath, delimeter, sl, sc},
@@ -183,11 +182,8 @@ void Lexer::parsePreprocessor() {
     auto pm = getPreprocessorMap();
 
     if (pm.find(word) != pm.end()) tokens.push_back(Token{TokenType::Preprocessor, word, filePath, sl, sc});
-    else if (compiler->projectManager.config.enableEasterEggs) { if (word == "console") tokens.push_back(Token{TokenType::Preprocessor, word, filePath, sl, sc}); }
     else {
-        if (compiler->projectManager.config.enableEasterEggs) { if (word == "console") tokens.push_back(Token{TokenType::Preprocessor, word, filePath, sl, sc}); }
-
-        compiler->errorManager.addError(
+        errorManager->addError(
             ErrorType::Preprocessor,
             PreprocessorErrors::InvalidDirective,
             ErrorSpan{filePath, '#'+word, sl, sc},
@@ -238,7 +234,7 @@ void Lexer::skipComment() {
             move(); // \n_terminator3000
         }
         // Unterminated block comment
-        compiler->errorManager.addError(ErrorType::Syntax, SyntaxErrors::UnterminatedComment,
+        errorManager->addError(ErrorType::Syntax, SyntaxErrors::UnterminatedComment,
             ErrorSpan{filePath, formatStr("{}{}", source[pos - 2], source[pos - 1]), sl, sc},
             "ErrorManager.Syntax.UnterminatedComment.message", {},
             "Close with */");

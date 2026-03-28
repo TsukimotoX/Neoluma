@@ -3,9 +3,8 @@
 #include "../Lexer/Lexer.hpp"
 #include "../Nodes.hpp"
 #include "../Token.hpp"
+#include "Core/Extras/ErrorManager/ErrorManager.hpp"
 
-
-struct Compiler;
 
 // to make math order
 int getOperatorPrecedence(const std::string& op);
@@ -16,9 +15,8 @@ struct Parser {
     void parseModule(const std::vector<Token>& tok, const std::string& moduleName); // main parsing
     void printModule(int indentation = 0);
 
-    // Compiler access through a pointer
-    Compiler* compiler = nullptr;
-    void setCompiler(Compiler* comp) { this->compiler = comp; }
+    // ErrorManager is used to report errors
+    ErrorManager* errorManager = nullptr;
 
     MemoryPtr<ModuleNode> moduleSource = nullptr;
     std::vector<Token> tokens;
