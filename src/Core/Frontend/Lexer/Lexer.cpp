@@ -81,23 +81,47 @@ void Lexer::parseIK() {
 
     while (!isAtEnd() && (isalnum(curChar()) || curChar() == '_')) word += move();
 
-    auto km = getKeywordMap();
-    auto om = getOperatorMap();
-
     if (km.find(word) != km.end()) tokens.push_back(Token{TokenType::Keyword, word, filePath, sl, sc});
     else if (word == "null") tokens.push_back(Token{TokenType::Null, word, filePath, sl, sc});
     else if (om.find(word) != om.end()) tokens.push_back(Token{TokenType::Operator, word, filePath, sl, sc});
     else tokens.push_back(Token{TokenType::Identifier, word, filePath, sl, sc});
 }
-void Lexer::parseNumber() {
+void Lexer::parseNumber()
+{
     const int sl = line; const int sc = column;
     std::string number;
 
     while (!isAtEnd() && isdigit(curChar())) number += move();
 
-    if (!isAtEnd() && curChar() == '.'){
+    if (!isAtEnd() && curChar() == '.')
+    {
         number += move();
-        while (!isAtEnd() && (isdigit(curChar()) || curChar() == 'e')) number += move();
+
+        if (isAtEnd() || !isdigit(curChar())) {
+            errorManager->addError(ErrorType::Syntax, SyntaxErrors::InvalidNumberFormat,
+                ErrorSpan{filePath, number, sl, sc},
+                "ErrorManager.Syntax.InvalidNumberFormat.message", {number},
+                "ErrorManager.Syntax.InvalidNumberFormat.hint");
+            tokens.push_back(Token{TokenType::Number, number, filePath, sl, sc});
+            return;
+        }
+        while (!isAtEnd() && isdigit(curChar())) number += move();
+    }
+
+    if (!isAtEnd() && (curChar() == 'e' || curChar() == 'E')) {
+        number += move();
+
+        if (!isAtEnd() && (curChar() == '+' || curChar() == '-')) number += move();
+
+        if (isAtEnd() || !isdigit(curChar())) {
+            errorManager->addError(ErrorType::Syntax, SyntaxErrors::InvalidNumberFormat,
+                ErrorSpan{filePath, number, sl, sc},
+                "ErrorManager.Syntax.InvalidNumberFormat.message", {number},
+                "ErrorManager.Syntax.InvalidNumberFormat.hint");
+            tokens.push_back(Token{TokenType::Number, number, filePath, sl, sc});
+            return;
+        }
+        while (!isAtEnd() && isdigit(curChar())) number += move();
     }
 
     tokens.push_back(Token{TokenType::Number, number, filePath, sl, sc});
@@ -136,8 +160,12 @@ void Lexer::parseString() {
 
         move();
     }
-
-    move();
+    if (!value.ends_with('"')){
+        errorManager->addError(ErrorType::Syntax, SyntaxErrors::UnterminatedString,
+            ErrorSpan{filePath, "\"", line, column},
+            "ErrorManager.Syntax.UnterminatedString.message");
+        return;
+    }
     tokens.push_back(Token{TokenType::String, value, filePath, sl, sc});
 }
 void Lexer::parseOperator() {
@@ -145,21 +173,17 @@ void Lexer::parseOperator() {
     std::string op;
     op += move();
 
-    auto om = getOperatorMap();
-
     if (!isAtEnd()) {
         std::string twoChar = op + curChar();
-        if (om.find(twoChar) != om.end()) op += move();
-
-        tokens.push_back(Token{TokenType::Operator, op, filePath, sl, sc});
+        if (om.find(twoChar) != om.end())
+            op += move();
     }
+    tokens.push_back(Token{TokenType::Operator, op, filePath, sl, sc});
 }
 void Lexer::parseDelimeter() {
     const int sl = line; const int sc = column;
     std::string delimeter;
     delimeter += move();
-
-    auto dm = getDelimeterMap();
 
     if (dm.find(delimeter) != dm.end()) tokens.push_back(Token{TokenType::Delimeter, delimeter, filePath, sl, sc});
     else {
@@ -177,9 +201,7 @@ void Lexer::parsePreprocessor() {
     move();
     std::string word;
 
-    while (!isAtEnd() && isalpha(curChar())) word += move();
-
-    auto pm = getPreprocessorMap();
+    while (!isAtEnd() && (isalpha(curChar()) || curChar() == '_')) word += move();
 
     if (pm.find(word) != pm.end()) tokens.push_back(Token{TokenType::Preprocessor, word, filePath, sl, sc});
     else {
@@ -197,7 +219,7 @@ void Lexer::parseDecorator() {
     move();
     std::string word;
 
-    while (!isAtEnd() && isalpha(curChar())) word += move();
+    while (!isAtEnd() && (isalpha(curChar()) || curChar() == '_')) word += move();
 
     tokens.push_back(Token{TokenType::Decorator, word, filePath, sl, sc});
 }
@@ -217,7 +239,7 @@ void Lexer::skipComment() {
         move(); // '/'
         move(); // '/'
         while (!isAtEnd() && curChar() != '\n') move();
-        move(); // consume newline
+        if (curChar() == '\n') move();
         return;
     }
 

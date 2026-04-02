@@ -14,9 +14,9 @@ enum struct ASTNodeType {
     Module,
     Import, Decorator, Preprocessor, 
     BreakStatement, ContinueStatement, ThrowStatement,
-    Array, Set, Dict, Void, Result, Enum, Interface, Lambda,
+    Array, Set, Dict, Tuple, Void, Result, Enum, Interface, Lambda,
     EnumMember, InterfaceField,
-    RawType
+    RawType,
 };
 
 // enum struct ASTVariableType {
@@ -313,6 +313,19 @@ struct DictNode : ASTNode {
     DictNode(std::vector<std::pair<MemoryPtr<ASTNode>, MemoryPtr<ASTNode>>> elements/*, std::array<MemoryPtr<RawTypeNode>, 2> types*/)
         : elements(std::move(elements))/*, types(std::move(types))*/ {
         this->type = ASTNodeType::Dict;
+    }
+
+    // Suggested by AI. If it fails, it's his fault
+    std::string toString(int indent) const override;
+};
+
+// For now it's used only in lambda conditions, it must be fixed later
+struct TupleNode : ASTNode {
+    std::vector<MemoryPtr<ASTNode>> elements;
+
+    TupleNode(std::vector<MemoryPtr<ASTNode>> elements)
+        : elements(std::move(elements)) {
+        this->type = ASTNodeType::Tuple;
     }
 
     // Suggested by AI. If it fails, it's his fault

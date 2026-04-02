@@ -25,6 +25,8 @@ void ErrorManager::printErrors() {
             case ErrorType::None:         typeColor = Color::TextHex("#4A2BD6"); break;
         }
 
+        // TODO: Make a more optimal way to getting code snippets, reading the file on every error
+        //  is crucial to the buffer in IDE after LSP is implemented
         std::istringstream srcStream(readFile(e.span.filePath));
         std::string prevLine, line, errorLine, nextLine;
         int line1 = std::max(1, e.span.line);     // force 1-based for display + lookup

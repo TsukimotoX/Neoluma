@@ -343,7 +343,7 @@ void SemanticAnalysis::analyzeSwitch(SwitchNode* node) {
         analyzeStatement(sCase->body.get());
     }
 
-    if (node->defaultCase) analyzeStatement(node->defaultCase.get());
+    if (node->defaultCase) analyzeStatement(node->defaultCase.get()->body.get());
 }
 
 void SemanticAnalysis::analyzeEnum(EnumNode* node) {

@@ -23,12 +23,13 @@ struct Parser {
     size_t pos = 0;
     std::string moduleName = "";
 
+    // Parser helpers
     Token curToken() { 
         if (pos >= tokens.size()) { Token token = Token{TokenType::EndOfFile, ""}; return token; }
         return tokens[pos]; 
     };
     Token lookBack() {
-        if (pos + 1 >= tokens.size()) return Token{TokenType::EndOfFile, ""};
+        if (pos + 1 >= tokens.size() || pos == 0) return Token{TokenType::EndOfFile, ""};
         return tokens[pos - 1];
     }
     Token next() { 
@@ -45,6 +46,13 @@ struct Parser {
         return true;
     };
     bool isAtEnd() { return pos >= tokens.size() || curToken().type == TokenType::EndOfFile; }
+    std::unordered_map<Keywords, std::string> kn = getKeywordNames();
+    std::unordered_map<std::string, Keywords> km = getKeywordMap();
+    std::unordered_map<Delimeters, std::string> dn = getDelimeterNames();
+    std::unordered_map<std::string, Delimeters> dm = getDelimeterMap();
+    std::unordered_map<Operators, std::string> on = getOperatorNames();
+    std::unordered_map<std::string, Operators> om = getOperatorMap();
+    std::unordered_map<Preprocessors, std::string> pn = getPreprocessorNames();
 
     // Expression parsing
     MemoryPtr<ASTNode> parsePrimary();
