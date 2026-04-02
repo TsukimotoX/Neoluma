@@ -163,6 +163,7 @@ struct Parser {
 
     // Helper functions
     MemoryPtr<ASTNode> parseBlockorStatement();
+    MemoryPtr<FunctionNode> parseConstructor(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers);
     bool isNextLine();
     int getOperatorPrecedence(const std::string& op);
     bool isAssignmentOperator(const std::string& op);

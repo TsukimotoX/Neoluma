@@ -899,6 +899,7 @@ MemoryPtr<WhileLoopNode> Parser::parseWhile() {
     return node;
 }
 
+
 // ==== Declarations ====
 MemoryPtr<FunctionNode> Parser::parseFunction(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers) {
     next();
@@ -1046,11 +1047,8 @@ MemoryPtr<ClassNode> Parser::parseClass(std::vector<MemoryPtr<CallExpressionNode
         auto modifs = parseModifiers();
 
         if (match(TokenType::Identifier, className)) {
-            // TODO: Must be changed, what the fuck is this? make a constructor parsing function
-            // Moving it back by one to make sure it doesn't screw up
-            pos--;
             auto cfilePath = curToken().filePath; auto cLine = curToken().line; auto cColumn = curToken().column;
-            constructor = parseFunction(std::move(decs), std::move(modifs));
+            constructor = parseConstructor(std::move(decs), std::move(modifs));
             if (!constructor) {
                 errorManager->addError(
                     ErrorType::Syntax, SyntaxErrors::InvalidStatement,
@@ -1629,6 +1627,104 @@ MemoryPtr<ASTNode> Parser::parseBlockorStatement() {
         return nullptr;
     }
     return std::move(block);
+}
+
+MemoryPtr<FunctionNode> Parser::parseConstructor(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers) {
+    Token nameToken = curToken();
+    if (!match(TokenType::Identifier)) {
+        errorManager->addError(
+            ErrorType::Syntax, SyntaxErrors::MissingToken,
+            ErrorSpan{nameToken.filePath, nameToken.value, nameToken.line, nameToken.column},
+            "ErrorManager.Syntax.MissingToken.functionName.message", {},
+            "ErrorManager.Syntax.MissingToken.functionName.hint");
+        return nullptr;
+    }
+    std::string funcName = nameToken.value;
+    next();
+
+    if (!match(Delimeters::LeftParen)) {
+        errorManager->addError(
+            ErrorType::Syntax, SyntaxErrors::MissingToken,
+            ErrorSpan{nameToken.filePath, nameToken.value, nameToken.line, nameToken.column},
+            "ErrorManager.Syntax.MissingToken.functionParams.message", {funcName},
+            "ErrorManager.Syntax.MissingToken.functionParams.hint", {funcName});
+        return nullptr;
+    }
+    next();
+
+    std::vector<MemoryPtr<ParameterNode>> params;
+    while (!match(Delimeters::RightParen)) {
+        Token paramName = curToken();
+        if (paramName.type != TokenType::Identifier) {
+            errorManager->addError(
+                ErrorType::Syntax, SyntaxErrors::MissingToken,
+                ErrorSpan{paramName.filePath, paramName.value, paramName.line, paramName.column},
+                "ErrorManager.Syntax.MissingToken.functionParamName.message", {funcName},
+                "ErrorManager.Syntax.MissingToken.functionParamName.hint");
+            return nullptr;
+        }
+        next();
+        MemoryPtr<RawTypeNode> type = nullptr;
+        if (match(Delimeters::Colon)) {
+            next();
+            type = parseType();
+        }
+
+        MemoryPtr<ASTNode> defaultValue = nullptr;
+        if (match(Operators::Assign)) {
+            next();
+            defaultValue = parseExpression();
+            if (!defaultValue) {
+                errorManager->addError(
+                    ErrorType::Syntax, SyntaxErrors::MissingToken,
+                    ErrorSpan{curToken().filePath, curToken().value, curToken().line, curToken().column},
+                    "ErrorManager.Syntax.MissingToken.functionParamDefault.message", {},
+                    "ErrorManager.Syntax.MissingToken.functionParamDefault.hint");
+                return nullptr;
+            }
+        }
+        auto param = ASTBuilder::createParameter(paramName.value, std::move(type), std::move(defaultValue));
+        param->line = paramName.line; param->column = paramName.column; param->filePath = paramName.filePath;
+        params.push_back(std::move(param));
+        if (match(Delimeters::Comma)) next();
+        else break;
+    }
+
+    if (!match(Delimeters::RightParen)) {
+        errorManager->addError(
+            ErrorType::Syntax, SyntaxErrors::MissingToken,
+            ErrorSpan{curToken().filePath, curToken().value, curToken().line, curToken().column},
+            "ErrorManager.Syntax.MissingToken.functionClosingParen.message", {funcName},
+            "ErrorManager.Syntax.MissingToken.functionClosingParen.hint");
+        return nullptr;
+    }
+    next();
+
+    MemoryPtr<RawTypeNode> returnType = nullptr;
+    if (match(Operators::TypeArrow)) {
+        next();
+        returnType = parseType();
+    }
+
+    MemoryPtr<BlockNode> body = parseBlock();
+    if (!body) {
+        errorManager->addError(
+            ErrorType::Syntax, SyntaxErrors::InvalidStatement,
+            ErrorSpan{nameToken.filePath, nameToken.value, nameToken.line, nameToken.column},
+            "ErrorManager.Syntax.MissingToken.functionBody.message", {funcName},
+            "ErrorManager.Syntax.MissingToken.functionBody.hint", {funcName});
+        return nullptr;
+    }
+
+    auto node = ASTBuilder::createFunction(funcName, std::move(params), std::move(returnType), std::move(body), std::move(decorators), std::move(modifiers));
+    for (const auto& modifier : modifiers) {
+        if (modifier->modifier == ASTModifierType::Intrinsic) {
+            node->isIntrinsic = true;
+            node->body = nullptr;
+        }
+    }
+    node->line = nameToken.line; node->column = nameToken.column; node->filePath = nameToken.filePath;
+    return node;
 }
 
 // Detects nextline expression
