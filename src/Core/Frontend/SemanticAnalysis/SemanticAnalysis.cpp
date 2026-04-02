@@ -114,6 +114,8 @@ void SemanticAnalysis::analyzeFunction(FunctionNode* node) {
                 ErrorSpan{parameter->filePath, parameter->parameterName, parameter->line, parameter->column},
                 "ErrorManager.Analysis.DuplicateParameterName.message", {parameter->parameterName, node->name},
                 "ErrorManager.Analysis.DuplicateParameterName.hint");
+            pushScope();
+            functionDepth--;
             return;
         }
 
@@ -343,7 +345,7 @@ void SemanticAnalysis::analyzeSwitch(SwitchNode* node) {
         analyzeStatement(sCase->body.get());
     }
 
-    if (node->defaultCase) analyzeStatement(node->defaultCase.get());
+    if (node->defaultCase) analyzeStatement(node->defaultCase.get()->body.get());
 }
 
 void SemanticAnalysis::analyzeEnum(EnumNode* node) {

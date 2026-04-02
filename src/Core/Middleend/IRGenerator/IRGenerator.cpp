@@ -1,4 +1,5 @@
 #include "IRGenerator.hpp"
+/* Deprecated structure.
 #include "Core/Compiler.hpp"
 
 // LLVM Primitives
@@ -6,6 +7,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/TypedPointerType.h"
 
 void IRGenerator::generate(const ProgramUnit& programUnit, const std::vector<ModuleInfo>& infos) {
     program = makeMemoryPtr<llvm::Module>("program", context);
@@ -68,6 +70,106 @@ llvm::Value* IRGenerator::generateStatement(ASTNode* node) {
     }
 }
 
+llvm::Value* IRGenerator::generateExpression(ASTNode* node) {
+    switch (node->type) {
+        case ASTNodeType::Literal: return generateLiteral(static_cast<LiteralNode*>(node));
+        case ASTNodeType::Variable: return generateVariable(static_cast<VariableNode*>(node));
+        case ASTNodeType::CallExpression: return generateCall(static_cast<CallExpressionNode*>(node));
+        case ASTNodeType::BinaryOperation: return generateBinaryOp(static_cast<BinaryOperationNode*>(node));
+        case ASTNodeType::UnaryOperation: return generateUnaryOp(static_cast<UnaryOperationNode*>(node));
+        case ASTNodeType::MemberAccess: return nullptr; // fixme: requires classes
+        case ASTNodeType::Array:
+        case ASTNodeType::Set:
+        case ASTNodeType::Dict:
+            return nullptr; //fixme: requires std
+        case ASTNodeType::Lambda: return generateLambda(static_cast<LambdaNode*>(node));
+        default: return nullptr;
+    }
+}
+
+llvm::Value* IRGenerator::generateLiteral(LiteralNode* node) {
+    if (node->value == "true") return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context), 1);
+    if (node->value == "false") return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context), 0);
+    if (node->value == "null") return llvm::ConstantPointerNull::get(llvm::PointerType::getUnqual(context));
+
+    if (node->value.contains('.'))  // float
+        return llvm::ConstantFP::get(llvm::Type::getDoubleTy(context), stod(node->value));
+
+    try {
+        return llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), stoi(node->value));
+    } catch (const std::exception&) {}
+
+    return llvm::cast<llvm::Value>(builder->CreateGlobalString(node->value));
+}
+
+llvm::Value* IRGenerator::generateVariable(VariableNode* node) {
+    auto* alloc = findVariable(node->varName);
+    return builder->CreateLoad(variableTypes[node->varName], alloc, node->varName);
+}
+
+llvm::Value* IRGenerator::generateDeclaration(DeclarationNode* node) {
+    // initializating type and value
+    llvm::Type* type = nullptr;
+    llvm::Value* value = nullptr;
+
+    if (!node->isTypeInference && node->rawType)
+        type = resolveType(node->rawType->varType->varName);
+    else if (node->value) {
+        value = generateExpression(node->value.get());
+        type = value->getType();
+    }
+
+    if (type == nullptr) type = llvm::Type::getInt32Ty(context); // fallback
+
+    auto* alloc = builder->CreateAlloca(type, nullptr, node->variable->varName);
+    declareVariable(node->variable->varName, alloc, type);
+
+    if (node->value && value == nullptr) value = generateExpression(node->value.get());
+    if (value) builder->CreateStore(value, alloc);
+
+    return alloc;
+}
+
+llvm::Value* IRGenerator::generateAssignment(AssignmentNode* node) {
+    auto* alloc = findVariable(getRootVarName(node->variable.get()));
+    if (!alloc) return nullptr;
+
+    auto* value = generateExpression(node->value.get());
+
+    builder->CreateStore(value, alloc);
+    return value;
+}
+
+llvm::Value* IRGenerator::generateBinaryOp(BinaryOperationNode* node) {
+    auto* left  = generateExpression(node->leftOperand.get());
+    auto* right = generateExpression(node->rightOperand.get());
+
+    if (node->value == on[Operators::Add]) return builder->CreateAdd(left, right);
+    if (node->value == on[Operators::Subtract]) return builder->CreateSub(left, right);
+    if (node->value == on[Operators::Multiply]) return builder->CreateMul(left, right);
+    if (node->value == on[Operators::Divide]) return builder->CreateSDiv(left, right);
+    if (node->value == on[Operators::Modulo]) return builder->CreateSRem(left, right);
+    if (node->value == on[Operators::Power]) return nullptr; //requires pow from libm
+    if (node->value == on[Operators::Equal]) return builder->CreateICmpEQ(left, right);
+    if (node->value == on[Operators::NotEqual]) return builder->CreateICmpNE(left, right);
+    if (node->value == on[Operators::LessThan]) return builder->CreateICmpSLT(left, right);
+    if (node->value == on[Operators::GreaterThan]) return builder->CreateICmpSGT(left, right);
+    if (node->value == on[Operators::LessThanOrEqual]) return builder->CreateICmpSLE(left, right);
+    if (node->value == on[Operators::GreaterThanOrEqual]) return builder->CreateICmpSGE(left, right);
+    if (node->value == on[Operators::LogicalAnd]) return builder->CreateAnd(left, right);
+    if (node->value == on[Operators::LogicalOr]) return builder->CreateOr(left, right);
+    return nullptr;
+}
+
+llvm::Value* IRGenerator::generateUnaryOp(UnaryOperationNode* node) {
+    auto* operand = generateExpression(node->operand.get());
+
+    if (node->value == on[Operators::Subtract]) return builder->CreateNeg(operand);
+    if (node->value == on[Operators::LogicalNot]) return builder->CreateNot(operand);
+
+    return nullptr;
+}
+
 llvm::Value* IRGenerator::generateIf(IfNode* node) {
     auto* thenBlock = llvm::BasicBlock::Create(context, "if.thenBlock", currentFunction);
     auto* elseBlock = llvm::BasicBlock::Create(context, "if.elseBlock", currentFunction);
@@ -109,12 +211,12 @@ llvm::Value* IRGenerator::generateFor(ForLoopNode* node) {
     // initialization of iterable variable
     pushScope();
     auto* iterableAlloc = builder->CreateAlloca(llvm::Type::getInt32Ty(context), nullptr, node->variable->varName);
-    declareVariable(node->variable->varName, iterableAlloc);
+    declareVariable(node->variable->varName, iterableAlloc, llvm::Type::getInt32Ty(context));
     builder->CreateBr(conditionBlock);
 
     // fixme: conditionBlock is temporarily mute, we don't have range() in std for now
     builder->SetInsertPoint(conditionBlock);
-    builder->CreateCondBr(true, body, afterBlock);
+    builder->CreateCondBr(llvm::ConstantInt::getTrue(context), body, afterBlock);
 
     // body
     builder->SetInsertPoint(body);
@@ -175,7 +277,7 @@ llvm::Value* IRGenerator::generateSwitch(SwitchNode* node) {
     auto* switchInstance = builder->CreateSwitch(expression, defaultBlock, node->cases.size());
 
     // cases
-    for (const auto* sCase : node->cases) {
+    for (const auto& sCase : node->cases) {
         auto* caseBlock = llvm::BasicBlock::Create(context, "switch.case", currentFunction);
         auto* caseValue = generateExpression(sCase->condition.get()); // should be ConstantInt
         switchInstance->addCase(llvm::cast<llvm::ConstantInt>(caseValue), caseBlock);
@@ -231,9 +333,90 @@ void IRGenerator::generateFunctionBody(FunctionNode* node) {
     generateBlock(node->body.get());
     popScope();
 
-    auto* closingBlock = builder->GetInsertBlock();
-    if (!closingBlock->getTerminator())
+    if (!builder->GetInsertBlock()->getTerminator())
         builder->CreateRetVoid();
+}
+
+llvm::Value* IRGenerator::generateLambda(LambdaNode* node) {
+    std::string name = "__lambda_" + std::to_string(lambdaCounter++);
+
+    std::vector<llvm::Type*> parameterTypes;
+    for (const auto& parameter : node->params)
+        if (parameter->type == ASTNodeType::Variable)
+            parameterTypes.push_back(llvm::Type::getInt32Ty(context));
+
+    // create function
+    auto* fnType = llvm::FunctionType::get(llvm::Type::getVoidTy(context), parameterTypes, false);
+    auto* fn = llvm::Function::Create(fnType, llvm::Function::ExternalLinkage, name, program.get());
+
+    // generate body
+    auto* prevFunction = currentFunction;
+    currentFunction = fn;
+
+    auto* entryBlock = llvm::BasicBlock::Create(context, "entry", fn);
+    builder->SetInsertPoint(entryBlock);
+
+    pushScope();
+    auto arg = fn->arg_begin();
+    for (const auto& parameter : node->params)
+        if (parameter->type == ASTNodeType::Variable) {
+            auto* var = static_cast<VariableNode*>(parameter.get());
+            arg->setName(var->varName);
+            auto* alloc = builder->CreateAlloca(arg->getType());
+            builder->CreateStore(&*arg, alloc);
+            declareVariable(var->varName, alloc, arg->getType());
+            arg++;
+        }
+
+    generateStatement(node->body.get());
+    popScope();
+
+    if (!builder->GetInsertBlock()->getTerminator())
+        builder->CreateRetVoid();
+
+    currentFunction = prevFunction;
+    builder->SetInsertPoint(&currentFunction->back());
+
+    return fn;
+}
+
+llvm::Value* IRGenerator::generateDecorator(DecoratorNode* node) {
+    // decorator is a function that wraps behaviors of functions and does external stuff
+
+    std::vector<llvm::Type*> parameterTypes;
+    for (const auto& parameter : node->parameters) {
+        if (parameter->parameterRawType)
+            parameterTypes.push_back(resolveType(parameter->parameterRawType->varType->varName));
+        else
+            parameterTypes.push_back(llvm::Type::getInt32Ty(context));
+    }
+
+    // create function
+    auto* fnType = llvm::FunctionType::get(llvm::Type::getVoidTy(context), parameterTypes, false);
+    auto* fn = llvm::Function::Create(fnType, llvm::Function::ExternalLinkage, node->name, program.get());
+    functions[node->name] = fn;
+
+    // generate body
+    auto* entryBlock = llvm::BasicBlock::Create(context, "entry", fn);
+    builder->SetInsertPoint(entryBlock);
+
+    pushScope();
+    auto arg = fn->arg_begin();
+    for (const auto& parameter : node->parameters)
+    {
+        arg->setName(parameter->parameterName);
+        auto* alloc = builder->CreateAlloca(arg->getType(), nullptr, parameter->parameterName);
+        builder->CreateStore(&*arg, alloc);
+        declareVariable(parameter->parameterName, alloc, arg->getType());
+        arg++;
+    }
+    generateStatement(node->body.get());
+    popScope();
+
+    if (!builder->GetInsertBlock()->getTerminator())
+        builder->CreateRetVoid();
+
+    return fn;
 }
 
 llvm::Value* IRGenerator::generateBlock(BlockNode* node) {
@@ -264,7 +447,7 @@ llvm::Value* IRGenerator::generateCall(CallExpressionNode* node) {
 
 // all std magic happens here
 llvm::Value* IRGenerator::generateIntrinsicCall(const std::string& name, std::vector<llvm::Value*>& args) {
-    /*
+
     Intrinsic system calls list:
     Neoluma | glibc
     __read -> read
@@ -275,19 +458,71 @@ llvm::Value* IRGenerator::generateIntrinsicCall(const std::string& name, std::ve
     __memset -> memset
     __exit -> exit
     __panic -> not in libc, made via __panic -> fprintf(stderr) + exit(1)
-     */
+
     auto* ptr = llvm::PointerType::getUnqual(context);
     auto* i8  = llvm::Type::getInt8Ty(context);
     auto* i32 = llvm::Type::getInt32Ty(context);
     auto* i64 = llvm::Type::getInt64Ty(context);
     auto* voidTy = llvm::Type::getVoidTy(context);
 
+    if (name == "__read") {
+        auto* fnType = llvm::FunctionType::get(i64, {i32, ptr, i64}, false);
+        auto fn = program->getOrInsertFunction("read", fnType);
+        return builder->CreateCall(fn, args);
+    }
     if (name == "__write") {
         auto* fnType = llvm::FunctionType::get(i64, {i32, ptr, i64}, false);
         auto fn = program->getOrInsertFunction("write", fnType);
         return builder->CreateCall(fn, args);
     }
-    // todo for later finish ts
+    if (name == "__malloc") {
+        auto* fnType = llvm::FunctionType::get(ptr, {i64}, false);
+        auto fn = program->getOrInsertFunction("malloc", fnType);
+        return builder->CreateCall(fn, args);
+    }
+    if (name == "__free") {
+        auto* fnType = llvm::FunctionType::get(voidTy, {ptr}, false);
+        auto fn = program->getOrInsertFunction("free", fnType);
+        return builder->CreateCall(fn, args);
+    }
+    if (name == "__memcpy") {
+        auto* fnType = llvm::FunctionType::get(ptr, {ptr, ptr, i64}, false);
+        auto fn = program->getOrInsertFunction("memcpy", fnType);
+        return builder->CreateCall(fn, args);
+    }
+    if (name == "__memset") {
+        auto* fnType = llvm::FunctionType::get(ptr, {ptr, i8, i64}, false);
+        auto fn = program->getOrInsertFunction("memset", fnType);
+        return builder->CreateCall(fn, args);
+    }
+    if (name == "__exit") {
+        auto* fnType = llvm::FunctionType::get(voidTy, {i32}, false);
+        auto fn = program->getOrInsertFunction("exit", fnType);
+        builder->CreateCall(fn, args);
+        builder->CreateUnreachable();
+        return nullptr;
+    }
+    if (name == "__panic") {
+        // fprintf(stderr, msg)
+        auto* fprintfType = llvm::FunctionType::get(i32, {ptr, ptr}, true);
+        auto fprintfFn = program->getOrInsertFunction("fprintf", fprintfType);
+
+        // stderr is FILE*
+        auto* stderrVar = program->getOrInsertGlobal("stderr", ptr);
+        auto* stderrVal = builder->CreateLoad(ptr, stderrVar);
+
+        builder->CreateCall(fprintfFn, {stderrVal, args[0]});
+
+        // exit(1)
+        auto* exitType = llvm::FunctionType::get(voidTy, {i32}, false);
+        auto exitFn = program->getOrInsertFunction("exit", exitType);
+        builder->CreateCall(exitFn, {llvm::ConstantInt::get(i32, 1)});
+
+        builder->CreateUnreachable();
+        return nullptr;
+    }
+
+    return nullptr;
 }
 
 llvm::Value* IRGenerator::generateBreak() {
@@ -336,3 +571,27 @@ llvm::Type* IRGenerator::resolveType(const std::string& typeName) {
 
     return llvm::Type::getInt8Ty(context); // default
 }
+
+void IRGenerator::pushScope() { scopes.emplace_back(); }
+
+void IRGenerator::popScope() { if (!scopes.empty()) scopes.pop_back(); }
+
+void IRGenerator::declareVariable(const std::string& name, llvm::Value* value, llvm::Type* type) {
+    if (scopes.empty()) pushScope();
+    scopes.back()[name] = value;
+    variableTypes[name] = type;
+}
+
+llvm::Value* IRGenerator::findVariable(const std::string& name) {
+    for (int i = (int)scopes.size()-1; i >= 0; i--) if (scopes[i].count(name)) return scopes[i][name];
+    return nullptr;
+}
+
+std::string IRGenerator::getRootVarName(ASTNode* node) {
+    if (node->type == ASTNodeType::Variable)
+        return static_cast<VariableNode*>(node)->varName;
+    if (node->type == ASTNodeType::MemberAccess)
+        return getRootVarName(static_cast<MemberAccessNode*>(node)->parent.get());
+    return "";
+}
+*/

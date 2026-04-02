@@ -19,11 +19,14 @@ struct Lexer {
     std::string filePath;
     int line = 1;
     int column = 1;
+    std::unordered_map<std::string, Operators> om = getOperatorMap();
+    std::unordered_map<std::string, Delimeters> dm = getDelimeterMap();
+    std::unordered_map<std::string, Preprocessors> pm = getPreprocessorMap();
+    std::unordered_map<std::string, Keywords> km = getKeywordMap();
 
     // Helpers
     char curChar() const;
     char move();
-    bool match(char expected);
     bool isAtEnd() const;
 
     // Parsers

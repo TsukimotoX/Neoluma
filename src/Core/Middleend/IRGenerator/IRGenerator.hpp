@@ -5,7 +5,7 @@
 #include "Core/Frontend/Nodes.hpp"
 #include "Core/Frontend/Orchestrator/Orchestrator.hpp"
 #include "HelperFunctions.hpp"
-
+/* Deprecated structure
 // LLVM Pritimives
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -36,8 +36,10 @@ private:
     }
     void pushScope();
     void popScope();
-    void declareVariable(const std::string& name, llvm::Value* value);
+    void declareVariable(const std::string& name, llvm::Value* value, llvm::Type* type);
     llvm::Value* findVariable(const std::string& name);
+    std::string getRootVarName(ASTNode* node); // for member access
+    std::unordered_map<Operators, std::string> on = getOperatorNames();
 
     // Generators
     void generateModule(ModuleNode* module);
@@ -77,7 +79,10 @@ private:
     llvm::BasicBlock* currentBreakBB = nullptr; // break block
     llvm::BasicBlock* currentContinueBB = nullptr;// continue block
     llvm::Function* currentFunction = nullptr; // needed for IfNode and others to access
+    std::unordered_map<std::string, llvm::Type*> variableTypes; // llvm 17+ everything is opaque ptrs so need to store type somewhere
     std::unordered_map<std::string, llvm::Function*> functions; // function signatures
     std::unordered_map<std::string, llvm::StructType*> classTypes; // types of classes
     std::unordered_map<std::string, bool> intrinsicFunctions; // for intrinsic calls
+    int lambdaCounter = 0;
 };
+*/

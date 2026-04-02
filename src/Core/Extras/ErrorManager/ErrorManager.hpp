@@ -1,5 +1,4 @@
 #pragma once
-#include "../Token.hpp"
 #include <vector>
 #include <variant>
 

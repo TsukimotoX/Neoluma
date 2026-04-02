@@ -77,10 +77,3 @@ const std::unordered_map<std::string, Decorators>& getDecoratorMap();
 const std::unordered_map<std::string, Preprocessors>& getPreprocessorMap();
 const std::unordered_map<std::string, Delimeters>& getDelimeterMap();
 const std::unordered_map<std::string, ResolvedType>& getTypeMap();
-
-const std::unordered_map<Keywords, std::string>& getKeywordNames();
-const std::unordered_map<Operators, std::string>& getOperatorNames();
-const std::unordered_map<Decorators, std::string>& getDecoratorNames();
-const std::unordered_map<Preprocessors, std::string>& getPreprocessorNames();
-const std::unordered_map<Delimeters, std::string>& getDelimeterNames();
-const std::unordered_map<ResolvedType, std::string>& getTypeNames();
