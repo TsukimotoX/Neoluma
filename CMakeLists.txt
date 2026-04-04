@@ -71,6 +71,8 @@ target_include_directories(neoluma PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 # LLVM includes/defs
 target_include_directories(neoluma PRIVATE ${LLVM_INCLUDE_DIRS})
 target_compile_definitions(neoluma PRIVATE ${LLVM_DEFINITIONS})
+target_include_directories(NeolumaCore PRIVATE ${LLVM_INCLUDE_DIRS})
+target_compile_definitions(NeolumaCore PRIVATE ${LLVM_DEFINITIONS})
 
 # ---- LLVM libs ----
 llvm_map_components_to_libnames(LLVM_LIBS

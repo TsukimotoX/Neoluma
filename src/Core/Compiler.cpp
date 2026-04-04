@@ -6,10 +6,10 @@ Compiler::Compiler(ProjectConfig& config) : projectManager(config) {
         if (file.is_regular_file() && file.path().extension() == ".nm") projectManager.addFile(file.path().string());
     }
 
-    lexer.setCompiler(this);
-    parser.setCompiler(this);
-    orchestrator.setCompiler(this);
-    semanticAnalysis.setCompiler(this);
+    lexer.errorManager = &errorManager;
+    parser.errorManager = &errorManager;
+    orchestrator.setCompiler(this); // it requires for internal project checks
+    semanticAnalysis.errorManager = &errorManager;
 }
 
 void Compiler::check() {
