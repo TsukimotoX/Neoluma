@@ -24,21 +24,21 @@ struct Parser {
     std::string moduleName = "";
 
     // Parser helpers
-    Token curToken() { 
+    Token curToken() {
         if (pos >= tokens.size()) { Token token = Token{TokenType::EndOfFile, ""}; return token; }
-        return tokens[pos]; 
+        return tokens[pos];
     };
     Token lookBack() {
         if (pos >= tokens.size() || pos == 0) return Token{TokenType::EndOfFile, ""};
-        return tokens[pos - 1];
+        return tokens[pos-1];
     }
-    Token next() { 
+    Token next() {
         if (pos >= tokens.size()) return Token{TokenType::EndOfFile, ""};
-        return tokens[pos++]; 
+        return tokens[pos++];
     };
     Token lookupNext() {
         if (pos + 1 >= tokens.size()) return Token{TokenType::EndOfFile, ""};
-        return tokens[pos + 1];
+        return tokens[pos+1];
     }
     bool match(TokenType type, const std::string& value) {
         if (curToken().type != type) return false;
@@ -53,9 +53,8 @@ struct Parser {
         if (token.type != type) return false;
         return true;
     }
-    bool match(std::variant<Keywords, Operators, Delimeters, Preprocessors, Decorators> expected) {
-        Token token = curToken();
 
+    bool matchTokenImpl(const Token& token, std::variant<Keywords, Operators, Delimeters, Preprocessors, Decorators> expected) {
         if (std::holds_alternative<Keywords>(expected)) {
             if (token.type != TokenType::Keyword) return false;
             auto it = km.find(token.value);
@@ -88,38 +87,11 @@ struct Parser {
 
         return false;
     }
+    bool match(std::variant<Keywords, Operators, Delimeters, Preprocessors, Decorators> expected) {
+        return matchTokenImpl(curToken(), expected);
+    }
     bool match(const Token& token, std::variant<Keywords, Operators, Delimeters, Preprocessors, Decorators> expected) {
-        if (std::holds_alternative<Keywords>(expected)) {
-            if (token.type != TokenType::Keyword) return false;
-            auto it = km.find(token.value);
-            return it != km.end() && it->second == std::get<Keywords>(expected);
-        }
-
-        if (std::holds_alternative<Operators>(expected)) {
-            if (token.type != TokenType::Operator) return false;
-            auto it = om.find(token.value);
-            return it != om.end() && it->second == std::get<Operators>(expected);
-        }
-
-        if (std::holds_alternative<Delimeters>(expected)) {
-            if (token.type != TokenType::Delimeter) return false;
-            auto it = dm.find(token.value);
-            return it != dm.end() && it->second == std::get<Delimeters>(expected);
-        }
-
-        if (std::holds_alternative<Preprocessors>(expected)) {
-            if (token.type != TokenType::Preprocessor) return false;
-            auto it = pm.find(token.value);
-            return it != pm.end() && it->second == std::get<Preprocessors>(expected);
-        }
-
-        if (std::holds_alternative<Decorators>(expected)) {
-            if (token.type != TokenType::Decorator) return false;
-            auto it = decm.find(token.value);
-            return it != decm.end() && it->second == std::get<Decorators>(expected);
-        }
-
-        return false;
+        return matchTokenImpl(token, expected);
     }
     bool isAtEnd() { return pos >= tokens.size() || curToken().type == TokenType::EndOfFile; }
     std::unordered_map<std::string, Keywords> km = getKeywordMap();

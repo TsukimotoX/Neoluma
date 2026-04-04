@@ -79,18 +79,18 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
 
     auto modifiers = parseModifiers();
 
-    if (match(TokenType::Identifier) && (om[lookupNext().value] == Operators::Nullable || dm[lookupNext().value] == Delimeters::Colon))
+    if (match(TokenType::Identifier) && (match(lookupNext(), Operators::Nullable) || match(lookupNext(), Delimeters::Colon)))
         return parseDeclaration(std::move(decorators), std::move(modifiers));
 
     token = curToken();
     // === Control Flow Keywords ===
-    if (token.type == TokenType::Keyword) {
-        if (km[token.value] == Keywords::If) return parseIf();
-        if (km[token.value] == Keywords::Switch) return parseSwitch();
-        if (km[token.value] == Keywords::Try) return parseTryCatch();
-        if (km[token.value] == Keywords::For) return parseFor();
-        if (km[token.value] == Keywords::While) return parseWhile();
-        if (km[token.value] == Keywords::Return) {
+    if (match(TokenType::Keyword)) {
+        if (match(token, Keywords::If)) return parseIf();
+        if (match(token, Keywords::Switch)) return parseSwitch();
+        if (match(token, Keywords::Try)) return parseTryCatch();
+        if (match(token, Keywords::For)) return parseFor();
+        if (match(token, Keywords::While)) return parseWhile();
+        if (match(token, Keywords::Return)) {
             next();
 
             // allow "return;" or "return }"
@@ -117,7 +117,7 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
             node->line = token.line; node->column = token.column; node->filePath = token.filePath;
             return node;
         }
-        if (km[token.value] == Keywords::Throw) {
+        if ((match(token, Keywords::Throw))) {
             next();
             if (isNextLine() || match(Delimeters::RightBraces)) {
                 errorManager->addError(
@@ -137,13 +137,13 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
             node->line = token.line; node->column = token.column; node->filePath = token.filePath;
             return node;
         }
-        if (km[token.value] == Keywords::Break) {
+        if (match(token, Keywords::Break)) {
             next();
             auto node = ASTBuilder::createBreakStatement();
             node->line = token.line; node->column = token.column; node->filePath = token.filePath;
             return node;
         }
-        if (km[token.value] == Keywords::Continue) {
+        if (match(token, Keywords::Continue)) {
             next();
             auto node = ASTBuilder::createContinueStatement();
             node->line = token.line; node->column = token.column; node->filePath = token.filePath;
@@ -151,11 +151,11 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
         }
 
         // for modifier affected structures
-        if (km[token.value] == Keywords::Function) return parseFunction(std::move(decorators), std::move(modifiers));
-        if (km[token.value] == Keywords::Class) return parseClass(std::move(decorators), std::move(modifiers));
-        if (km[token.value] == Keywords::Enum) return parseEnum(std::move(decorators), std::move(modifiers));
-        if (km[token.value] == Keywords::Interface) return parseInterface(std::move(decorators), std::move(modifiers));
-        if (km[token.value] == Keywords::Decorator) return parseDecorator(std::move(decorators), std::move(modifiers));
+        if (match(token, Keywords::Function)) return parseFunction(std::move(decorators), std::move(modifiers));
+        if (match(token, Keywords::Class)) return parseClass(std::move(decorators), std::move(modifiers));
+        if (match(token, Keywords::Enum)) return parseEnum(std::move(decorators), std::move(modifiers));
+        if (match(token,  Keywords::Interface)) return parseInterface(std::move(decorators), std::move(modifiers));
+        if (match(token, Keywords::Decorator)) return parseDecorator(std::move(decorators), std::move(modifiers));
         // FIXME: why is this here?
         if (!modifiers.empty()) {
             std::println(std::cerr, "[Neoluma/Parser][{}] Unexpected modifier before {} (L{}:{})", __func__, token.value, token.line, token.column);
@@ -178,8 +178,7 @@ MemoryPtr<ASTNode> Parser::parseExpression() {
 
     // Unary operations
     if (om.find(token.value) != om.end()) {
-        Operators op = om[token.value];
-        if (op == Operators::LogicalNot || op == Operators::Subtract) {
+        if (match(token, Operators::LogicalNot) || match(token, Operators::Subtract)) {
             next();
             return parseUnary(token.value);
         }
@@ -336,19 +335,19 @@ MemoryPtr<ASTNode> Parser::parsePrimary() {
         }
     }
     // Data type + Booleans
-    else if ((token.type == TokenType::Number || token.type == TokenType::String)
-    || (token.type == TokenType::Identifier && (token.value == "true" || token.value == "false"))) {
+    else if ((match(TokenType::Number) || match(TokenType::String))
+    || (match(TokenType::Identifier) && (token.value == "true" || token.value == "false"))) {
         next();
         return ASTBuilder::createLiteral(token.value);
     }
     // Null
-    else if (token.type == TokenType::Null) {
+    else if (match(TokenType::Null)) {
         next();
         return ASTBuilder::createLiteral("null");
     }
 
     // Identifier/variable or function call
-    else if (token.type == TokenType::Identifier) {
+    else if (match(TokenType::Identifier)) {
         Token id = next();
         MemoryPtr<ASTNode> node;
 
@@ -1813,8 +1812,7 @@ int Parser::getOperatorPrecedence(const std::string& op){
     }
 }
 
-bool Parser::isAssignmentOperator(const std::string& op)
-{
+bool Parser::isAssignmentOperator(const std::string& op) {
     auto it = om.find(op);
     if (it == om.end()) return false;
 
