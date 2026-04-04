@@ -10,8 +10,14 @@
 void ErrorManager::printErrors() {
     if (errors.empty()) return;
 
+    // Cache files from errors
+    std::unordered_map<std::string, std::string> fileCache;
+
     int count = 1;
     for (auto& e : errors) {
+        if (!fileCache.contains(e.span.filePath))
+            fileCache[e.span.filePath] = readFile(e.span.filePath);
+
         std::string typeColor;
         std::string hintColor = Color::TextHex("#f6ff75");
         std::string msgColor = Color::TextHex("#ff7575");
@@ -25,9 +31,7 @@ void ErrorManager::printErrors() {
             case ErrorType::None:         typeColor = Color::TextHex("#4A2BD6"); break;
         }
 
-        // TODO: Make a more optimal way to getting code snippets, reading the file on every error
-        //  is crucial to the buffer in IDE after LSP is implemented
-        std::istringstream srcStream(readFile(e.span.filePath));
+        std::istringstream srcStream(fileCache[e.span.filePath]);
         std::string prevLine, line, errorLine, nextLine;
         int line1 = std::max(1, e.span.line);     // force 1-based for display + lookup
         int col1  = std::max(1, e.span.column);   // force 1-based for display
@@ -51,14 +55,14 @@ void ErrorManager::printErrors() {
             fppos += 1;
         }
 
-        auto msg = weirdCondition(e.messageKey) ? pudding : Localization::translatef(e.messageKey, e.messageArgs);
-        std::println("{}[{}]  ❌  {}{}", typeColor, weirdCondition(e.messageKey) ? "N??E?" : formatErrorType(e.detailedType), msg, Color::Reset);
+        auto msg = Localization::translatef(e.messageKey, e.messageArgs);
+        std::println("{}[{}]  ❌  {}{}", typeColor, formatErrorType(e.detailedType), msg, Color::Reset);
         std::println("➡️  {}:{}:{}", e.span.filePath, line1, col1);
         if (line1 > 1) std::println("{:>3} | {}", line1 - 1, prevLine);
         std::println("{:>3} | {}{}{}", line1, Color::TextHex("#ff5050"), errorLine, Color::Reset);
         std::println("{}| {}{} {}", std::string(std::to_string(line1).length() + 2, ' '), std::string((size_t)col0, ' '), std::string((size_t)e.span.len + 2, '^'), msg);
         if (!nextLine.empty()) std::println("{:>3} | {}", line1 + 1, nextLine);
-        if (!e.hintKey.empty()) std::println(std::cout, "{}{}{}\n", hintColor, formatStr(Localization::translate("ErrorManager.hint"), weirdCondition(e.messageKey) ? puddingsong : Localization::translatef(e.hintKey, e.hintArgs)), Color::Reset);
+        if (!e.hintKey.empty()) std::println(std::cout, "{}{}{}\n", hintColor, formatStr(Localization::translate("ErrorManager.hint"), Localization::translatef(e.hintKey, e.hintArgs)), Color::Reset);
         count++;
     }
 

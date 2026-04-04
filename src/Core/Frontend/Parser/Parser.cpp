@@ -1271,6 +1271,7 @@ std::vector<MemoryPtr<CallExpressionNode>> Parser::parseDecoratorCalls() {
             break;
         }
         calls.push_back(std::move(call));
+        next();
     }
 
     return calls;
@@ -1403,7 +1404,10 @@ MemoryPtr<EnumNode> Parser::parseEnum(std::vector<MemoryPtr<CallExpressionNode>>
     std::vector<MemoryPtr<EnumMemberNode>> elements;
 
     while (!match(Delimeters::RightBraces)) {
-        if (curToken().type != TokenType::Identifier) {
+        while (isNextLine()) next();
+        if (match(Delimeters::RightBraces)) break;
+
+        if (!match(TokenType::Identifier)) {
             errorManager->addError(
                 ErrorType::Syntax, SyntaxErrors::UnexpectedToken,
                 ErrorSpan{curToken().filePath, curToken().value, curToken().line, curToken().column},

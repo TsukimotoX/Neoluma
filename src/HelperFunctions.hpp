@@ -64,9 +64,3 @@ std::string formatStr(const std::string& fmt, Args&&... args)
     std::vector<std::string> collectedArgs = { anyToStr(args)... };
     return formatStrVec(fmt, collectedArgs);
 }
-
-#define pudding std::string("Nep is not a console")
-#define puddingsong std::string("Nep Nep♪ Nep nep♪ Nep nep neppynep♪🍮")
-inline bool weirdCondition(const std::string& k){
-    return k == pudding;
-}
