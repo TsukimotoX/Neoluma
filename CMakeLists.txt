@@ -16,6 +16,12 @@ find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
+if(WIN32)
+    find_program(NEOLUMA_POWERSHELL_EXECUTABLE NAMES pwsh powershell REQUIRED)
+else()
+    find_program(NEOLUMA_POWERSHELL_EXECUTABLE NAMES pwsh REQUIRED)
+endif()
+
 # ---- Sources ----
 file(GLOB_RECURSE CORE_FILES CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Core/*.cpp
@@ -107,16 +113,82 @@ install(TARGETS neoluma
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/Localization/ DESTINATION ${CMAKE_INSTALL_DATADIR}/locales)
 
+set(NEOLUMA_TEST_RUNNER "${CMAKE_SOURCE_DIR}/tests/runner/run-tests.ps1")
+set(INSTALLER_RES_DIR "${CMAKE_SOURCE_DIR}/src/Installer/src-tauri/resources")
+set(INSTALLER_PAYLOAD "${INSTALLER_RES_DIR}/payload.zip")
+
+add_custom_target(frontend_tests
+    COMMAND "${NEOLUMA_POWERSHELL_EXECUTABLE}"
+        -ExecutionPolicy Bypass
+        -File "${NEOLUMA_TEST_RUNNER}"
+        -ExePath "$<TARGET_FILE:neoluma>"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    DEPENDS neoluma
+    COMMENT "Running frontend regression tests..."
+    VERBATIM
+)
+
+set(NEOLUMA_INSTALL_HOOK_CODE [=[
+    set(NEOLUMA_INSTALLED_ROOT "$ENV{DESTDIR}@CMAKE_INSTALL_PREFIX@")
+    set(NEOLUMA_INSTALLED_EXE "${NEOLUMA_INSTALLED_ROOT}/@CMAKE_INSTALL_BINDIR@/neoluma@CMAKE_EXECUTABLE_SUFFIX@")
+    set(NEOLUMA_PAYLOAD_ROOT "@CMAKE_SOURCE_DIR@/.build/payload/@CMAKE_SYSTEM_NAME@-@CMAKE_SYSTEM_PROCESSOR@/@CMAKE_BUILD_TYPE@")
+    set(NEOLUMA_PAYLOAD_ZIP "${NEOLUMA_PAYLOAD_ROOT}/payload.zip")
+    set(NEOLUMA_INSTALLER_RES_DIR "@INSTALLER_RES_DIR@")
+    set(NEOLUMA_INSTALLER_PAYLOAD "${NEOLUMA_INSTALLER_RES_DIR}/payload.zip")
+
+    message(STATUS "Running frontend regression tests...")
+    execute_process(
+        COMMAND "@NEOLUMA_POWERSHELL_EXECUTABLE@" -ExecutionPolicy Bypass -File "@NEOLUMA_TEST_RUNNER@" -ExePath "${NEOLUMA_INSTALLED_EXE}"
+        WORKING_DIRECTORY "@CMAKE_SOURCE_DIR@"
+        RESULT_VARIABLE NEOLUMA_FRONTEND_TESTS_RESULT
+    )
+    if(NOT NEOLUMA_FRONTEND_TESTS_RESULT EQUAL 0)
+        message(FATAL_ERROR "Frontend regression tests failed.")
+    endif()
+
+    message(STATUS "Packaging installed runtime into payload.zip...")
+    file(MAKE_DIRECTORY "${NEOLUMA_PAYLOAD_ROOT}")
+    execute_process(
+        COMMAND "@CMAKE_COMMAND@" -E rm -f "${NEOLUMA_PAYLOAD_ZIP}"
+        RESULT_VARIABLE NEOLUMA_PAYLOAD_CLEAN_RESULT
+    )
+    if(NOT NEOLUMA_PAYLOAD_CLEAN_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed to clean previous payload.zip.")
+    endif()
+
+    execute_process(
+        COMMAND "@CMAKE_COMMAND@" -E chdir "${NEOLUMA_INSTALLED_ROOT}" "@CMAKE_COMMAND@" -E tar "cf" "${NEOLUMA_PAYLOAD_ZIP}" --format=zip -- .
+        RESULT_VARIABLE NEOLUMA_PAYLOAD_PACK_RESULT
+    )
+    if(NOT NEOLUMA_PAYLOAD_PACK_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed to package installed runtime into payload.zip.")
+    endif()
+
+    execute_process(
+        COMMAND "@CMAKE_COMMAND@" -E make_directory "${NEOLUMA_INSTALLER_RES_DIR}"
+        RESULT_VARIABLE NEOLUMA_INSTALLER_RES_DIR_RESULT
+    )
+    if(NOT NEOLUMA_INSTALLER_RES_DIR_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed to create installer resources directory.")
+    endif()
+
+    execute_process(
+        COMMAND "@CMAKE_COMMAND@" -E copy_if_different "${NEOLUMA_PAYLOAD_ZIP}" "${NEOLUMA_INSTALLER_PAYLOAD}"
+        RESULT_VARIABLE NEOLUMA_PAYLOAD_COPY_RESULT
+    )
+    if(NOT NEOLUMA_PAYLOAD_COPY_RESULT EQUAL 0)
+        message(FATAL_ERROR "Failed to copy payload.zip into installer resources.")
+    endif()
+]=])
+string(CONFIGURE "${NEOLUMA_INSTALL_HOOK_CODE}" NEOLUMA_INSTALL_HOOK_CODE @ONLY)
+install(CODE "${NEOLUMA_INSTALL_HOOK_CODE}")
+
 # ---- Payload creation. ----
 # payload is bundled into installer resources.
 # make payload dirs unique per platform+arch+config to avoid overwriting when switching OS/builds
 set(NEOLUMA_PAYLOAD_ROOT "${CMAKE_SOURCE_DIR}/.build/payload/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}/$<CONFIG>")
 set(NEOLUMA_STAGE_DIR   "${NEOLUMA_PAYLOAD_ROOT}/stage")
 set(NEOLUMA_PAYLOAD_ZIP "${NEOLUMA_PAYLOAD_ROOT}/payload.zip")
-
-# where the installer expects resources
-set(INSTALLER_RES_DIR "${CMAKE_SOURCE_DIR}/src/Installer/src-tauri/resources")
-set(INSTALLER_PAYLOAD "${INSTALLER_RES_DIR}/payload.zip")
 
 # multi-config generators require --config. single-config i use (ninja) doesn't.
 set(NEOLUMA_INSTALL_CONFIG_ARG "")
@@ -155,17 +227,7 @@ add_custom_command(
     --prefix "${NEOLUMA_STAGE_DIR}"
     ${NEOLUMA_INSTALL_CONFIG_ARG}
 
-    # zip the contents of stage (bin/, lib/, ...)
-    COMMAND ${CMAKE_COMMAND} -E rm -f "${NEOLUMA_PAYLOAD_ZIP}"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${NEOLUMA_PAYLOAD_ROOT}"
-    COMMAND ${CMAKE_COMMAND} -E chdir "${NEOLUMA_STAGE_DIR}"
-    ${CMAKE_COMMAND} -E tar "cf" "${NEOLUMA_PAYLOAD_ZIP}" --format=zip -- .
-
-    # copy to installer resources
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${INSTALLER_RES_DIR}"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${NEOLUMA_PAYLOAD_ZIP}" "${INSTALLER_PAYLOAD}"
-
-    COMMENT "Creating payload.zip for ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR} ($<CONFIG>) and copying into installer resources..."
+    COMMENT "Installing staged runtime and producing payload.zip for ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR} ($<CONFIG>)..."
     VERBATIM
 )
 

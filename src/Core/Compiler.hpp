@@ -23,7 +23,7 @@ struct Compiler {
 
     // Functions
     void compile(); // compiled way
-    void check();
+    void check(bool jsonOutput = false);
     void run(); // interpreted way
 
     // Data

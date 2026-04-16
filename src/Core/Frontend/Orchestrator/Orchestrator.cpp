@@ -120,11 +120,13 @@ ProgramUnit Orchestrator::stitchProgram(const EntryPoint& entryPoint, const std:
 EntryPoint Orchestrator::findEntryPoint(const std::vector<MemoryPtr<ModuleNode>>& modules) {
     EntryPoint entryPoint{};
     EntryPoint mainFallback{};
+    ModuleNode* firstModule = nullptr;
 
     bool foundExplicit = false;
 
     for (const auto& module : modules) {
         if (!module) continue;
+        if (!firstModule) firstModule = module.get();
         for (const auto& statement : module->body) {
             if (!statement || statement->type != ASTNodeType::Function) continue;
 
@@ -159,7 +161,7 @@ EntryPoint Orchestrator::findEntryPoint(const std::vector<MemoryPtr<ModuleNode>>
     compiler->errorManager.addError(
             ErrorType::Analysis,
             AnalysisErrors::NoEntryPoints,
-            ErrorSpan{modules.front()->filePath, "", 1, 1},
+            ErrorSpan{firstModule ? firstModule->filePath : "", "", 1, 1},
             "ErrorManager.Analysis.NoEntryPoints.message", {},
                "ErrorManager.Analysis.NoEntryPoints.hint");
 
@@ -185,6 +187,22 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
         infos[i].id = i;
         infos[i].module = m;
     }
+
+    auto registerAlias = [&](ModuleInfo& mi, ImportNode* imp, ModuleId depId) {
+        if (imp->alias.empty()) return;
+
+        if (mi.aliasMap.count(imp->alias)) {
+            compiler->errorManager.addError(
+                ErrorType::Preprocessor,
+                PreprocessorErrors::ImportAliasConflict,
+                ErrorSpan{imp->filePath, imp->alias, imp->line, imp->column},
+                "ErrorManager.Preprocessor.ImportAliasConflict.message", {imp->alias},
+                "ErrorManager.Preprocessor.ImportAliasConflict.hint");
+            return;
+        }
+
+        mi.aliasMap.emplace(imp->alias, depId);
+    };
 
     // go through imports and fill out dependencies and aliasMap
     for (ModuleId i = 0; i < (ModuleId)infos.size(); ++i)
@@ -215,20 +233,7 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
 
                 ModuleId depId = it->second;
                 mi.dependencies.push_back(DependencyEdge{depId, ErrorSpan{imp->filePath, imp->moduleName, imp->line, imp->column}});
-
-                // for aliases
-                if (!imp->alias.empty())
-                {
-                    if (mi.aliasMap.count(imp->alias))
-                        compiler->errorManager.addError(
-                        ErrorType::Preprocessor,
-                        PreprocessorErrors::ImportAliasConflict,
-                        ErrorSpan{imp->filePath, imp->alias, imp->line, imp->column},
-                         "ErrorManager.Preprocessor.ImportAliasConflict.message", {imp->alias},
-                        "ErrorManager.Preprocessor.ImportAliasConflict.hint");
-
-                    else mi.aliasMap.emplace(imp->alias, depId);
-                }
+                registerAlias(mi, imp, depId);
             }
             else if (imp->importType == ASTImportType::Native){
                 // At first we're gonna assume the file is in the same folder, if not, it's really a native import
@@ -239,7 +244,9 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
                 auto it = keyToId.find(resolvedKey);
                 if (it != keyToId.end()){
                     // is a relative import
-                    mi.dependencies.push_back(DependencyEdge{it->second, ErrorSpan{imp->filePath, imp->moduleName, imp->line, imp->column}});
+                    ModuleId depId = it->second;
+                    mi.dependencies.push_back(DependencyEdge{depId, ErrorSpan{imp->filePath, imp->moduleName, imp->line, imp->column}});
+                    registerAlias(mi, imp, depId);
                 } else {
                     // is a native import
                     if (imp->moduleName != "std" && !compiler->projectManager.config.dependencies.contains(imp->moduleName)){

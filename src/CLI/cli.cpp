@@ -232,12 +232,12 @@ void run(const std::string& nlpFile) {
     // todo: launch the file using std::system or CreateProcess
 }
 
-void check(const std::string& nlpFile) {
+void check(const std::string& nlpFile, bool jsonOutput) {
     ProjectConfig config = parseProjectFile(nlpFile);
     std::string name = config.name;
     Compiler compiler = Compiler(config);
-    std::println("{}{}{}", Color::TextHex("#75ff87"), formatStr(Localization::translate("CLI.check.initialization"), name), Color::Reset);
-    compiler.check();
+    if (!jsonOutput) std::println("{}{}{}", Color::TextHex("#75ff87"), formatStr(Localization::translate("CLI.check.initialization"), name), Color::Reset);
+    compiler.check(jsonOutput);
 }
 
 void createProject() {

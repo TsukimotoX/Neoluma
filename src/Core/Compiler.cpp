@@ -1,5 +1,6 @@
 #include "Compiler.hpp"
 #include "Libraries/Color/Color.hpp"
+#include "Libraries/Json/Json.hpp"
 
 Compiler::Compiler(ProjectConfig& config) : projectManager(config) {
     for (const auto& file : std:: filesystem::recursive_directory_iterator(std::filesystem::path(config.sourcePath) / config.sourceFolder, std::filesystem::directory_options::skip_permission_denied)) {
@@ -12,7 +13,7 @@ Compiler::Compiler(ProjectConfig& config) : projectManager(config) {
     semanticAnalysis.errorManager = &errorManager;
 }
 
-void Compiler::check() {
+void Compiler::check(bool jsonOutput) {
     for (const auto& file : projectManager.listFiles()){
         // Lexer: breaks code down into tokens.
         std::string source = readFile(file);
@@ -48,7 +49,15 @@ void Compiler::check() {
     semanticAnalysis.analyzeProgram(program, infos);
 
     if (errorManager.hasErrors()) {
-        errorManager.printErrors();
-        std::println(std::cout, "{}{}{}", Color::TextHex("#ff5050"), Localization::translate("CLI.check.failed"), Color::Reset);
-    } else std::println(std::cout, "{}{}{}", Color::TextHex("#75ff87"), Localization::translate("CLI.check.complete"), Color::Reset);
+        if (jsonOutput) {
+            std::println(std::cout, "{}", json::stringify(errorManager.toJson(), {.pretty = true, .emit_comments = false}));
+        } else {
+            errorManager.printErrors();
+            std::println(std::cout, "{}{}{}", Color::TextHex("#ff5050"), Localization::translate("CLI.check.failed"), Color::Reset);
+        }
+    } else if (jsonOutput) {
+        std::println(std::cout, "{}", json::stringify(errorManager.toJson(), {.pretty = true, .emit_comments = false}));
+    } else {
+        std::println(std::cout, "{}{}{}", Color::TextHex("#75ff87"), Localization::translate("CLI.check.complete"), Color::Reset);
+    }
 }

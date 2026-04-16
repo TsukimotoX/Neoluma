@@ -114,7 +114,7 @@ void SemanticAnalysis::analyzeFunction(FunctionNode* node) {
                 ErrorSpan{parameter->filePath, parameter->parameterName, parameter->line, parameter->column},
                 "ErrorManager.Analysis.DuplicateParameterName.message", {parameter->parameterName, node->name},
                 "ErrorManager.Analysis.DuplicateParameterName.hint");
-            pushScope();
+            popScope();
             functionDepth--;
             return;
         }

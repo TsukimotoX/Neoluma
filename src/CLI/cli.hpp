@@ -20,7 +20,7 @@ CLIArgs parseArgs(int argc, char** argv);
 
 void build(const std::string& nlpFile); // Compiles Neoluma program into a binary executable
 void run(const std::string& nlpFile); // Runs the code interpreted way. Useful for testing.
-void check(const std::string& nlpFile); // Checks code on errors. Doesn't generate any binaries
+void check(const std::string& nlpFile, bool jsonOutput = false); // Checks code on errors. Doesn't generate any binaries
 void createProject(ProjectConfig config); // Creates a project
 void createProject(); // Creates a project (Without ProjectConfig)
 
