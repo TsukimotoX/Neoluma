@@ -115,6 +115,11 @@ struct ASTBuilder {
         return makeMemoryPtr<DictNode>(std::move(elements)/*, std::move(types)*/);
     }
 
+    // Creates a TupleNode
+    static MemoryPtr<TupleNode> createTuple(std::vector<MemoryPtr<ASTNode>> elements) {
+        return makeMemoryPtr<TupleNode>(std::move(elements));
+    }
+
     // Creates a ResultNode
     static MemoryPtr<ResultNode> createResult(MemoryPtr<ASTNode> t, MemoryPtr<ASTNode> e = nullptr, bool isError = false) {
         return makeMemoryPtr<ResultNode>(std::move(t), std::move(e), isError);

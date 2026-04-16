@@ -1,9 +1,10 @@
 #pragma once
-#include "../Token.hpp"
+#include <unordered_map>
 #include <vector>
 #include <variant>
 
 #include "Core/Frontend/Nodes.hpp"
+#include "Libraries/Json/Json.hpp"
 
 enum struct ErrorType {
     Syntax,
@@ -196,7 +197,9 @@ struct ErrorManager {
 
     void addError(ErrorType type, std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType, const ErrorSpan& span, const std::string& messageKey, std::vector<std::string> messageArgs = {}, const std::string& hintKey = "", std::vector<std::string> hintArgs = {}) { errors.push_back(Error{type, detailedType, span, messageKey, messageArgs, hintKey, hintArgs}); }
     void printErrors();
+    json::Value toJson() const;
     [[nodiscard]] bool hasErrors() const { return !errors.empty(); }
 
     static std::string formatErrorType(std::variant<SyntaxErrors, AnalysisErrors, PreprocessorErrors, CodegenErrors, RuntimeErrors> detailedType);
+    static std::string formatStage(ErrorType type);
 };

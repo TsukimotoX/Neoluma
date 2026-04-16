@@ -62,7 +62,7 @@ enum class PTOutputType { Executable, StaticLibrary, SharedLibrary, Object, Inte
 // ProjectConfig is a struct that allows me to determine project structure.
 struct ProjectConfig {
     std::string name = "Untitled Project";
-    std::string version = "1.0.0"; // TODO: Make an incremental count for versions.
+    std::string version = "1.0.0";
     std::vector<std::string> author = { "Untitled Author" };
     std::vector<PlatformTarget> targets;
     License license = License::MIT;

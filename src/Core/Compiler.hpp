@@ -2,7 +2,7 @@
 #include "Frontend/Lexer/Lexer.hpp"
 #include "Frontend/Parser/Parser.hpp"
 #include "Extras/ProjectManager/ProjectManager.hpp"
-#include "Frontend/ErrorManager/ErrorManager.hpp"
+#include "Extras/ErrorManager/ErrorManager.hpp"
 #include "Frontend/SemanticAnalysis/SemanticAnalysis.hpp"
 
 #include "Frontend/Orchestrator/Orchestrator.hpp"
@@ -23,7 +23,7 @@ struct Compiler {
 
     // Functions
     void compile(); // compiled way
-    void check();
+    void check(bool jsonOutput = false);
     void run(); // interpreted way
 
     // Data

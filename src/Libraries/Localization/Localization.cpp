@@ -116,6 +116,7 @@ namespace Localization {
         if (!std::filesystem::exists(localeFolder)) {
             std::println(std::cerr, "Neoluma's localization module detected that you have no localization folder. We highly suggest you repairing the installation via your installer. \nNeoluma can't run without the localization.");
             // TODO: Implement a fallback system for people who ever will to delete locale configs.
+
             return;
         }
         localeMap = loadJson("en_US");

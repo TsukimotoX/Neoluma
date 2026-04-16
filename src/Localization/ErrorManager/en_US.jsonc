@@ -4,10 +4,8 @@
 	// safetyGuard triggers in Parser only.
 	"safetyGuard": "❌😵‍💫 Recovery guard triggered! Stopping parsing to avoid infinite loop. If you see this message somehow, report this to the developers. \n\n Information: \n Function: {},\n File {},\n Happened at Line {}:{}\n\nThank you!\n",
 	"Syntax": {
-		"UnexpectedToken": {
-			"message": "Unexpected token: '{}'",
-			"hint": "Remove it, or make sure you typed it correctly."
-		},
+		"UnexpectedToken.message": "Unexpected token: '{}'",
+		"UnexpectedToken.hint": "Remove it, or make sure you typed it correctly.",
 
 		"MissingToken": {
 			"message": "Missing '{}'",
@@ -23,7 +21,7 @@
 			"missingExpressionLambda.hint": "Provide an expression inside the parentheses.",
 
 			"dictColonAfterKey.message": "Missing ':' after dictionary key '{}'",
-			"dictColonAfterKey.hint": "Add a colon after the key. For example: { key: value }.",
+			"dictColonAfterKey.hint": "Add a colon after the key. For example: {{ key: value }}.",
 
 			"closingParen.message": "Missing closing ')' after '{}'",
 			"closingParen.hint": "Close the parenthesis after '{}'.",
@@ -187,13 +185,16 @@
 			"constructorFailed.hint": "Make sure the constructor matches the class name and has a valid body.",
 
 			"enumNonLiteralValue.message": "Enum member '{}' must have a literal value",
-			"enumNonLiteralValue.hint": "Use a number or string literal. For example: enum Color { Red = 0, Green = 1 }."
+			"enumNonLiteralValue.hint": "Use a number or string literal. For example: enum Color {{ Red = 0, Green = 1 }}."
 		},
 
-		"UnterminatedComment": {
-			"message": "Unterminated comment",
-			"hint": "Close the comment with '*/'."
-		}
+		"InvalidNumberFormat.message": "Invalid number format: '{}'",
+		"InvalidNumberFormat.hint": "Numbers can only be written with integer, floating point and exponent. Example: 1.23e-6",
+
+		"UnterminatedComment.message": "Unterminated comment",
+		"UnterminatedComment.hint": "Close the comment with '*/'.",
+
+		"UnterminatedString.message": "Unterminated string"
 	},
 	"Analysis": {
 		"MultipleEntryPoints.message": "Multiple entry points detected",

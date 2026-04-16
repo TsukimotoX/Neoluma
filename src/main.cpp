@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
             return 2;
         }
 
-        check(projectFilePath.string());
+        check(projectFilePath.string(), args.options.count("json"));
     } else if (args.command == "version") {
         std::println("{}Neoluma Alpha Release v0.1{}", Color::TextHex("#ff28e6"), Color::Reset);
     } else {

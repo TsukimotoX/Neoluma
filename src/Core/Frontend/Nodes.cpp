@@ -410,6 +410,16 @@ std::string DictNode::toString(int indent) const {
     return out;
 }
 
+std::string TupleNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Tuple", hdr));
+    appendPtrVec(out, "elements", elements, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
+}
+
 std::string ResultNode::toString(int indent) const {
     std::vector<std::pair<std::string, std::string>> hdr;
     appendBaseHeaderFields(hdr, *this);

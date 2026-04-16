@@ -1,6 +1,6 @@
 #pragma once
 #include "../Nodes.hpp"
-#include "Core/Frontend/ErrorManager/ErrorManager.hpp"
+#include "Core/Extras/ErrorManager/ErrorManager.hpp"
 #include <unordered_map>
 
 // helper declarations
