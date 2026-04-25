@@ -1,0 +1,8 @@
+[project]
+name = "std"
+version = "1.0"
+authors = ["Astrahelm Project"]
+license = "apache"
+output = "obj"
+sourceFolder = "src/"
+buildFolder = ".build/"
