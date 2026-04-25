@@ -183,7 +183,8 @@ std::string licenseID(License license) {
 std::string outputID(PTOutputType type) {
     switch (type) {
         case PTOutputType::Executable: return "exe";
-        case PTOutputType::IntermediateRepresentation: return "ir";
+        case PTOutputType::IR: return "ir";
+        case PTOutputType::LLVM_IR: return "llvm_ir";
         case PTOutputType::Object: return "obj";
         case PTOutputType::SharedLibrary: return "sharedlib";
         case PTOutputType::StaticLibrary: return "staticlib";
@@ -210,7 +211,8 @@ License parseLicense(std::string license) {
 
 PTOutputType parseOutput(std::string outputType) {
     if (outputType == "exe") return PTOutputType::Executable;
-    if (outputType == "ir") return PTOutputType::IntermediateRepresentation;
+    if (outputType == "ir") return PTOutputType::IR;
+    if (outputType == "llvm_ir") return PTOutputType::LLVM_IR;
     if (outputType == "obj") return PTOutputType::Object;
     if (outputType == "sharedlib") return PTOutputType::SharedLibrary;
     if (outputType == "staticlib") return PTOutputType::StaticLibrary;

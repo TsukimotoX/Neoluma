@@ -4,6 +4,8 @@
 #include <map>
 #include "../Core/Extras/ProjectManager/ProjectManager.hpp"
 #include <chrono>
+
+#include "HelperFunctions.hpp"
 #include "../Libraries/Toml/Toml.hpp"
 
 // CLIArgs is a struct that allows me to parse CLI arguments
@@ -41,7 +43,7 @@ public:
     // Available identifiers: mit, apache, gpl2, gpl3, bsd2, bsd3, boost, cc0, eclipse, agpl, lgpl, mozilla, unlicense. Otherwise returns specific message
     static std::string checkLicense(ProjectConfig config, License license) {
         if (license == License::MIT) return MIT(listAuthors(config.author));
-        else if (license == License::Apache) return Apachev2();
+        else if (license == License::Apache) return Apachev2(listAuthors(config.author));
         else if (license == License::GPL2) return GNUGPLv2();
         else if (license == License::GPL3) return GNUGPLv3();
         else if (license == License::BSD2) return BSDv2Simplified(listAuthors(config.author));
@@ -59,8 +61,8 @@ public:
     /* A short and simple permissive license with conditions only requiring preservation of copyright and license notices. 
     Licensed works, modifications, and larger works may be distributed under different terms and without source code. */
     static std::string MIT(std::string author) {
-        const auto year = std::format("{:%Y}", std::chrono::system_clock::now());
-        return std::format(R""""(MIT License
+        const auto year = formatStr("{:%Y}", std::chrono::system_clock::now());
+        return formatStr(R""""(MIT License
             
 Copyright (c) {} {}
 
@@ -86,8 +88,9 @@ SOFTWARE.")"""", year, author);
     /* A permissive license whose main conditions require preservation of copyright and license notices. 
     Contributors provide an express grant of patent rights. Licensed works, modifications, and larger works may be 
     distributed under different terms and without source code. */
-    static std::string Apachev2() {
-        return R""""(              Apache License
+    static std::string Apachev2(std::string author) {
+        const auto year = formatStr("{:%Y}", std::chrono::system_clock::now());
+        return formatStr(R""""(              Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
 
@@ -288,7 +291,7 @@ SOFTWARE.")"""", year, author);
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-)"""";
+)"""", year, author);
     }
 
     /*Permissions of this strong copyleft license are conditioned on making available complete source code of licensed works 

@@ -19,19 +19,13 @@ enum struct ASTNodeType {
     RawType,
 };
 
-// enum struct ASTVariableType {
-//     Integer, Float, Number, Boolean, String,
-//     Array, Set, Dictionary, Void, Result,
-//     Undefined
-// };
-
 enum struct ASTModifierType {
     Public, Private, Protected, Static, Const, Override, Async, Debug,
     Intrinsic
 };
 
 enum struct ASTPreprocessorDirectiveType {
-    Import, Unsafe, Baremetal, Float, Macro, None
+    Import, Unsafe, Macro, None
 };
 
 enum struct ASTImportType {

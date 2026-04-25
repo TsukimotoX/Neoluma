@@ -42,10 +42,10 @@ enum class Operators {
     //BitwiseUnsignedRightShift (from JS, not included for now because argued about)
 };
 enum class Decorators {
-    Float, Entry, Unsafe, Comptime
+    Entry, Unsafe, Comptime
 };
 enum class Preprocessors {
-    Import, Unsafe, Baremetal, Float, Macro
+    Import, Unsafe, Macro
 };
 enum class Delimeters {
     LeftParen, RightParen, LeftBracket, RightBracket, Semicolon, Newline, Comma, Dot, LeftBraces, RightBraces, Colon
