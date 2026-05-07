@@ -5,13 +5,13 @@ namespace math {
     fn add(a, b) {
         return a+b;
     }
-};
+}
 
 namespace std.io {
     fn print() {
         // k
     }
-};
+}
 
 @entry
 fn main() {
@@ -22,7 +22,8 @@ fn main() {
 
     // Perform some calculations
     res: int = add(10, 20)
-    std.io.print("10 + 20 = ${res}")
+
+    print("10 + 20 = ${res}")
 
     // lambda functions
     const c: void = (x, y) => { greet(user) }

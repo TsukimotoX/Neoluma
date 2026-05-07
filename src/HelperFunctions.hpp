@@ -9,6 +9,34 @@
 template<typename T>
 using MemoryPtr = std::unique_ptr<T>;
 
+template<typename... T>
+using Option = std::variant<T...>;
+
+template<typename T, typename... Types>
+constexpr bool optionIs(const Option<Types...>& value) {
+    return std::holds_alternative<T>(value);
+}
+
+template<typename T, typename... Types>
+constexpr T& getOption(Option<Types...>& value) {
+    return std::get<T>(value);
+}
+
+template<typename T, typename... Types>
+constexpr const T& getOption(const Option<Types...>& value) {
+    return std::get<T>(value);
+}
+
+template<typename T, typename... Types>
+constexpr T* tryGetOption(Option<Types...>* value) {
+    return std::get_if<T>(value);
+}
+
+template<typename T, typename... Types>
+constexpr const T* tryGetOption(const Option<Types...>* value) {
+    return std::get_if<T>(value);
+}
+
 template<typename T, typename... Args>
 MemoryPtr<T> makeMemoryPtr(Args&&... args) {
     return std::make_unique<T>(std::forward<Args>(args)...);

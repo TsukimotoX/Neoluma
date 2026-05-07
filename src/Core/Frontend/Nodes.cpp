@@ -571,6 +571,8 @@ std::string DecoratorNode::toString(int indent) const {
 std::string NamespaceNode::toString(int indent) const {
     std::vector<std::pair<std::string, std::string>> hdr;
     appendBaseHeaderFields(hdr, *this);
+    hdr.emplace_back("name", );
+
 
     return "";
 }
