@@ -180,6 +180,11 @@ struct ASTBuilder {
         return makeMemoryPtr<DecoratorNode>(name, std::move(parameters), std::move(body), std::move(decorators), std::move(modifiers));
     }
 
+    // Creates a NamespaceNode
+    static MemoryPtr<NamespaceNode> createNamespace(MemoryPtr<ASTNode> name, std::vector<MemoryPtr<ASTNode>> body) {
+        return makeMemoryPtr<NamespaceNode>(std::move(name), std::move(body));
+    }
+
     // Creates an ImportNode
     static MemoryPtr<ImportNode> createImport(const std::string& moduleName, const std::string& alias, ASTImportType importType) {
         return makeMemoryPtr<ImportNode>(moduleName, alias, importType);
