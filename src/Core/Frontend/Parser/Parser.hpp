@@ -122,6 +122,7 @@ struct Parser {
     // Declarations
     MemoryPtr<FunctionNode> parseFunction(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers);
     MemoryPtr<ClassNode> parseClass(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers);
+    MemoryPtr<NamespaceNode> parseNamespace();
     MemoryPtr<BlockNode> parseBlock();
 
     MemoryPtr<EnumNode> parseEnum(std::vector<MemoryPtr<CallExpressionNode>> decorators, std::vector<MemoryPtr<ModifierNode>> modifiers);
@@ -141,4 +142,5 @@ struct Parser {
     bool isAssignmentOperator(const std::string& op);
     // Lookahead helper to check if upcoming tokens form an assignable lvalue followed by an assignment operator
     bool isAssignableAhead(size_t offset = 0);
+    std::string namespaceNameToString(ASTNode* node);
 };

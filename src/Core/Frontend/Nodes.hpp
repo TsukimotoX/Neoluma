@@ -8,7 +8,7 @@
 enum struct ASTNodeType {
     Literal, Variable, MemberAccess, Declaration, Assignment, BinaryOperation, UnaryOperation, CallExpression,
     Block, IfStatement, ForLoop, WhileLoop, TryCatch, ReturnStatement, 
-    Function, Class, 
+    Function, Class, Namespace,
     Parameter, Modifier,
     Switch, Case, SCDefault,
     Module,
@@ -527,6 +527,18 @@ struct DecoratorNode : ASTNode {
     }
 
     // Suggested by AI. If it fails, it's his fault
+    std::string toString(int indent = 0) const override;
+};
+
+struct NamespaceNode : ASTNode {
+    MemoryPtr<ASTNode> name;
+    std::vector<MemoryPtr<ASTNode>> body;
+
+    NamespaceNode(MemoryPtr<ASTNode> name, std::vector<MemoryPtr<ASTNode>> body)
+        : name(std::move(name)), body(std::move(body)) {
+        this->type = ASTNodeType::Namespace;
+    }
+
     std::string toString(int indent = 0) const override;
 };
 

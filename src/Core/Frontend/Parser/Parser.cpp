@@ -8,6 +8,9 @@
 
 #include "../Nodes.hpp"
 #include "Parser.hpp"
+
+#include <windows.h>
+
 #include "../Token.hpp"
 #include "../../../HelperFunctions.hpp"
 #include "ASTBuilder.hpp"
@@ -167,6 +170,8 @@ MemoryPtr<ASTNode> Parser::parseStatement() {
                 "ErrorManager.Syntax.UnexpectedToken.hint");
             return nullptr;
         }
+
+        if (match(token, Keywords::Namespace)) return parseNamespace();
     }
 
     // === Block ===
@@ -1178,7 +1183,8 @@ MemoryPtr<BlockNode> Parser::parseBlock() {
         if (!stmt && match(Delimeters::RightBraces)) {
             break;
         }
-        if (!stmt) {
+        if (!stmt) {
+
             while (!isAtEnd() && !isNextLine()) next();
 
             size_t startPos = pos;
@@ -1424,17 +1430,9 @@ MemoryPtr<ASTNode> Parser::parsePreprocessor() {
         }
         node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Macro, value);
     }
-    else if (match(Preprocessors::Baremetal)) {
-        next();
-        node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Baremetal);
-    }
     else if (match(Preprocessors::Unsafe)) {
         next();
         node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Unsafe);
-    }
-    else if (match(Preprocessors::Float)) {
-        next();
-        node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::Float);
     }
     else node = ASTBuilder::createPreprocessor(ASTPreprocessorDirectiveType::None);
     node->line = token.line; node->column = token.column; node->filePath = token.filePath;
@@ -1676,6 +1674,26 @@ MemoryPtr<InterfaceNode> Parser::parseInterface(std::vector<MemoryPtr<CallExpres
     return node;
 }
 
+MemoryPtr<NamespaceNode> Parser::parseNamespace() {
+    next();
+    auto token = curToken();
+
+    auto name = parsePrimary();
+    if (name->type != ASTNodeType::Variable && name->type != ASTNodeType::MemberAccess) {
+        errorManager->addError(ErrorType::Syntax, SyntaxErrors::MissingToken,
+            ErrorSpan{curToken().filePath, curToken().value, curToken().line, curToken().column},
+            "ErrorManager.Syntax.MissingToken.namespaceName.message", {},
+            "ErrorManager.Syntax.MissingToken.namespaceName.hint");
+        return nullptr;
+    }
+    next();
+
+    auto body = parseBlock();
+    auto node = ASTBuilder::createNamespace(std::move(name), std::move(body->statements));
+    node->value = namespaceNameToString(name.get()); node->filePath = token.filePath; node->line = token.line; node->column = token.column;
+    return node;
+}
+
 // ==== Helper functions ====
 
 // Parses either a block or a single statement after an 'if' condition.
@@ -1893,4 +1911,16 @@ bool Parser::isAssignmentOperator(const std::string& op) {
     }
 }
 
+std::string Parser::namespaceNameToString(ASTNode* node) {
+    if (!node) return "<unknown>";
 
+    if (node->type == ASTNodeType::Variable) return static_cast<VariableNode*>(node)->varName;
+
+    if (node->type == ASTNodeType::MemberAccess) {
+        auto* ma = static_cast<MemberAccessNode*>(node);
+        return namespaceNameToString(ma->parent.get()) + "." +
+            namespaceNameToString(ma->val.get());
+    }
+
+    return "<invalid namespace>";
+}

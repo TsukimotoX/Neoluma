@@ -22,7 +22,7 @@ void Compiler::check(bool jsonOutput) {
 
         // Parser: builds a module tree out of tokens
         parser.parseModule(tokens, getFileName(file));
-        //parser.printModule();
+        parser.printModule();
         MemoryPtr<ModuleNode> tree = std::move(parser.moduleSource);
 
         // Adding modules to program's tree

@@ -35,11 +35,11 @@ const EOperator operatorMap[] {
 };
 
 const EDecorator decoratorMap[] {
-    {"float", Decorators::Float}, {"entry", Decorators::Entry}, {"unsafe", Decorators::Unsafe}, {"comptime", Decorators::Comptime},
+    {"entry", Decorators::Entry}, {"unsafe", Decorators::Unsafe}, {"comptime", Decorators::Comptime},
 };
 
 const EPreprocessor preprocessorMap[] {
-    {"import", Preprocessors::Import},  {"unsafe", Preprocessors::Unsafe}, {"baremetal", Preprocessors::Baremetal}, {"float", Preprocessors::Float}, {"macro", Preprocessors::Macro},
+    {"import", Preprocessors::Import},  {"unsafe", Preprocessors::Unsafe}, {"macro", Preprocessors::Macro},
 };
 
 const EDelimeter delimeterMap[] {

@@ -1,6 +1,8 @@
 #ifndef PROGRAM_HPP
 #define PROGRAM_HPP
 
+// Unused for now, but kept as a reference for later.
+
 #include "Nodes.hpp"
 
 #include <iostream>

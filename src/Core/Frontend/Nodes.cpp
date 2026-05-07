@@ -54,8 +54,6 @@ static std::string directiveToString(ASTPreprocessorDirectiveType directive) {
     switch (directive) {
         case ASTPreprocessorDirectiveType::Import: return "Import";
         case ASTPreprocessorDirectiveType::Unsafe: return "Unsafe";
-        case ASTPreprocessorDirectiveType::Baremetal: return "Baremetal";
-        case ASTPreprocessorDirectiveType::Float: return "Float";
         case ASTPreprocessorDirectiveType::Macro: return "Macro";
         case ASTPreprocessorDirectiveType::None: return "None";
         default: return "Unknown";
@@ -567,6 +565,14 @@ std::string DecoratorNode::toString(int indent) const {
     appendPtrField(out, "body", body, indent + 2);
     out += std::format("{}}}", ind(indent));
     return out;
+}
+
+// TODO: Finish namespace node output
+std::string NamespaceNode::toString(int indent) const {
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
+
+    return "";
 }
 
 // -------------------- imports / module / preprocessor --------------------

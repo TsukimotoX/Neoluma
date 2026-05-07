@@ -92,6 +92,12 @@
 			"classBody.message": "Missing '{{' to start class '{}' body",
 			"classBody.hint": "Add '{{' to open the class body.",
 
+			"namespaceName.message": "Missing namespace name after 'namespace'",
+			"namespaceName.hint": "Provide a name for the namespace. For example: namespace MyNamespace {{ ... }}.",
+
+			"namespaceBody.message": "Missing '{{' to start namespace '{}' body",
+			"namespaceBody.hint": "Add '{{' to open the namespace body.",
+
 			"enumName.message": "Missing enum name after 'enum'",
 			"enumName.hint": "Provide a name for the enum. For example: enum Color {{ Red, Green, Blue }}.",
 
