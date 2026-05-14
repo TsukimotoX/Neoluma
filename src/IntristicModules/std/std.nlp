@@ -6,3 +6,6 @@ license = "apache"
 output = "obj"
 sourceFolder = "src/"
 buildFolder = ".build/"
+
+[compiler]
+useIntrinsic = true

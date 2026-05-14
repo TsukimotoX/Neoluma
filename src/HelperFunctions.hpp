@@ -5,6 +5,7 @@
 #include <sstream>
 #include <filesystem>
 #include <type_traits>
+#include <variant>
 
 template<typename T>
 using MemoryPtr = std::unique_ptr<T>;

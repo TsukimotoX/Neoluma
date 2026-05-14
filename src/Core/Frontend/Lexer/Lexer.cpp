@@ -7,7 +7,6 @@
 #include <print>
 
 #include "HelperFunctions.hpp"
-#include "Libraries/Localization/Localization.hpp"
 
 // ==== Main ====
 std::vector<Token> Lexer::tokenize(const std::string& filePath, const std::string& source) {
@@ -271,10 +270,6 @@ void Lexer::skipComment() {
 
 void Lexer::printTokens(const std::string& filename) const {
     std::println("=== Lexer Output ({}) ===", filename);
-    for (const auto& token : tokens) {
-        //if (token.type == TokenType::Delimeter && token.value == "\\n") std::cout << "";
-        //else
-        std::cout << token.toStr();
-    }
+    for (const auto& token : tokens) std::cout << token.toStr();
     std::println("====================");
 }

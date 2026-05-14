@@ -42,7 +42,7 @@ struct ASTNode {
     ASTNodeType type;
     std::string value; // for basic values like literals, etc.
 
-    // Tracking the node for the Semantic Analysis purposes
+    // Tracking the node for the ErrorManager purposes
     int line = 0;
     int column = 0;
     std::string filePath = "";

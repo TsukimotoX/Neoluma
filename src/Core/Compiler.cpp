@@ -1,11 +1,12 @@
 #include "Compiler.hpp"
+
+#include "Libraries/Asker/Asker.hpp"
 #include "Libraries/Color/Color.hpp"
 #include "Libraries/Json/Json.hpp"
+#include "Libraries/Localization/Localization.hpp"
 
-Compiler::Compiler(ProjectConfig& config) : projectManager(config) {
-    for (const auto& file : std:: filesystem::recursive_directory_iterator(std::filesystem::path(config.sourcePath) / config.sourceFolder, std::filesystem::directory_options::skip_permission_denied)) {
-        if (file.is_regular_file() && file.path().extension() == ".nm") projectManager.addFile(file.path().string());
-    }
+Compiler::Compiler(const CompilationInput& input) {
+    program.input = input;
 
     lexer.errorManager = &errorManager;
     parser.errorManager = &errorManager;

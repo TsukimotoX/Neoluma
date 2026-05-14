@@ -43,18 +43,18 @@ public:
     // Available identifiers: mit, apache, gpl2, gpl3, bsd2, bsd3, boost, cc0, eclipse, agpl, lgpl, mozilla, unlicense. Otherwise returns specific message
     static std::string checkLicense(ProjectConfig config, License license) {
         if (license == License::MIT) return MIT(listAuthors(config.author));
-        else if (license == License::Apache) return Apachev2(listAuthors(config.author));
-        else if (license == License::GPL2) return GNUGPLv2();
-        else if (license == License::GPL3) return GNUGPLv3();
-        else if (license == License::BSD2) return BSDv2Simplified(listAuthors(config.author));
-        else if (license == License::BSD3) return BSDv3NewRevised(listAuthors(config.author));
-        else if (license == License::Boost) return Boostv1();
-        else if (license == License::CC0) return CC0v1();
-        else if (license == License::Eclipse) return Eclipsev2();
-        else if (license == License::AGPL) return GNUAGPLv3();
-        else if (license == License::LGPL) return GNULGPLv2_1();
-        else if (license == License::Mozilla) return Mozillav2();
-        else if (license == License::Unlicense) return Unlicense();
+        if (license == License::Apache) return Apachev2(listAuthors(config.author));
+        if (license == License::GPL2) return GNUGPLv2();
+        if (license == License::GPL3) return GNUGPLv3();
+        if (license == License::BSD2) return BSDv2Simplified(listAuthors(config.author));
+        if (license == License::BSD3) return BSDv3NewRevised(listAuthors(config.author));
+        if (license == License::Boost) return Boostv1();
+        if (license == License::CC0) return CC0v1();
+        if (license == License::Eclipse) return Eclipsev2();
+        if (license == License::AGPL) return GNUAGPLv3();
+        if (license == License::LGPL) return GNULGPLv2_1();
+        if (license == License::Mozilla) return Mozillav2();
+        if (license == License::Unlicense) return Unlicense();
         return "We haven't found licenses for your case. Please delete this text and insert your license here, or delete the license file completely.";
     }
 
@@ -3432,6 +3432,6 @@ std::vector<std::string> getStringArray(const Toml::TomlTable& table, const std:
 std::map<std::string, std::string> extractMap(const Toml::TomlTable& root, const std::string& key);
 // --------
 std::string licenseID(License license);
-std::string outputID(PTOutputType type);
+std::string outputID(OutputType type);
 License parseLicense(std::string license);
-PTOutputType parseOutput(std::string outputType);
+OutputType parseOutput(std::string outputType);

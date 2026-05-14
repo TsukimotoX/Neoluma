@@ -12,6 +12,7 @@
 #include "../Core/Extras/ProjectManager/ProjectManager.hpp"
 #include "../HelperFunctions.hpp"
 #include "Core/Compiler.hpp"
+#include "Libraries/Paths/Paths.hpp"
 
 // ==== Helping functions
 
@@ -37,11 +38,8 @@ std::string formatProjectFolderName(const std::string& input) {
     std::string result = input;
 
     for (char& c : result) {
-        if (c == ' ') {
-            c = '_';
-        } else {
-            c = std::tolower(static_cast<unsigned char>(c));
-        }
+        if (c == ' ') c = '_';
+        else c = std::tolower(static_cast<unsigned char>(c));
     }
     
     return result;
@@ -67,10 +65,9 @@ std::string askQuestion(const std::string& question) {
 
 // -------- stuff required for parseProjectFile
 std::string getString(const Toml::TomlTable& table, const std::string& key, const std::string& def) {
-    for (const auto& [k, v] : table) {
+    for (const auto& [k, v] : table)
         if (k == key && v.type == Toml::TomlType::String)
             return std::get<std::string>(v.value);
-    }
     return def;
 }
 
@@ -79,10 +76,9 @@ std::vector<std::string> getStringArray(const Toml::TomlTable& table, const std:
         if (k == key && v.type == Toml::TomlType::Array) {
             std::vector<std::string> result;
             const auto& arr = std::get<Toml::TomlArray>(v.value);
-            for (const auto& item : arr) {
+            for (const auto& item : arr)
                 if (item.type == Toml::TomlType::String)
                     result.push_back(std::get<std::string>(item.value));
-            }
             return result;
         }
     }
@@ -95,10 +91,9 @@ std::map<std::string, std::string> extractMap(const Toml::TomlTable& root, const
     for (const auto& [k, v] : root) {
         if (k == key && v.type == Toml::TomlType::Table) {
             const auto& tbl = std::get<Toml::TomlTable>(v.value);
-            for (const auto& [tk, tv] : tbl) {
+            for (const auto& [tk, tv] : tbl)
                 if (tv.type == Toml::TomlType::String)
                     result[tk] = std::get<std::string>(tv.value);
-            }
         }
     }
 
@@ -122,13 +117,13 @@ CLIArgs parseArgs(int argc, char** argv) {
                 value += argv[++i];
             }
             args.options[key] = value;
-        } else {
-            args.positional.push_back(token);
-        }
+        } else args.positional.push_back(token);
     }
 
     return args;
 }
+// TODO: Сделай чек проекта по добавленным файлам помимо проектной системы чтобы легко тесты делать.
+//  Это наверное потребует переделки ProjectManager и Compiler
 
 ProjectConfig parseProjectFile(const std::string& file) {
     std::string contents = readFile(file);
@@ -161,6 +156,15 @@ ProjectConfig parseProjectFile(const std::string& file) {
     return config;
 }
 
+CompilerSettings parseCompilerSettings(const std::map<std::string, ProjectSettingValue>& map) {
+    CompilerSettings config;
+
+    config.verbose = map.contains("verbose") ? std::get<bool>(map.at("verbose")) : config.verbose;
+    config.baremetal = map.contains("baremetal") ? std::get<bool>(map.at("baremetal")) : config.verbose;
+
+    return config;
+}
+
 std::string licenseID(License license) {
     switch (license) {
         case License::AGPL: return "agpl";
@@ -180,14 +184,14 @@ std::string licenseID(License license) {
     }
 }
 
-std::string outputID(PTOutputType type) {
+std::string outputID(OutputType type) {
     switch (type) {
-        case PTOutputType::Executable: return "exe";
-        case PTOutputType::IR: return "ir";
-        case PTOutputType::LLVM_IR: return "llvm_ir";
-        case PTOutputType::Object: return "obj";
-        case PTOutputType::SharedLibrary: return "sharedlib";
-        case PTOutputType::StaticLibrary: return "staticlib";
+        case OutputType::Executable: return "exe";
+        case OutputType::IR: return "ir";
+        case OutputType::LLVM_IR: return "llvm_ir";
+        case OutputType::Object: return "obj";
+        case OutputType::SharedLibrary: return "sharedlib";
+        case OutputType::StaticLibrary: return "staticlib";
         default: return "";
     }
 }
@@ -209,15 +213,15 @@ License parseLicense(std::string license) {
     return License::Custom;
 }
 
-PTOutputType parseOutput(std::string outputType) {
-    if (outputType == "exe") return PTOutputType::Executable;
-    if (outputType == "ir") return PTOutputType::IR;
-    if (outputType == "llvm_ir") return PTOutputType::LLVM_IR;
-    if (outputType == "obj") return PTOutputType::Object;
-    if (outputType == "sharedlib") return PTOutputType::SharedLibrary;
-    if (outputType == "staticlib") return PTOutputType::StaticLibrary;
+OutputType parseOutput(std::string outputType) {
+    if (outputType == "exe") return OutputType::Executable;
+    if (outputType == "ir") return OutputType::IR;
+    if (outputType == "llvm_ir") return OutputType::LLVM_IR;
+    if (outputType == "obj") return OutputType::Object;
+    if (outputType == "sharedlib") return OutputType::SharedLibrary;
+    if (outputType == "staticlib") return OutputType::StaticLibrary;
     std::println(std::cerr, "{}[NeolumaCLI/IDtoOutput] {}", Color::TextHex("#ff5050"), Localization::translate("CLI.parseProjectFile.parseOutputError"));
-    return PTOutputType::None;
+    return OutputType::None;
 }
 
 // ==== Main functions ====
@@ -236,9 +240,18 @@ void run(const std::string& nlpFile) {
 
 void check(const std::string& nlpFile, bool jsonOutput) {
     ProjectConfig config = parseProjectFile(nlpFile);
-    std::string name = config.name;
-    Compiler compiler = Compiler(config);
-    if (!jsonOutput) std::println("{}{}{}", Color::TextHex("#75ff87"), formatStr(Localization::translate("CLI.check.initialization"), name), Color::Reset);
+    CompilationInput input;
+    Paths paths{};
+
+    input.targetOutput = config.output;
+    input.settings = parseCompilerSettings(config.compilerSettings);
+    for (const auto& file : std:: filesystem::recursive_directory_iterator(std::filesystem::path(config.sourcePath) / config.sourceFolder, std::filesystem::directory_options::skip_permission_denied)) {
+        if (file.is_regular_file() && file.path().extension() == ".nm") input.files.push_back(file.path());
+    }
+    input.dependencies = {{"std", std::filesystem::path(paths.dataDir() + "modules/std")}}; // doesn't support external for now
+
+    Compiler compiler = Compiler(input);
+    if (!jsonOutput) std::println("{}{}{}", Color::TextHex("#75ff87"), formatStr(Localization::translate("CLI.check.initialization"), config.name), Color::Reset);
     compiler.check(jsonOutput);
 }
 

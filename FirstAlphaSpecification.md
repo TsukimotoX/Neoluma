@@ -27,7 +27,7 @@ Values can be written with `?` to the right of them, like `int?` or `string?`, t
 Values without it **cannot** be named null, and throw a `NullAssignmentToNonNullable` error.
 
 ### Variable Sizes
-Sizes of variables can be defined with `[<number>]` or premade types in the table, like `x: int8 = 255;` or `x: int[3] = 255;`, if you need a more custom amount of bytes.
+Sizes of variables can be defined with `[<number>]` or premade types in the table, like `x: int8 = 255;` or `x: int[3] = 5;`, if you need a more custom amount of bytes.
 <br>**Note:** It's much more preferred to use default types like `int`, `float` and etc. 
 +-unless you know what you're doing. 
 
@@ -356,6 +356,10 @@ for (item : items) {
 
 while (condition) {
     // code
+}
+
+loop {
+    // infinite loops, recommended instead of while(true)
 }
 ```
 - `for` loops support both range-based and collection-based iteration.

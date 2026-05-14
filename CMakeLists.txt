@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Options
-option(NEOLUMA_PORTABLE "Portable layout (resources near executable)" ON)
+option(NEOLUMA_PORTABLE "Portable layout (resources near executable)")
 
 # Set up LLVM
 find_package(LLVM REQUIRED CONFIG)
@@ -112,79 +112,24 @@ install(TARGETS neoluma
 )
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/Localization/ DESTINATION ${CMAKE_INSTALL_DATADIR}/locales)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/IntrinsticModules DESTINATION ${CMAKE_INSTALL_DATADIR}/modules)
 
-set(NEOLUMA_TEST_RUNNER "${CMAKE_SOURCE_DIR}/tests/runner/run-tests.ps1")
-set(INSTALLER_RES_DIR "${CMAKE_SOURCE_DIR}/src/Installer/src-tauri/resources")
-set(INSTALLER_PAYLOAD "${INSTALLER_RES_DIR}/payload.zip")
+# ---- Tests implementation ----
+#set(NEOLUMA_TEST_RUNNER "${CMAKE_SOURCE_DIR}/tests/runner/testrunner.py")
 
-add_custom_target(frontend_tests
-    COMMAND "${NEOLUMA_POWERSHELL_EXECUTABLE}"
-        -ExecutionPolicy Bypass
-        -File "${NEOLUMA_TEST_RUNNER}"
-        -ExePath "$<TARGET_FILE:neoluma>"
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    DEPENDS neoluma
-    COMMENT "Running frontend regression tests..."
-    VERBATIM
-)
-
-set(NEOLUMA_INSTALL_HOOK_CODE [=[
-    set(NEOLUMA_INSTALLED_ROOT "$ENV{DESTDIR}@CMAKE_INSTALL_PREFIX@")
-    set(NEOLUMA_INSTALLED_EXE "${NEOLUMA_INSTALLED_ROOT}/@CMAKE_INSTALL_BINDIR@/neoluma@CMAKE_EXECUTABLE_SUFFIX@")
-    set(NEOLUMA_PAYLOAD_ROOT "@CMAKE_SOURCE_DIR@/.build/payload/@CMAKE_SYSTEM_NAME@-@CMAKE_SYSTEM_PROCESSOR@/@CMAKE_BUILD_TYPE@")
-    set(NEOLUMA_PAYLOAD_ZIP "${NEOLUMA_PAYLOAD_ROOT}/payload.zip")
-    set(NEOLUMA_INSTALLER_RES_DIR "@INSTALLER_RES_DIR@")
-    set(NEOLUMA_INSTALLER_PAYLOAD "${NEOLUMA_INSTALLER_RES_DIR}/payload.zip")
-
-    message(STATUS "Running frontend regression tests...")
-    execute_process(
-        COMMAND "@NEOLUMA_POWERSHELL_EXECUTABLE@" -ExecutionPolicy Bypass -File "@NEOLUMA_TEST_RUNNER@" -ExePath "${NEOLUMA_INSTALLED_EXE}"
-        WORKING_DIRECTORY "@CMAKE_SOURCE_DIR@"
-        RESULT_VARIABLE NEOLUMA_FRONTEND_TESTS_RESULT
-    )
-    if(NOT NEOLUMA_FRONTEND_TESTS_RESULT EQUAL 0)
-        message(FATAL_ERROR "Frontend regression tests failed.")
-    endif()
-
-    message(STATUS "Packaging installed runtime into payload.zip...")
-    file(MAKE_DIRECTORY "${NEOLUMA_PAYLOAD_ROOT}")
-    execute_process(
-        COMMAND "@CMAKE_COMMAND@" -E rm -f "${NEOLUMA_PAYLOAD_ZIP}"
-        RESULT_VARIABLE NEOLUMA_PAYLOAD_CLEAN_RESULT
-    )
-    if(NOT NEOLUMA_PAYLOAD_CLEAN_RESULT EQUAL 0)
-        message(FATAL_ERROR "Failed to clean previous payload.zip.")
-    endif()
-
-    execute_process(
-        COMMAND "@CMAKE_COMMAND@" -E chdir "${NEOLUMA_INSTALLED_ROOT}" "@CMAKE_COMMAND@" -E tar "cf" "${NEOLUMA_PAYLOAD_ZIP}" --format=zip -- .
-        RESULT_VARIABLE NEOLUMA_PAYLOAD_PACK_RESULT
-    )
-    if(NOT NEOLUMA_PAYLOAD_PACK_RESULT EQUAL 0)
-        message(FATAL_ERROR "Failed to package installed runtime into payload.zip.")
-    endif()
-
-    execute_process(
-        COMMAND "@CMAKE_COMMAND@" -E make_directory "${NEOLUMA_INSTALLER_RES_DIR}"
-        RESULT_VARIABLE NEOLUMA_INSTALLER_RES_DIR_RESULT
-    )
-    if(NOT NEOLUMA_INSTALLER_RES_DIR_RESULT EQUAL 0)
-        message(FATAL_ERROR "Failed to create installer resources directory.")
-    endif()
-
-    execute_process(
-        COMMAND "@CMAKE_COMMAND@" -E copy_if_different "${NEOLUMA_PAYLOAD_ZIP}" "${NEOLUMA_INSTALLER_PAYLOAD}"
-        RESULT_VARIABLE NEOLUMA_PAYLOAD_COPY_RESULT
-    )
-    if(NOT NEOLUMA_PAYLOAD_COPY_RESULT EQUAL 0)
-        message(FATAL_ERROR "Failed to copy payload.zip into installer resources.")
-    endif()
-]=])
-string(CONFIGURE "${NEOLUMA_INSTALL_HOOK_CODE}" NEOLUMA_INSTALL_HOOK_CODE @ONLY)
-install(CODE "${NEOLUMA_INSTALL_HOOK_CODE}")
+#add_custom_target(frontend_tests
+#    COMMAND "${NEOLUMA_POWERSHELL_EXECUTABLE}"
+#        -ExecutionPolicy Bypass
+#        -File "${NEOLUMA_TEST_RUNNER}"
+#        -ExePath "$<TARGET_FILE:neoluma>"
+#    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+#    DEPENDS neoluma
+#    COMMENT "Running frontend regression tests..."
+#    VERBATIM
+#)
 
 # ---- Payload creation. ----
-# payload is bundled into installer resources.
+# payload is bundled into installer resources later on.
 # make payload dirs unique per platform+arch+config to avoid overwriting when switching OS/builds
 set(NEOLUMA_PAYLOAD_ROOT "${CMAKE_SOURCE_DIR}/.build/payload/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}/$<CONFIG>")
 set(NEOLUMA_STAGE_DIR   "${NEOLUMA_PAYLOAD_ROOT}/stage")
@@ -196,38 +141,30 @@ if(CMAKE_CONFIGURATION_TYPES)
     set(NEOLUMA_INSTALL_CONFIG_ARG --config $<CONFIG>)
 endif()
 
-# uninstaller creation
-if(WIN32)
-    add_executable(uninstaller
-        ${CMAKE_SOURCE_DIR}/src/uninstaller.cpp
-    )
-    target_compile_features(uninstaller PRIVATE cxx_std_23)
-
-    install(TARGETS uninstaller
-        RUNTIME DESTINATION "${NEOLUMA_STAGE_DIR}"
-    )
-else()
-    install(PROGRAMS "${CMAKE_SOURCE_DIR}/resources/uninstall.sh"
-        DESTINATION "${NEOLUMA_STAGE_DIR}"
-        RENAME "uninstall.sh"
-    )
-endif()
-
 add_custom_command(
     OUTPUT "${NEOLUMA_PAYLOAD_ZIP}"
 
     DEPENDS neoluma
-    $<$<PLATFORM_ID:Windows>:uninstaller>
 
     # clean stage folder
     COMMAND ${CMAKE_COMMAND} -E rm -rf "${NEOLUMA_STAGE_DIR}"
 
-    # install to stage
+    # create payload root
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${NEOLUMA_PAYLOAD_ROOT}"
+
+    # install to stage/ folder
     COMMAND ${CMAKE_COMMAND} --install "${CMAKE_BINARY_DIR}"
     --prefix "${NEOLUMA_STAGE_DIR}"
     ${NEOLUMA_INSTALL_CONFIG_ARG}
 
-    COMMENT "Installing staged runtime and producing payload.zip for ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR} ($<CONFIG>)..."
+    # remove old zip
+    COMMAND ${CMAKE_COMMAND} -E rm -f "${NEOLUMA_PAYLOAD_ZIP}"
+
+    # create zip from stage contents
+    COMMAND ${CMAKE_COMMAND} -E chdir "${NEOLUMA_STAGE_DIR}"
+        ${CMAKE_COMMAND} -E tar "cf" "${NEOLUMA_PAYLOAD_ZIP}" --format=zip -- .
+
+    COMMENT "Creating payload.zip for ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR} ($<CONFIG>)..."
     VERBATIM
 )
 

@@ -569,10 +569,9 @@ std::string DecoratorNode::toString(int indent) const {
 
 // TODO: Finish namespace node output
 std::string NamespaceNode::toString(int indent) const {
-    std::vector<std::pair<std::string, std::string>> hdr;
-    appendBaseHeaderFields(hdr, *this);
-    hdr.emplace_back("name", );
-
+    //std::vector<std::pair<std::string, std::string>> hdr;
+    //appendBaseHeaderFields(hdr, *this);
+    //hdr.emplace_back("name", );
 
     return "";
 }

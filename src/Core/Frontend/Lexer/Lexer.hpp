@@ -6,13 +6,15 @@
 #include "Core/Extras/ErrorManager/ErrorManager.hpp"
 
 
-struct Lexer {
+class Lexer {
+public:
     std::vector<Token> tokenize(const std::string& filePath, const std::string& source);
     void printTokens(const std::string& filename) const; // Debug command to check tokens correctness
-    std::vector<Token> tokens;
 
     // ErrorManager is used to report errors
     ErrorManager* errorManager = nullptr;
+private:
+    std::vector<Token> tokens;
 
     std::string source;
     size_t pos = 0;

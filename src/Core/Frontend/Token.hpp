@@ -17,7 +17,6 @@ struct Token {
 };
 
 // Enums
-
 enum class Keywords {
     Function, Class, Enum, Interface, Namespace,
     If, Else,
@@ -62,7 +61,6 @@ enum class ResolvedType {
 };
 
 // Mapping entries
-
 struct EKeyword { std::string name; Keywords token; };
 struct EOperator { std::string name; Operators token; };
 struct EDecorator { std::string name; Decorators token; };
@@ -70,7 +68,6 @@ struct EPreprocessor { std::string name; Preprocessors token; };
 struct EDelimeter { std::string name; Delimeters token; };
 struct EResolvedType { ResolvedType type; std::string name; };
 
-/// this is what it costs us parser no-hardcode proofness btw
 const std::unordered_map<std::string, Keywords>& getKeywordMap();
 const std::unordered_map<std::string, Operators>& getOperatorMap();
 const std::unordered_map<std::string, Decorators>& getDecoratorMap();

@@ -21,7 +21,7 @@ const EKeyword keywordMap[] = {
     {"debug", Keywords::Debug}, {"public", Keywords::Public}, {"protected", Keywords::Protected}, {"private", Keywords::Private},
     {"override", Keywords::Override},
     // Internal std library keyword that allows passing through LLVM calls
- {"intrinsic", Keywords::Intrinsic}
+    {"intrinsic", Keywords::Intrinsic},
 };
 
 const EOperator operatorMap[] {
