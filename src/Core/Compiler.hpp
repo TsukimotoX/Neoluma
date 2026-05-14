@@ -1,7 +1,8 @@
 #pragma once
+#include <map>
+
 #include "Frontend/Lexer/Lexer.hpp"
 #include "Frontend/Parser/Parser.hpp"
-#include "Extras/ProjectManager/ProjectManager.hpp"
 #include "Extras/ErrorManager/ErrorManager.hpp"
 #include "Frontend/SemanticAnalysis/SemanticAnalysis.hpp"
 #include "Frontend/Orchestrator/Orchestrator.hpp"
@@ -69,16 +70,15 @@ public:
     void compile(); // compiled way
     void check(bool jsonOutput = false);
     void run(); // interpreted way
+
+    ErrorManager errorManager;
+
+    // Data
+    Program program;
 private:
     // All parts of compiler
     Lexer lexer;
     Parser parser;
-    SemanticAnalysis semanticAnalysis;
-
-    ProjectManager projectManager;
-    ErrorManager errorManager;
     Orchestrator orchestrator;
-
-    // Data
-    Program program;
+    SemanticAnalysis semanticAnalysis;
 };

@@ -50,26 +50,3 @@ struct ProjectConfig {
     std::vector<std::string> filesList; // List of files inside the project to feed to compiler.
     std::string sourcePath; // Absolute path to locate the project
 };
-
-// ProjectManager is a class that... manages... projects?
-struct ProjectManager {
-    ProjectConfig config;
-
-    ProjectManager(ProjectConfig& config) : config(config) {};
-
-    // Main functions
-    void clean();
-
-    // Helpful utilities
-    [[nodiscard]] std::vector<std::string> listFiles() const { return config.filesList; }
-    void addFile(const std::string& file) { config.filesList.push_back(file); }
-    void removeFile(const std::string& file) {  config.filesList.erase(std::remove(config.filesList.begin(), config.filesList.end(), file), config.filesList.end()); }
-
-    // Access to ProjectConfig
-    ProjectConfig& getConfig();
-
-    // helper functions
-    std::string normalizeSlashes(std::string s);
-    bool endsWith(const std::string& s, const std::string& suf);
-    std::string filePathToKey(const std::string& filePath);
-};

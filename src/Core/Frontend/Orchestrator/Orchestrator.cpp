@@ -180,7 +180,7 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
         ModuleNode* m = modules[i].get();
         if (!m) continue;
 
-        std::string key = compiler->projectManager.filePathToKey(m->filePath);
+        std::string key = compiler->;
         idToKey[i] = key;
         keyToId[key] = i;
 

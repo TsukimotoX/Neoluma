@@ -15,31 +15,31 @@ Compiler::Compiler(const CompilationInput& input) {
 }
 
 void Compiler::check(bool jsonOutput) {
-    for (const auto& file : projectManager.listFiles()){
+    for (const auto& file : program.input.files){
         // Lexer: breaks code down into tokens.
-        std::string source = readFile(file);
-        std::vector<Token> tokens = lexer.tokenize(file, source);
+        std::string source = readFile(file.string());
+        std::vector<Token> tokens = lexer.tokenize(file.filename().string(), source);
         //lexer.printTokens(getFileName(file));
 
         // Parser: builds a module tree out of tokens
-        parser.parseModule(tokens, getFileName(file));
+        parser.parseModule(tokens, file.filename().string());
         parser.printModule();
         MemoryPtr<ModuleNode> tree = std::move(parser.moduleSource);
 
         // Adding modules to program's tree
-        modules.push_back(std::move(tree));
+        program.modules.push_back(std::move(tree));
     }
 
     // Orchestrator: stitches files together into a full program, used for Semantic Analysis and more.
-    auto entry = orchestrator.findEntryPoint(modules);
-    auto infos = orchestrator.resolveImports(modules);
+    program.entryPoint = orchestrator.findEntryPoint(program.modules);
+    program.moduleInfos = orchestrator.resolveImports(program.modules);
     /*std::println(std::cout, "=== ModuleId map ===");
     for (const auto& info : infos){
         std::println(std::cout, "[{}] file={}", info.id, info.module ? info.module->filePath : "<null>");
         std::println(std::cout, "     deps={}", info.dependencies.size());
         for (auto d : info.dependencies) std::println(std::cout, "        -> {}", d.moduleId);
     }*/
-    auto program = orchestrator.stitchProgram(entry, infos);
+    ProgramUnit unit = orchestrator.stitchProgram(program.entryPoint, program.moduleInfos);
     /*std::println(std::cout, "Entry module id: {}", program.entryModule);
     std::println(std::cout, "Order:");
     for (auto id : program.order) {
@@ -47,7 +47,7 @@ void Compiler::check(bool jsonOutput) {
     }*/
 
     // Semantic Analysis: Make sure the program runs logically correct, before turned into a machine code
-    semanticAnalysis.analyzeProgram(program, infos);
+    semanticAnalysis.analyzeProgram(unit, program.moduleInfos);
 
     if (errorManager.hasErrors()) {
         if (jsonOutput) {
