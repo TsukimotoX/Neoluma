@@ -22,7 +22,7 @@ void Compiler::check(bool jsonOutput) {
         //lexer.printTokens(getFileName(file));
 
         // Parser: builds a module tree out of tokens
-        parser.parseModule(tokens, file.filename().string());
+        parser.parseModule(tokens, file.string());
         parser.printModule();
         MemoryPtr<ModuleNode> tree = std::move(parser.moduleSource);
 
@@ -39,7 +39,7 @@ void Compiler::check(bool jsonOutput) {
         std::println(std::cout, "     deps={}", info.dependencies.size());
         for (auto d : info.dependencies) std::println(std::cout, "        -> {}", d.moduleId);
     }*/
-    ProgramUnit unit = orchestrator.stitchProgram(program.entryPoint, program.moduleInfos);
+    orchestrator.stitchProgram(program);
     /*std::println(std::cout, "Entry module id: {}", program.entryModule);
     std::println(std::cout, "Order:");
     for (auto id : program.order) {
@@ -47,7 +47,7 @@ void Compiler::check(bool jsonOutput) {
     }*/
 
     // Semantic Analysis: Make sure the program runs logically correct, before turned into a machine code
-    semanticAnalysis.analyzeProgram(unit, program.moduleInfos);
+    semanticAnalysis.analyzeProgram(program);
 
     if (errorManager.hasErrors()) {
         if (jsonOutput) {

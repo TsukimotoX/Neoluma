@@ -1,7 +1,8 @@
 #include "SemanticAnalysis.hpp"
+#include "Core/Compiler.hpp"
 
 // ==== Main function ====
-void SemanticAnalysis::analyzeProgram(const ProgramUnit& program, const std::vector<ModuleInfo>& infos){
+void SemanticAnalysis::analyzeProgram(Program& program){
     pushScope();
 
     // Defines all built-in decorators.
@@ -11,7 +12,7 @@ void SemanticAnalysis::analyzeProgram(const ProgramUnit& program, const std::vec
     }
 
     for (ModuleId id : program.order)
-        analyzeModule(infos[id].module);
+        analyzeModule(program.moduleInfos[id].module);
 
     popScope();
 }

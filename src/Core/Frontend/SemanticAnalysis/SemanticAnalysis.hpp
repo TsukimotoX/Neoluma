@@ -8,13 +8,15 @@
 #include "Core/Frontend/Token.hpp"
 #include "Core/Frontend/Orchestrator/Orchestrator.hpp"
 
+struct Program;
+
 // Semantic Analysis is a part of Frontend in Compiler responsible for logical part of the code.
 struct SemanticAnalysis {
     // ErrorManager is used to report errors
     ErrorManager* errorManager = nullptr;
 
     // Main entry
-    void analyzeProgram(const ProgramUnit& program, const std::vector<ModuleInfo>& infos);
+    void analyzeProgram(Program& program);
 
     // Per-node analyzers
     void analyzeModule(ModuleNode* module);

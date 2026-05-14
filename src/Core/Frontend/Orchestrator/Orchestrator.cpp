@@ -96,25 +96,22 @@ std::string Orchestrator::resolveRelativeKey(const std::string& currentKey, cons
 }
 
 // Main implementations
-ProgramUnit Orchestrator::stitchProgram(const EntryPoint& entryPoint, const std::vector<ModuleInfo>& infos){
-    ProgramUnit program;
-    program.entryFn = entryPoint.function;
-
+void Orchestrator::stitchProgram(Program& program) {
     ModuleId entryId = -1;
-    for (const auto& info : infos) {
-        if (info.module == entryPoint.module) {
+
+    for (const auto& info : program.moduleInfos) {
+        if (info.module == program.entryPoint.module) {
             entryId = info.id;
             break;
         }
     }
 
-    program.entryModule = entryId;
-    if (entryId < 0) return program; // i mean this should not ever ever happen but if anything just return the program...
+    if (entryId < 0) return; // i mean this should not ever ever happen but...
 
-    std::vector<uint8_t> state(infos.size(), 0);
-    dfsVisit(entryId, infos, state, program.order, nullptr);
+    program.order.clear(); // clean up previous order just in case
 
-    return program;
+    std::vector<uint8_t> state(program.moduleInfos.size(), 0);
+    dfsVisit(entryId, program.moduleInfos, state, program.order, nullptr);
 }
 
 EntryPoint Orchestrator::findEntryPoint(const std::vector<MemoryPtr<ModuleNode>>& modules) {
@@ -180,7 +177,7 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
         ModuleNode* m = modules[i].get();
         if (!m) continue;
 
-        std::string key = compiler->;
+        std::string key = std::filesystem::path(m->filePath).replace_extension().lexically_normal().generic_string();
         idToKey[i] = key;
         keyToId[key] = i;
 
@@ -249,7 +246,7 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
                     registerAlias(mi, imp, depId);
                 } else {
                     // is a native import
-                    if (imp->moduleName != "std" && !compiler->projectManager.config.dependencies.contains(imp->moduleName)){
+                    if (imp->moduleName != "std" && !compiler->program.input.dependencies.contains(imp->moduleName)){
                         compiler->errorManager.addError(
                         ErrorType::Preprocessor,
                         PreprocessorErrors::ImportNotFound,

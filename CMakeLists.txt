@@ -112,7 +112,7 @@ install(TARGETS neoluma
 )
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/Localization/ DESTINATION ${CMAKE_INSTALL_DATADIR}/locales)
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/IntrinsticModules DESTINATION ${CMAKE_INSTALL_DATADIR}/modules)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/IntristicModules DESTINATION ${CMAKE_INSTALL_DATADIR}/modules)
 
 # ---- Tests implementation ----
 #set(NEOLUMA_TEST_RUNNER "${CMAKE_SOURCE_DIR}/tests/runner/testrunner.py")

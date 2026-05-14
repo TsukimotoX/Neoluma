@@ -248,7 +248,7 @@ void check(const std::string& nlpFile, bool jsonOutput) {
     for (const auto& file : std:: filesystem::recursive_directory_iterator(std::filesystem::path(config.sourcePath) / config.sourceFolder, std::filesystem::directory_options::skip_permission_denied)) {
         if (file.is_regular_file() && file.path().extension() == ".nm") input.files.push_back(file.path());
     }
-    input.dependencies = {{"std", std::filesystem::path(paths.dataDir() + "modules/std")}}; // doesn't support external for now
+    input.dependencies = {{"std", std::filesystem::path(paths.dataDir() + "modules/std")}}; // todo: doesn't support external for now
 
     Compiler compiler = Compiler(input);
     if (!jsonOutput) std::println("{}{}{}", Color::TextHex("#75ff87"), formatStr(Localization::translate("CLI.check.initialization"), config.name), Color::Reset);
