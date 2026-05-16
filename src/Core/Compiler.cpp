@@ -15,6 +15,18 @@ Compiler::Compiler(const CompilationInput& input) {
 }
 
 void Compiler::check(bool jsonOutput) {
+    // TODO: Tolerate sourceFolder choice
+    // Parsing dependencies before getting started
+    std::vector<std::filesystem::path> files = program.input.files;
+
+    for (const auto& [name, path] : program.input.dependencies) {
+        std::filesystem::path sourcePath = path / "src";
+        for (const auto& file : std::filesystem::recursive_directory_iterator( sourcePath, std::filesystem::directory_options::skip_permission_denied)) {
+            if (file.is_regular_file() && file.path().extension() == ".nm") files.push_back(file.path());
+        }
+    }
+
+    // Parsing the project itself
     for (const auto& file : program.input.files){
         // Lexer: breaks code down into tokens.
         std::string source = readFile(file.string());
