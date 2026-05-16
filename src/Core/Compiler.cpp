@@ -32,6 +32,7 @@ void Compiler::check(bool jsonOutput) {
     }
 
     // Orchestrator: stitches files together into a full program, used for Semantic Analysis and more.
+    program.namespaces = orchestrator.collectNamespaces(program.modules);
     program.entryPoint = orchestrator.findEntryPoint(program.modules);
     program.moduleInfos = orchestrator.resolveImports(program.modules);
     // /*std::println(std::cout, "=== ModuleId map ===");

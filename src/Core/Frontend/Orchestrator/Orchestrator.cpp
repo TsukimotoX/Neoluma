@@ -264,3 +264,24 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
 
     return infos;
 }
+
+std::unordered_map<std::string, NamespaceInfo> Orchestrator::collectNamespaces(const std::vector<MemoryPtr<ModuleNode>>& modules) {
+    std::unordered_map<std::string, NamespaceInfo> namespaces;
+
+    for (const auto& module : modules) {
+        if (!module) continue;
+
+        for (const auto& statement : module->body) {
+            if (!statement || statement->type != ASTNodeType::Namespace) continue;
+
+            auto* node = static_cast<NamespaceNode*>(statement.get());
+            const std::string& name = node->value;
+
+            if (!namespaces.contains(name)) namespaces.emplace(name, NamespaceInfo{name, {}});
+
+            namespaces[name].declarations.push_back(node);
+        }
+    }
+
+    return namespaces;
+}

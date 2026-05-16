@@ -56,6 +56,9 @@ struct Program {
     std::vector<ModuleInfo> moduleInfos;
     EntryPoint entryPoint;
     std::vector<ModuleId> order;
+
+    // global namespaces for the entire program
+    std::unordered_map<std::string, NamespaceInfo> namespaces;
 };
 
 /**
