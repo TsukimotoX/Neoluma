@@ -19,28 +19,28 @@ void Compiler::check(bool jsonOutput) {
         // Lexer: breaks code down into tokens.
         std::string source = readFile(file.string());
         std::vector<Token> tokens = lexer.tokenize(file.string());
-        lexer.printTokens();
+        //lexer.printTokens();
 
         // Parser: builds a module tree out of tokens
-        //parser.parseModule(tokens, file.string());
+        parser.parseModule(tokens, file.string());
         //parser.printModule();
-        //MemoryPtr<ModuleNode> tree = std::move(parser.moduleSource);
+        MemoryPtr<ModuleNode> tree = std::move(parser.moduleSource);
 
         // Adding modules to program's tree
-        //if (!tree) std::println(std::cerr, "NULL TREE: {}", file.string());
-        //if (tree) program.modules.push_back(std::move(tree));
+        if (!tree) std::println(std::cerr, "NULL TREE: {}", file.string());
+        if (tree) program.modules.push_back(std::move(tree));
     }
 
     // Orchestrator: stitches files together into a full program, used for Semantic Analysis and more.
-    // program.entryPoint = orchestrator.findEntryPoint(program.modules);
-    // program.moduleInfos = orchestrator.resolveImports(program.modules);
+    program.entryPoint = orchestrator.findEntryPoint(program.modules);
+    program.moduleInfos = orchestrator.resolveImports(program.modules);
     // /*std::println(std::cout, "=== ModuleId map ===");
     // for (const auto& info : infos){
     //     std::println(std::cout, "[{}] file={}", info.id, info.module ? info.module->filePath : "<null>");
     //     std::println(std::cout, "     deps={}", info.dependencies.size());
     //     for (auto d : info.dependencies) std::println(std::cout, "        -> {}", d.moduleId);
     // }*/
-    // orchestrator.stitchProgram(program);
+    orchestrator.stitchProgram(program);
     /*std::println(std::cout, "Entry module id: {}", program.entryModule);
     std::println(std::cout, "Order:");
     for (auto id : program.order) {
@@ -48,7 +48,7 @@ void Compiler::check(bool jsonOutput) {
     }*/
 
     // Semantic Analysis: Make sure the program runs logically correct, before turned into a machine code
-    // semanticAnalysis.analyzeProgram(program);
+    semanticAnalysis.analyzeProgram(program);
 
     if (errorManager.hasErrors()) {
         if (jsonOutput) {

@@ -567,13 +567,15 @@ std::string DecoratorNode::toString(int indent) const {
     return out;
 }
 
-// TODO: Finish namespace node output
 std::string NamespaceNode::toString(int indent) const {
-    //std::vector<std::pair<std::string, std::string>> hdr;
-    //appendBaseHeaderFields(hdr, *this);
-    //hdr.emplace_back("name", );
+    std::vector<std::pair<std::string, std::string>> hdr;
+    appendBaseHeaderFields(hdr, *this);
 
-    return "";
+    std::string out = std::format("{}{} {{\n", ind(indent), makeHeader("Namespace", hdr));
+    appendPtrField(out, "name", name, indent + 2);
+    appendPtrVec(out, "body", body, indent + 2);
+    out += std::format("{}}}", ind(indent));
+    return out;
 }
 
 // -------------------- imports / module / preprocessor --------------------

@@ -1679,18 +1679,23 @@ MemoryPtr<NamespaceNode> Parser::parseNamespace() {
     auto token = curToken();
 
     auto name = parsePrimary();
-    if (name->type != ASTNodeType::Variable && name->type != ASTNodeType::MemberAccess) {
-        errorManager->addError(ErrorType::Syntax, SyntaxErrors::MissingToken,
+    if (!name || (name->type != ASTNodeType::Variable && name->type != ASTNodeType::MemberAccess)) {
+        errorManager->addError(
+            ErrorType::Syntax, SyntaxErrors::MissingToken,
             ErrorSpan{curToken().filePath, curToken().value, curToken().line, curToken().column},
             "ErrorManager.Syntax.MissingToken.namespaceName.message", {},
-            "ErrorManager.Syntax.MissingToken.namespaceName.hint");
+            "ErrorManager.Syntax.MissingToken.namespaceName.hint"
+        );
         return nullptr;
     }
-    next();
+
+    std::string namespaceName = namespaceNameToString(name.get());
 
     auto body = parseBlock();
+    if (!body) return nullptr;
+
     auto node = ASTBuilder::createNamespace(std::move(name), std::move(body->statements));
-    node->value = namespaceNameToString(name.get()); node->filePath = token.filePath; node->line = token.line; node->column = token.column;
+    node->value = namespaceName; node->filePath = token.filePath; node->line = token.line; node->column = token.column;
     return node;
 }
 

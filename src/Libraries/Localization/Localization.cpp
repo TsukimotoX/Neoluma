@@ -14,9 +14,8 @@
 #endif
 
 namespace Localization {
-    Paths paths{};
     std::unordered_map<std::string, std::string> localeMap;
-    std::filesystem::path localeFolder = paths.dataDir() + "/locales/";
+    std::filesystem::path localeFolder = Paths::dataDir() + "/locales/";
 
     std::string detectSystemLanguage() {
     #if _WIN32 // i hate microsoft
@@ -120,7 +119,7 @@ namespace Localization {
             return;
         }
         localeMap = loadJson("en_US");
-        std::filesystem::path configPath = paths.userDataDir() + "/config.jsonc";
+        std::filesystem::path configPath = Paths::userDataDir() + "/config.jsonc";
         if (!std::filesystem::exists(configPath)){
             std::filesystem::create_directory(configPath.parent_path());
             std::string locale = detectSystemLanguage();
