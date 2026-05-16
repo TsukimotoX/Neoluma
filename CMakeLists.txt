@@ -6,21 +6,18 @@ project(neoluma LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS ON)
+
+message(STATUS "[Neoluma] Using C++ version: ${CMAKE_CXX_STANDARD}")
+message(STATUS "[Neoluma] C++ extensions are ${CMAKE_CXX_EXTENSIONS}")
 
 # Options
 option(NEOLUMA_PORTABLE "Portable layout (resources near executable)")
 
 # Set up LLVM
 find_package(LLVM REQUIRED CONFIG)
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-
-if(WIN32)
-    find_program(NEOLUMA_POWERSHELL_EXECUTABLE NAMES pwsh powershell REQUIRED)
-else()
-    find_program(NEOLUMA_POWERSHELL_EXECUTABLE NAMES pwsh REQUIRED)
-endif()
+message(STATUS "[Neoluma] Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "[Neoluma] Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 # ---- Sources ----
 file(GLOB_RECURSE CORE_FILES CONFIGURE_DEPENDS
@@ -104,6 +101,11 @@ set_target_properties(neoluma PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${OutputRoot}/.libs/$<CONFIG>"
 )
 
+# shuts up cmake about having extensions
+target_compile_options(NeolumaCLI PRIVATE
+    $<$<CXX_COMPILER_ID:Clang>:-Wno-c23-extensions>
+)
+
 # ---- Installation rules ----
 include(GNUInstallDirs)
 
@@ -164,7 +166,7 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E chdir "${NEOLUMA_STAGE_DIR}"
         ${CMAKE_COMMAND} -E tar "cf" "${NEOLUMA_PAYLOAD_ZIP}" --format=zip -- .
 
-    COMMENT "Creating payload.zip for ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR} ($<CONFIG>)..."
+    COMMENT "[Neoluma] Creating payload.zip for ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR} ($<CONFIG>)..."
     VERBATIM
 )
 

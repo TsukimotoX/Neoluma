@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <type_traits>
 #include <variant>
+#include <print>
 
 template<typename T>
 using MemoryPtr = std::unique_ptr<T>;
@@ -72,9 +73,6 @@ std::vector<std::string> split(std::string str, char delimiter);
 
 // Reads the file
 std::string readFile(const std::string& filePath);
-
-// Extracts the file name from a given file path
-std::string getFileName(const std::string& filePath);
 
 // String formatting
 template<typename T>

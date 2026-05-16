@@ -1,5 +1,7 @@
 #include "Asker.hpp"
 
+#include <string>
+
 #ifdef _WIN32
 #include <conio.h>
 

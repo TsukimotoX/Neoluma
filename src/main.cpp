@@ -3,7 +3,7 @@
 #include <print>
 #include <filesystem>
 
-#include "CLI/cli.hpp"
+#include "CLI/CLI.hpp"
 #include "Libraries/Color/Color.hpp"
 #include "Core/Frontend/Lexer/Lexer.hpp"
 #include "HelperFunctions.hpp"
