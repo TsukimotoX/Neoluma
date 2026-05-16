@@ -39,11 +39,6 @@ std::string readFile(const std::string& filePath) {
     return buffer.str();
 }
 
-// Extracts the file name from a given file path
-std::string getFileName(const std::string& filePath) {
-    return std::filesystem::path(filePath).filename().replace_extension("").string();
-}
-
 std::string formatStrVec(const std::string& fmt, const std::vector<std::string>& collectedArgs) {
     std::string out;
     size_t argCount = 0;

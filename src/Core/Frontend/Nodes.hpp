@@ -4,34 +4,28 @@
 #include <variant>
 
 #include "../../HelperFunctions.hpp"
-//#include "llvm/IR/Value.h"
 
 enum struct ASTNodeType {
     Literal, Variable, MemberAccess, Declaration, Assignment, BinaryOperation, UnaryOperation, CallExpression,
     Block, IfStatement, ForLoop, WhileLoop, TryCatch, ReturnStatement, 
-    Function, Class, 
+    Function, Class, Namespace,
     Parameter, Modifier,
     Switch, Case, SCDefault,
     Module,
     Import, Decorator, Preprocessor, 
     BreakStatement, ContinueStatement, ThrowStatement,
-    Array, Set, Dict, Void, Result, Enum, Interface, Lambda,
+    Array, Set, Dict, Tuple, Void, Result, Enum, Interface, Lambda,
     EnumMember, InterfaceField,
-    RawType
+    RawType,
 };
 
-// enum struct ASTVariableType {
-//     Integer, Float, Number, Boolean, String,
-//     Array, Set, Dictionary, Void, Result,
-//     Undefined
-// };
-
 enum struct ASTModifierType {
-    Public, Private, Protected, Static, Const, Override, Async, Debug
+    Public, Private, Protected, Static, Const, Override, Async, Debug,
+    Intrinsic
 };
 
 enum struct ASTPreprocessorDirectiveType {
-    Import, Unsafe, Baremetal, Float, Macro, None
+    Import, Unsafe, Macro, None
 };
 
 enum struct ASTImportType {
@@ -48,14 +42,13 @@ struct ASTNode {
     ASTNodeType type;
     std::string value; // for basic values like literals, etc.
 
-    // Tracking the node for the Semantic Analysis purposes
+    // Tracking the node for the ErrorManager purposes
     int line = 0;
     int column = 0;
     std::string filePath = "";
 
     virtual ~ASTNode();
     virtual std::string toString(int indent) const = 0;
-    //virtual llvm::LLVMContext generateCode(); // for the compiler to generate code from this AST node
 };
 
 // All nodes available in Neoluma
@@ -320,6 +313,19 @@ struct DictNode : ASTNode {
     std::string toString(int indent) const override;
 };
 
+// For now it's used only in lambda conditions, it must be fixed later
+struct TupleNode : ASTNode {
+    std::vector<MemoryPtr<ASTNode>> elements;
+
+    TupleNode(std::vector<MemoryPtr<ASTNode>> elements)
+        : elements(std::move(elements)) {
+        this->type = ASTNodeType::Tuple;
+    }
+
+    // Suggested by AI. If it fails, it's his fault
+    std::string toString(int indent) const override;
+};
+
 struct ResultNode : ASTNode {
     MemoryPtr<ASTNode> t;
     MemoryPtr<ASTNode> e;
@@ -458,6 +464,7 @@ struct FunctionNode : ASTNode {
     std::vector<MemoryPtr<ParameterNode>> parameters;
     MemoryPtr<RawTypeNode> returnType = nullptr;
     MemoryPtr<BlockNode> body;
+    bool isIntrinsic = false; // Is this a function that passes through an LLVM call?
 
     FunctionNode(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<RawTypeNode> returnType, MemoryPtr<BlockNode> body,std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {})
         : name(name), parameters(std::move(parameters)), body(std::move(body)), decorators(std::move(decorators)), modifiers(std::move(modifiers)), returnType(std::move(returnType)) {
@@ -520,6 +527,18 @@ struct DecoratorNode : ASTNode {
     }
 
     // Suggested by AI. If it fails, it's his fault
+    std::string toString(int indent = 0) const override;
+};
+
+struct NamespaceNode : ASTNode {
+    MemoryPtr<ASTNode> name;
+    std::vector<MemoryPtr<ASTNode>> body;
+
+    NamespaceNode(MemoryPtr<ASTNode> name, std::vector<MemoryPtr<ASTNode>> body)
+        : name(std::move(name)), body(std::move(body)) {
+        this->type = ASTNodeType::Namespace;
+    }
+
     std::string toString(int indent = 0) const override;
 };
 

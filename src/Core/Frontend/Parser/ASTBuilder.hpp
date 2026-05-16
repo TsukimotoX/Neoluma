@@ -115,6 +115,11 @@ struct ASTBuilder {
         return makeMemoryPtr<DictNode>(std::move(elements)/*, std::move(types)*/);
     }
 
+    // Creates a TupleNode
+    static MemoryPtr<TupleNode> createTuple(std::vector<MemoryPtr<ASTNode>> elements) {
+        return makeMemoryPtr<TupleNode>(std::move(elements));
+    }
+
     // Creates a ResultNode
     static MemoryPtr<ResultNode> createResult(MemoryPtr<ASTNode> t, MemoryPtr<ASTNode> e = nullptr, bool isError = false) {
         return makeMemoryPtr<ResultNode>(std::move(t), std::move(e), isError);
@@ -173,6 +178,11 @@ struct ASTBuilder {
     // Creates a DecoratorNode
     static MemoryPtr<DecoratorNode> createDecorator(const std::string& name, std::vector<MemoryPtr<ParameterNode>> parameters, MemoryPtr<BlockNode> body, std::vector<MemoryPtr<CallExpressionNode>> decorators = {}, std::vector<MemoryPtr<ModifierNode>> modifiers = {}) {
         return makeMemoryPtr<DecoratorNode>(name, std::move(parameters), std::move(body), std::move(decorators), std::move(modifiers));
+    }
+
+    // Creates a NamespaceNode
+    static MemoryPtr<NamespaceNode> createNamespace(MemoryPtr<ASTNode> name, std::vector<MemoryPtr<ASTNode>> body) {
+        return makeMemoryPtr<NamespaceNode>(std::move(name), std::move(body));
     }
 
     // Creates an ImportNode

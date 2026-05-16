@@ -14,9 +14,8 @@
 #endif
 
 namespace Localization {
-    Paths paths{};
     std::unordered_map<std::string, std::string> localeMap;
-    std::filesystem::path localeFolder = paths.dataDir() + "/locales/";
+    std::filesystem::path localeFolder = Paths::dataDir() + "/locales/";
 
     std::string detectSystemLanguage() {
     #if _WIN32 // i hate microsoft
@@ -116,10 +115,11 @@ namespace Localization {
         if (!std::filesystem::exists(localeFolder)) {
             std::println(std::cerr, "Neoluma's localization module detected that you have no localization folder. We highly suggest you repairing the installation via your installer. \nNeoluma can't run without the localization.");
             // TODO: Implement a fallback system for people who ever will to delete locale configs.
+
             return;
         }
         localeMap = loadJson("en_US");
-        std::filesystem::path configPath = paths.userDataDir() + "/config.jsonc";
+        std::filesystem::path configPath = Paths::userDataDir() + "/config.jsonc";
         if (!std::filesystem::exists(configPath)){
             std::filesystem::create_directory(configPath.parent_path());
             std::string locale = detectSystemLanguage();

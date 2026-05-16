@@ -5,9 +5,39 @@
 #include <sstream>
 #include <filesystem>
 #include <type_traits>
+#include <variant>
+#include <print>
 
 template<typename T>
 using MemoryPtr = std::unique_ptr<T>;
+
+template<typename... T>
+using Option = std::variant<T...>;
+
+template<typename T, typename... Types>
+constexpr bool optionIs(const Option<Types...>& value) {
+    return std::holds_alternative<T>(value);
+}
+
+template<typename T, typename... Types>
+constexpr T& getOption(Option<Types...>& value) {
+    return std::get<T>(value);
+}
+
+template<typename T, typename... Types>
+constexpr const T& getOption(const Option<Types...>& value) {
+    return std::get<T>(value);
+}
+
+template<typename T, typename... Types>
+constexpr T* tryGetOption(Option<Types...>* value) {
+    return std::get_if<T>(value);
+}
+
+template<typename T, typename... Types>
+constexpr const T* tryGetOption(const Option<Types...>* value) {
+    return std::get_if<T>(value);
+}
 
 template<typename T, typename... Args>
 MemoryPtr<T> makeMemoryPtr(Args&&... args) {
@@ -44,9 +74,6 @@ std::vector<std::string> split(std::string str, char delimiter);
 // Reads the file
 std::string readFile(const std::string& filePath);
 
-// Extracts the file name from a given file path
-std::string getFileName(const std::string& filePath);
-
 // String formatting
 template<typename T>
 std::string anyToStr(T&& v) {
@@ -63,10 +90,4 @@ std::string formatStr(const std::string& fmt, Args&&... args)
 {
     std::vector<std::string> collectedArgs = { anyToStr(args)... };
     return formatStrVec(fmt, collectedArgs);
-}
-
-#define pudding std::string("Nep is not a console")
-#define puddingsong std::string("Nep Nep♪ Nep nep♪ Nep nep neppynep♪🍮")
-inline bool weirdCondition(const std::string& k){
-    return k == pudding;
 }
