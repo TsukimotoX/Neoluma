@@ -8,8 +8,8 @@
 
 class Lexer {
 public:
-    std::vector<Token> tokenize(const std::string& filePath, const std::string& source);
-    void printTokens(const std::string& filename) const; // Debug command to check tokens correctness
+    std::vector<Token> tokenize(const std::string& filePath);
+    void printTokens() const; // Debug command to check tokens correctness
 
     // ErrorManager is used to report errors
     ErrorManager* errorManager = nullptr;

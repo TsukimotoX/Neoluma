@@ -1,4 +1,7 @@
 #include "SemanticAnalysis.hpp"
+
+#include <iostream>
+
 #include "Core/Compiler.hpp"
 
 // ==== Main function ====
@@ -11,8 +14,18 @@ void SemanticAnalysis::analyzeProgram(Program& program){
         declareName(name, Symbol{Symbol::Kind::Decorator, false, "", 0, 0}, nullptr);
     }
 
-    for (ModuleId id : program.order)
-        analyzeModule(program.moduleInfos[id].module);
+    for (ModuleId id : program.order) {
+        if (id < 0 || id >= static_cast<ModuleId>(program.moduleInfos.size()))
+            continue;
+
+        ModuleNode* module = program.moduleInfos[id].module;
+        if (!module)
+            continue;
+
+        if (!program.moduleInfos[id].module)
+            std::println(std::cerr, "NULL MODULE INFO: {}", id);
+        analyzeModule(module);
+    }
 
     popScope();
 }

@@ -9,9 +9,9 @@
 #include "HelperFunctions.hpp"
 
 // ==== Main ====
-std::vector<Token> Lexer::tokenize(const std::string& filePath, const std::string& source) {
+std::vector<Token> Lexer::tokenize(const std::string& filePath) {
     tokens.clear();
-    this->source = source;
+    this->source = readFile(filePath);
     this->filePath = filePath;
     pos = 0; line = 1; column = 1;
 
@@ -268,8 +268,8 @@ void Lexer::skipComment() {
     tokens.push_back(Token{TokenType::Operator, "/", filePath, sl, sc});
 }
 
-void Lexer::printTokens(const std::string& filename) const {
-    std::println("=== Lexer Output ({}) ===", filename);
+void Lexer::printTokens() const {
+    std::println("=== Lexer Output ({}) ===", filePath);
     for (const auto& token : tokens) std::cout << token.toStr();
     std::println("====================");
 }
