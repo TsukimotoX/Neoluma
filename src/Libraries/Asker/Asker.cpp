@@ -50,7 +50,11 @@ Key getKey() {
 #endif
 
 void clearBlock(int lines) {
-    std::println("\033[{}A",lines);
+    for (int i = 0; i < lines; i++) {
+        std::cout << "\033[1A";  // up
+        std::cout << "\033[2K";  // clear whole line
+        std::cout << "\r";
+    }
 }
 
 namespace asker {

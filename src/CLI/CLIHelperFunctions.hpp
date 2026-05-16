@@ -25,9 +25,6 @@ std::string getString(const Toml::TomlTable& table, const std::string& key, cons
 std::vector<std::string> getStringArray(const Toml::TomlTable& table, const std::string& key);
 std::map<std::string, std::string> extractMap(const Toml::TomlTable& root, const std::string& key);
 
-// Argument parsing
-CLIArgs parseArgs(int argc, char** argv);
-
 ProjectConfig parseProjectFile(const std::string& file);
 CompilerSettings parseCompilerSettings(const std::map<std::string, ProjectSettingValue>& map);
 

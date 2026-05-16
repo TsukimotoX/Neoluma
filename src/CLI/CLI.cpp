@@ -46,13 +46,13 @@ void createProject() {
     clearScreen();
     showProgressBar(title, step++, steps);
 
-    config.name = askQuestion(Localization::translate("CLI.createProject.projectName"));
+    config.name = asker::input(Localization::translate("CLI.createProject.projectName"), true);
     clearScreen();
     showProgressBar(title, step++, steps);
-    config.version = askQuestion(Localization::translate("CLI.createProject.projectVersion"));
+    config.version = asker::input(Localization::translate("CLI.createProject.projectVersion"));
     clearScreen();
     showProgressBar(title, step++, steps);
-    std::vector<std::string> authors = split(askQuestion(Localization::translate("CLI.createProject.projectAuthors")), ',');
+    std::vector<std::string> authors = split(asker::input(Localization::translate("CLI.createProject.projectAuthors"), true), ',');
     std::string authorList = listAuthors(authors);
     config.author = authors;
     clearScreen();
@@ -118,7 +118,7 @@ void createProject(ProjectConfig config) {
     tasks["dev"] = "neoluma run --debug";
     table["tasks"] = tasks.get();
 
-    std::ofstream cfg(projectPath / std::format("{}.nlp", formatProjectFolderName(config.name)));
+    std::ofstream cfg(projectPath / std::format("{}.nlp", formatNameToSnakeCase(config.name)));
     if (cfg.is_open()){
         Toml::serializeTable(cfg, table.get());
     }

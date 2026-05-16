@@ -178,24 +178,3 @@ public:
         return Unlicense_TEMPLATE;
     }
 };
-
-// Returns progress bar for CLI
-void showProgressBar(const std::string& stepName, int step, int total);
-
-// Clears terminal screen
-void clearScreen();
-
-// Asks a question
-std::string askQuestion(const std::string& question);
-
-// -------- stuff required for parseProjectFile
-std::string getString(const Toml::TomlTable& table, const std::string& key, const std::string& def = "");
-
-std::vector<std::string> getStringArray(const Toml::TomlTable& table, const std::string& key);
-
-std::map<std::string, std::string> extractMap(const Toml::TomlTable& root, const std::string& key);
-// --------
-std::string licenseID(License license);
-std::string outputID(OutputType type);
-License parseLicense(std::string license);
-OutputType parseOutput(std::string outputType);

@@ -18,7 +18,7 @@ void Compiler::check(bool jsonOutput) {
     for (const auto& file : program.input.files){
         // Lexer: breaks code down into tokens.
         std::string source = readFile(file.string());
-        std::vector<Token> tokens = lexer.tokenize(file.filename().string(), source);
+        std::vector<Token> tokens = lexer.tokenize(file.string(), source);
         //lexer.printTokens(getFileName(file));
 
         // Parser: builds a module tree out of tokens

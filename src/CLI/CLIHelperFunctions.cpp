@@ -4,7 +4,8 @@
 #include "Libraries/Asker/Asker.hpp"
 #include "Libraries/Color/Color.hpp"
 #include "Libraries/Localization/Localization.hpp"
-// ==== Helping functions
+
+// ======== Helping functions ========
 
 // Lists authors by comma. If author is only mentioned once, just author name is inputted
 std::string listAuthors(const std::vector<std::string>& authors) {
@@ -23,8 +24,8 @@ std::string listAuthors(const std::vector<std::string>& authors) {
     return authorList;
 }
 
-// Renames the project folder to letters and underscores. Unnecessary, but for clean experience.
-std::string formatProjectFolderName(const std::string& input) {
+// Formats the input string to letters and underscores.
+std::string formatNameToSnakeCase(const std::string& input) {
     std::string result = input;
 
     for (char& c : result) {
@@ -143,7 +144,7 @@ CompilerSettings parseCompilerSettings(const std::map<std::string, ProjectSettin
     CompilerSettings config;
 
     config.verbose = map.contains("verbose") ? std::get<bool>(map.at("verbose")) : config.verbose;
-    config.baremetal = map.contains("baremetal") ? std::get<bool>(map.at("baremetal")) : config.verbose;
+    config.baremetal = map.contains("baremetal") ? std::get<bool>(map.at("baremetal")) : config.baremetal;
 
     return config;
 }
