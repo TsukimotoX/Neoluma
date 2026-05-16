@@ -26,14 +26,15 @@ struct ModuleInfo {
     std::vector<DependencyEdge> dependencies;
     std::unordered_map<std::string, ModuleId> aliasMap;
     std::vector<std::string> nativeImports; // for packages that import from dependencies or std, like "math", "std", "tazer"
+
+    std::vector<std::string> namespaceImports;
+    std::unordered_map<std::string, std::string> namespaceAliasMap;
 };
 
 struct NamespaceInfo {
     std::string name;
     std::vector<NamespaceNode*> declarations;
 };
-
-// TODO: namespaces support
 
 // Orchestrator is a struct that allows us to stitch the project together into a working program, that can be fed to the Semantic Analysis and lower parts of the Compiler.
 struct Orchestrator {
@@ -43,7 +44,7 @@ struct Orchestrator {
     // main function
     void stitchProgram(Program& program);
     EntryPoint findEntryPoint(const std::vector<MemoryPtr<ModuleNode>>& modules);
-    std::vector<ModuleInfo> resolveImports(const std::vector<MemoryPtr<ModuleNode>>& modules);
+    std::vector<ModuleInfo> resolveImports(Program& program);
     std::unordered_map<std::string, NamespaceInfo> collectNamespaces(const std::vector<MemoryPtr<ModuleNode>>& modules);
 
     // helper functions

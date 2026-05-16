@@ -165,7 +165,8 @@ EntryPoint Orchestrator::findEntryPoint(const std::vector<MemoryPtr<ModuleNode>>
     return {};
 }
 
-std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr<ModuleNode>>& modules){
+std::vector<ModuleInfo> Orchestrator::resolveImports(Program& program){
+    const auto& modules = program.modules;
     std::vector<ModuleInfo> infos(modules.size());
 
     // key to module id
@@ -214,6 +215,12 @@ std::vector<ModuleInfo> Orchestrator::resolveImports(const std::vector<MemoryPtr
 
             auto* imp = static_cast<ImportNode*>(st.get());
             const std::string& name = imp->moduleName;
+
+            if (program.namespaces.contains(name)) {
+                mi.namespaceImports.push_back(name);
+                if (!imp->alias.empty()) mi.namespaceAliasMap.emplace(imp->alias, name);
+                continue;
+            }
 
             if (imp->importType == ASTImportType::Relative){
                 std::string resolvedKey = resolveRelativeKey(idToKey[mi.id], imp->moduleName);
