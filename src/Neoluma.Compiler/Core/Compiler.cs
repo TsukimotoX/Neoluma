@@ -62,7 +62,7 @@ public struct ProgramInterface {
 public sealed class Compiler {
     // Constructor
     public Compiler(CompilationInput input) {
-        program.input = input;
+        program = new ProgramInterface { input = input, modules = [], moduleInfos = [], order = [], namespaces = [] };
 
         lexer.errorManager = errorManager;
         parser.errorManager = errorManager;

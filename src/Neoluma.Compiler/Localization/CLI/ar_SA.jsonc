@@ -8,7 +8,7 @@
         "initialization": "🚀 بدأ تشغيل الملف..."
     },
     "check": {
-        "initialization": "✅ بدأ التأكيد ل: {}"
+        "initialization": "✅ بدأ التأكيد ل: {0}"
     },
     "createProject": {
         "initialization": "📃 لقد بدأ تصنيع الproject الجديد",
@@ -16,7 +16,7 @@
         "projectVersion": "🆚 ما الversion الأول لألproject (يمكن أن يكون أي شئ)؟ ",
         "projectAuthors": "🤓 من هو الكاتب لهذا الproject (منقسم باستخدام ،)؟",
         "projectLicense": "📃 ما الlicense خاص بالproject؟",
-        "confirmation": "😎 لنلخص الproject!\nاسم الproject: {}؛\nالversion خاص بالproject: {}؛\nالكاتب: {}؛\nالlicense: {}؛\n\n{}هل هذا صحيح؟",
+        "confirmation": "😎 لنلخص الproject!\nاسم الproject: {0}؛\nالversion خاص بالproject: {1}؛\nالكاتب: {2}؛\nالlicense: {3}؛\n\n{4}هل هذا صحيح؟",
         "confirmation.yes": "✅ قد صنع الproject! نتمنى انك تستمتع بneoluma",
         "confirmation.no": "❌ الproject أتلغي،إذا هدا كان خطأ جرب أن تصنع project مجددا",
         "template.main.comment": "أهلاً إلي neoluma! نتمنى انك ستستمتع به. ", 

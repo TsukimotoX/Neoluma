@@ -50,7 +50,7 @@ public class Lexer {
                 
                 errorManager.addError(
                     SyntaxErrors.UnexpectedToken,
-                    new ErrorSpan(filePath, tok.value, tok.line, tok.column),
+                    new ErrorSpan(filePath, tok.value, tok.sourceSpan.line, tok.sourceSpan.column),
                     "ErrorManager.Syntax.UnexpectedToken.message", new() { tok.value },
                     "ErrorManager.Syntax.UnexpectedToken.hint");
                 tokens.Add(tok);

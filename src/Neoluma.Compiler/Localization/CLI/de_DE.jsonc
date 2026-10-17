@@ -9,8 +9,8 @@
     },
     "check": {
         "initialization": "✅ Semantische Überprüfung von:",
-        "complete": "{}🎉 Check completed successfully!{}",
-        "failed": "{}❌ Analytic check failed. Please check the errors above.{}"
+        "complete": "{0}🎉 Check completed successfully!{1}",
+        "failed": "{0}❌ Analytic check failed. Please check the errors above.{1}"
     },
     "createProject": {
         "initialization": "📃 Neues Neoluma Projekt erstellen",
@@ -18,9 +18,9 @@
         "projectVersion": "🆚 Was ist Ihre erste Projektversion (alles möglich)?",
         "projectAuthors": "🤓 Wer sind die Projektauthoren (getrennt mit Komma)?",
         "projectLicense": "📃 Welche Lizenz hat Ihr Projekt?",
-        "confirmation": "{}😎 Lass uns Ihr Projekt zusammenfassen!\n   Projektname: {};\n   Version: {};\n   Authoren: {};\n   Lizenz: {};\n\n{}ist dies korrekt?{}",
-        "confirmation.yes": "{}✅ Projekt erstellt! Viel Spaß beim Erstellen mit Neoluma!{}",
-        "confirmation.no": "{}❌ Projekterstellung abgebrochen. Falls dies ein Fehler war, versuchen Sie es erneut!{}",
+        "confirmation": "{0}😎 Lass uns Ihr Projekt zusammenfassen!\n   Projektname: {1};\n   Version: {2};\n   Authoren: {3};\n   Lizenz: {4};\n\n{5}ist dies korrekt?{6}",
+        "confirmation.yes": "{0}✅ Projekt erstellt! Viel Spaß beim Erstellen mit Neoluma!{1}",
+        "confirmation.no": "{0}❌ Projekterstellung abgebrochen. Falls dies ein Fehler war, versuchen Sie es erneut!{1}",
         "template.main.comment": "Willkommen bei Neoluma! Viel Spaß beim Erschaffen!",
         "template.main.printmsg": "Hallo von Neoluma!"
     }

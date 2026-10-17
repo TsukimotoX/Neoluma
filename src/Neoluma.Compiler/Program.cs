@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Text;
 using Neoluma.CLI;
 using Neoluma.Core;
 using Neoluma.Core.Extras;
@@ -6,6 +7,8 @@ using Neoluma.Libraries;
 
 class Program {
     public static void Main(string[] args) {
+        Console.OutputEncoding = Encoding.UTF8;
+        Console.InputEncoding = Encoding.UTF8;
         Assembly assembly = typeof(Program).Assembly;
         CLIArgs arguments = CLIArgs.parseArgs(args);
         Localization.init();

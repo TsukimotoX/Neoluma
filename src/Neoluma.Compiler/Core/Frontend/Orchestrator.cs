@@ -51,7 +51,7 @@ public sealed class Orchestrator {
 
         if (entryId < 0) return; // i mean this should not ever ever happen but...
 
-        program.order = new(); // clean up previous order just in case
+        program.order.Clear(); // clean up previous order just in case
 
         byte[] state = new byte[program.moduleInfos.Count];
         dfsVisit(entryId, program.moduleInfos, state, program.order, null);

@@ -921,17 +921,13 @@ public class Parser {
             if (match(token, Keywords.Enum)) return parseEnum(decorators, modifiers);
             if (match(token,  Keywords.Interface)) return parseInterface(decorators, modifiers);
             if (match(token, Keywords.Decorator)) return parseDecorator(decorators, modifiers);
-            // FIXME: why is this here?
-            if (modifiers.Count == 0) {
-                errorManager.addError(
-                    SyntaxErrors.UnexpectedToken,
-                    new ErrorSpan(token.value, token.sourceSpan),
-                    "ErrorManager.Syntax.UnexpectedToken.message", [token.value],
-                    "ErrorManager.Syntax.UnexpectedToken.hint");
-                return null;
-            }
-
             if (match(token, Keywords.Namespace)) return parseNamespace();
+            
+            errorManager.addError(SyntaxErrors.UnexpectedToken,
+                new ErrorSpan(token.value, token.sourceSpan),
+                "ErrorManager.Syntax.UnexpectedToken.message", [token.value],
+                "ErrorManager.Syntax.UnexpectedToken.hint");
+            return null;
         }
 
         // === Block ===
@@ -1595,8 +1591,7 @@ public class Parser {
 
         var name = parsePrimary();
         if (name == null || (name!.type != ASTNodeType.Variable && name.type != ASTNodeType.MemberAccess)) {
-            errorManager.addError(
-                SyntaxErrors.MissingToken,
+            errorManager.addError(SyntaxErrors.MissingToken,
                 new ErrorSpan(curToken().value, curToken().sourceSpan),
             "ErrorManager.Syntax.MissingToken.namespaceName.message", [],
             "ErrorManager.Syntax.MissingToken.namespaceName.hint"

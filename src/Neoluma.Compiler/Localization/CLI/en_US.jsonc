@@ -8,7 +8,7 @@
         "initialization": "🚀 Running executable..."
     },
     "check": {
-        "initialization": "✅ Analytic check for: {}",
+        "initialization": "✅ Analytic check for: {0}",
         "complete": "🎉 Check completed successfully!",
         "failed": "❌ Analytic check failed. Please check the errors above."
     },
@@ -18,7 +18,7 @@
         "projectVersion": "🆚 What's your project first version (can be anything)?",
         "projectAuthors": "🤓 Who is/are the author(s) of the project (separate with ,)?",
         "projectLicense": "📃 What license does your project have?",
-        "confirmation": "😎 Let's sum up your project!\n   Project Name: {};\n   Version: {};\n   Authors: {};\n   License: {};\n\n{}Is that correct?",
+        "confirmation": "😎 Let's sum up your project!\n   Project Name: {0};\n   Version: {1};\n   Authors: {2};\n   License: {3};\n\n{4}Is that correct?",
         "confirmation.yes": "✅ Project created! Have fun building in Neoluma!",
         "confirmation.no": "❌ Project cancelled. If it's a mistake, try create a project again!",
         "template.main.comment": "Welcome to Neoluma! Have fun building!",

@@ -50,6 +50,13 @@
         <EmbeddedResource Include="Localization/**/*.jsonc" />
     </ItemGroup>
 
+    <ItemGroup Label="Intrinsic Modules">
+        <Content Include="IntrinsicModules/**/*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <TargetPath>modules/%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+        </Content>
+    </ItemGroup>
+
     <ItemGroup Label="Extra Configs">
         <AssemblyMetadata Include="ReleaseType" Value="$(ReleaseType)" />
     </ItemGroup>
