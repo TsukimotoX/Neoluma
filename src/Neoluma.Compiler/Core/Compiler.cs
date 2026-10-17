@@ -88,13 +88,12 @@ public sealed class Compiler {
         // Parsing the project itself
         foreach (var file in files){
             // Lexer: breaks code down into tokens.
-            string source = File.ReadAllText(file);
             List<Token> tokens = lexer.tokenize(file);
-            lexer.printTokens();
+            //lexer.printTokens();
 
             // Parser: builds a module tree out of tokens
             parser.parseModule(tokens, file);
-            parser.printModule();
+            //parser.printModule();
             ModuleNode tree = parser.moduleSource;
 
             // Adding modules to program's tree
@@ -106,18 +105,18 @@ public sealed class Compiler {
         program.namespaces = orchestrator.collectNamespaces(program.modules);
         program.entryPoint = orchestrator.findEntryPoint(program.modules);
         program.moduleInfos = orchestrator.resolveImports(program);
-        Console.WriteLine("=== ModuleId map ===");
+       /* Console.WriteLine("=== ModuleId map ===");
         foreach (var info in program.moduleInfos){
             Console.WriteLine($"[{info.id}] file={info.module?.sourceSpan.filePath ?? "<null>"}");
             Console.WriteLine($"     deps={info.dependencies.Count}");
             foreach (var d in info.dependencies) Console.WriteLine($"        -> {d.moduleId}");
-        }
+        }*/
         orchestrator.stitchProgram(program);
-        Console.WriteLine($"Entry module id: {program.moduleInfos.First(info => info.module == program.entryPoint.module).id}"); 
+        /*Console.WriteLine($"Entry module id: {program.moduleInfos.First(info => info.module == program.entryPoint.module).id}"); 
         Console.WriteLine("Order:");
         foreach(var id in program.order) {
             Console.WriteLine($"    {id}");
-        }
+        }*/
 
         // Semantic Analysis: Make sure the program runs logically correct, before turned into a machine code
         //semanticAnalysis.analyzeProgram(program);

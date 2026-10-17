@@ -6,6 +6,7 @@ namespace Neoluma.Libraries;
 
 public static class Localization {
     private static Dictionary<string, string> localeMap = new();
+    private static bool initialized = false;
     
     // ==== Internal helpers ====
     private static string detectSystemLanguage() 
@@ -79,9 +80,13 @@ public static class Localization {
         
         foreach (var (key, value) in userLocale)
             localeMap[key] = value;
+        
+        initialized = true;
     }
 
     public static string translate(string key, params string[] args) {
+        if (!initialized)
+            init();
         string result = localeMap.TryGetValue(key, out string? value) ? value : key;
         return args.Length == 0 ? result : string.Format(result, args);
     }
