@@ -1,0 +1,5 @@
+{
+	"toml": {
+		"tableOutOfBoundsError": "Key '{0}' not found"
+	}
+}

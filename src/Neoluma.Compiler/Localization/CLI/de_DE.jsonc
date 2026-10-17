@@ -1,0 +1,27 @@
+{
+    "helpMessage": "Neoluma ist eine höhere und allzweckliche Programmiersprache.\nUnabhängig davon, ob Sie ein kleines Skript erstellen oder ein ganzes Betriebssystem.\nNeoluma ist dafür entwickelt, mit Ihnen zu skalieren.\nAnhand der ähnlichen Syntax wie Python und der Architektur inspiriert von C# und C++ ist es sowohl ausdrucksvoll als auch leistungsstark.\n\nVerwendung:\n  neoluma build <project.nlp>  - Kompilieren als ausführbares Programm\n  neoluma run <project.nlp>    - Kompilieren und ausführen\n  neoluma check <project.nlp>  - Syntaxüberprüfung ohne Kompilierung\n  neoluma new <name>           - Neues Projekt erstellen\n  neoluma version              - Ausgeben der Version des Kompilierers",
+    "parseProjectFile.parseOutputError": "Das Kennzeichen des Ausgabetypen ist ungültig. Verfügbare Optionen: exe, ir, obj, sharedlib, staticlib",
+    "build": {
+        "initialization": "🔨 Baue Projekt:"
+    },
+    "run": {
+        "initialization": "🚀 Programmausführung..."
+    },
+    "check": {
+        "initialization": "✅ Semantische Überprüfung von:",
+        "complete": "{0}🎉 Check completed successfully!{1}",
+        "failed": "{0}❌ Analytic check failed. Please check the errors above.{1}"
+    },
+    "createProject": {
+        "initialization": "📃 Neues Neoluma Projekt erstellen",
+        "projectName": "❓ Was ist der Name Ihres Projektes?",
+        "projectVersion": "🆚 Was ist Ihre erste Projektversion (alles möglich)?",
+        "projectAuthors": "🤓 Wer sind die Projektauthoren (getrennt mit Komma)?",
+        "projectLicense": "📃 Welche Lizenz hat Ihr Projekt?",
+        "confirmation": "{0}😎 Lass uns Ihr Projekt zusammenfassen!\n   Projektname: {1};\n   Version: {2};\n   Authoren: {3};\n   Lizenz: {4};\n\n{5}ist dies korrekt?{6}",
+        "confirmation.yes": "{0}✅ Projekt erstellt! Viel Spaß beim Erstellen mit Neoluma!{1}",
+        "confirmation.no": "{0}❌ Projekterstellung abgebrochen. Falls dies ein Fehler war, versuchen Sie es erneut!{1}",
+        "template.main.comment": "Willkommen bei Neoluma! Viel Spaß beim Erschaffen!",
+        "template.main.printmsg": "Hallo von Neoluma!"
+    }
+}
