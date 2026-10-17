@@ -49,7 +49,7 @@ public static class CLI {
         string projectPath = Path.Combine(Directory.GetCurrentDirectory(), config.name);
         Directory.CreateDirectory(Path.Combine(projectPath, "src"));
         
-        File.WriteAllText(Path.Combine(projectPath, "src/main.nm"), String.Format("// {} \n@entry\nfn main() {{\n    print(\"{}\");\n}}", Localization.translate("CLI.createProject.template.main.comment"), Localization.translate("CLI.createProject.template.main.printmsg")));
+        File.WriteAllText(Path.Combine(projectPath, "src/main.nm"), $"// {Localization.translate("CLI.createProject.template.main.comment")} \n@entry\nfn main() {{\n    print(\"{Localization.translate("CLI.createProject.template.main.printmsg")}\");\n}}");
         
         TOML.Array authors = [];
         foreach (string author in config.author) authors.Add(author);

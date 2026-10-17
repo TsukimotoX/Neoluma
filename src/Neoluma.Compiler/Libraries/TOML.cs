@@ -177,7 +177,7 @@ public static class TOML {
         public Value(DateTimeOffset value) => storage = value;
 
         public bool isString() => storage is string;
-        public bool isInt() => storage is int;
+        public bool isInt() => storage is long;
         public bool isDouble() => storage is double;
         public bool isBool() => storage is bool;
         public bool isArray() => storage is Array;
@@ -352,6 +352,7 @@ public static class TOML {
             skipWhitespaces();
             
             expect(']');
+            if (isArrayTable) expect(']');
             skipWhitespaces();
             if (peek() == '#') skipComment();
             if (!isAtEnd() && peek() != '\n') throw error("Expected end of line after table declaration");
