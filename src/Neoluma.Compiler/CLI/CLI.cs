@@ -51,31 +51,24 @@ public static class CLI {
         
         File.WriteAllText(Path.Combine(projectPath, "src/main.nm"), String.Format("// {} \n@entry\nfn main() {{\n    print(\"{}\");\n}}", Localization.translate("CLI.createProject.template.main.comment"), Localization.translate("CLI.createProject.template.main.printmsg")));
         
-        /*
-        Toml::Table table;
-        Toml::Table project;
-        project["name"] = config.name;
-        project["version"] = config.version;
+        TOML.Array authors = [];
+        foreach (string author in config.author) authors.Add(author);
 
-        Toml::TomlArray authors_array;
-        for (const auto& author : config.author) authors_array.push_back(Toml::TomlValue(author));
-        project["authors"] = Toml::TomlValue(authors_array);
-        project["license"] = licenseID(config.license);
-        project["output"] = outputID(config.output);
-        project["sourceFolder"] = config.sourceFolder;
-        project["buildFolder"] = config.buildFolder;
-        table["project"] = project.get();
+        TOML.Table project = [
+            ("name", config.name),
+            ("version", config.version),
+            ("authors", authors),
+            ("license", config.license),
+            ("output", config.output),
+            ("sourceFolder", config.sourceFolder),
+            ("buildFolder", config.buildFolder)
+        ];
 
-        Toml::Table tasks;
-        tasks["dev"] = "neoluma run --debug";
-        table["tasks"] = tasks.get();
+        TOML.Table tasks = [("dev", "neoluma run --debug")];
 
-        std::ofstream cfg(projectPath / std::format("{}.nlp", formatNameToSnakeCase(config.name)));
-        if (cfg.is_open()){
-            Toml::serializeTable(cfg, table.get());
-        }
-        cfg.close();
-        */
+        TOML.Table table = [("project", project), ("tasks", tasks)];
+
+        TOML.writeFile(Path.Combine(projectPath, $"{formatNameToSnakeCase(config.name)}.nlp"), table);
         File.WriteAllText(Path.Combine(projectPath, "LICENSE"), Licenses.getLicenseText(config));
     }
 
@@ -152,10 +145,8 @@ public static class CLI {
     }
 
     // Formats the input string to letters and underscores.
-    static string formatNameToSnakeCase(string input) {
-        return input.ToLower().Replace(' ', '_');
-    }
-
+    static string formatNameToSnakeCase(string input) => input.ToLower().Replace(' ', '_');
+    
     // Returns progress bar for CLI
     static void showProgressBar(string stepName, int step, int total) {
         int percentage = (step * 100) / total;
