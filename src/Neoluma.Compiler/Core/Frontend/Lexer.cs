@@ -45,8 +45,10 @@ public class Lexer {
             else if (c == '#') lexPreprocessor();
             else if (c == '@') lexDecorator();
             else {
+                int sl = line;
+                int sc = column;
                 string unknown = move().ToString();
-                Token tok = new(TokenType.Unknown, unknown, filePath, line, column);
+                Token tok = new(TokenType.Unknown, unknown, filePath, sl, sc);
                 
                 errorManager.addError(
                     SyntaxErrors.UnexpectedToken,
@@ -253,7 +255,6 @@ public class Lexer {
             move(); // '/'
             move(); // '/'
             while (!isAtEnd() && curChar() != '\n') move();
-            if (curChar() == '\n') move();
             return;
         }
 

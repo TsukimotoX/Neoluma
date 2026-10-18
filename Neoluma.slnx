@@ -4,5 +4,6 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Neoluma.Tests/Neoluma.Tests.csproj" />
+    <Project Path="tests/Neoluma.Frontend.Probe/Neoluma.Frontend.Probe.csproj" />
   </Folder>
 </Solution>

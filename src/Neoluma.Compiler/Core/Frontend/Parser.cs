@@ -1625,16 +1625,11 @@ public class Parser {
         while (!isAtEnd()) {
             while (isNextLine()) next();
 
-            if (match(Delimeters.RightBraces)) {
-                break;
-            }
+            if (match(Delimeters.RightBraces)) break;
 
             ASTNode? stmt = parseStatement();
-            if (stmt != null && match(Delimeters.RightBraces)) {
-                break;
-            }
-            if (stmt == null) {
 
+            if (stmt == null) {
                 while (!isAtEnd() && !isNextLine()) next();
 
                 int startPos = pos;
@@ -1800,7 +1795,7 @@ public class Parser {
                 RawTypeNode? rawType = parseType();
                 elements.Add(new InterfaceFieldNode(name, isNullable, false, rawType));
 
-                if (isNextLine()) next();
+                if (isNextLine()) while (isNextLine()) next();
                 else if (!match(Delimeters.RightBraces)) {
                     errorManager.addError(
                         SyntaxErrors.UnexpectedToken,
@@ -2105,7 +2100,7 @@ public class Parser {
             }
             next();
             string value = String.Empty;
-            while (!isNextLine()) {
+            while (!isAtEnd() && !isNextLine()) {
                 value += curToken().value;
                 next();
             }
