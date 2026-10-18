@@ -529,6 +529,7 @@ bool SemanticAnalysis::declareName(const std::string& name, Symbol symbol, ASTNo
             ErrorSpan{node ? node->filePath : "", name, node ? node->line : 0, node ? node->column : 0},
             "ErrorManager.Analysis.RedefinedVariable.message", {name},
             "ErrorManager.Analysis.RedefinedVariable.hint");
+       
         return false;
     }
 

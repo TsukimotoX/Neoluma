@@ -20,6 +20,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Neoluma.Compiler\Neoluma.Compiler.csproj" />
+    <ProjectReference Include="../Neoluma.Frontend.Probe/Neoluma.Frontend.Probe.csproj" ReferenceOutputAssembly="false" />
+    <Content Include="Frontend/Fixtures/**/*" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../../TestProject/**/*" Link="FrontendTestProject/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+
+  <Target Name="CopyFrontendProbe" AfterTargets="Build">
+    <ItemGroup>
+      <FrontendProbeFiles Include="$(MSBuildProjectDirectory)/../Neoluma.Frontend.Probe/bin/$(Configuration)/net10.0/**/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(FrontendProbeFiles)" DestinationFiles="@(FrontendProbeFiles->'$(OutDir)frontend-probe/%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>
